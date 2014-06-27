@@ -1,0 +1,239 @@
+{% extends "frontend/base.html" %}
+{% block content %}
+    {% if user.is_authenticated %}
+	  <div class="login-bar" style="width:112px;">
+       		<span class="span-bar"><a class="link-bar" href="/frontend/main">Area Riservata</a></span>
+    	</div>
+        <div class="signup-bar">
+            <span class="span-bar"><a id="logout" class="link-bar" href="/accounts/logout">Esci</a></span>
+
+        </div>
+    {% else %}
+    <div class="login-bar">
+       <span class="span-bar"><a id="auth" class="link-bar" href="#">Entra</a></span>
+
+    </div>
+    <div class="signup-bar">
+        <span class="span-bar"><a id="register" class="link-bar" href="#">Registrati</a></span>
+
+    </div>
+    {% endif %}
+
+    <!-- Carousel
+    ================================================== -->
+    <div id="myCarousel" class="carousel slide" data-ride="carousel">
+        <!-- Indicators -->
+        <ol class="carousel-indicators" style="display:none;">
+            <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
+            <li data-target="#myCarousel" data-slide-to="1"></li>
+        </ol>
+        <div class="carousel-inner">
+            <div class="item active" style="background: url('{{ STATIC_URL }}frontend/images/enerzona.png') no-repeat 0 0;background-color: #92BF2D;background-position: center;">
+
+                <div class="container">
+                    <div class="carousel-caption">
+                        <!-- ff -->
+                    </div>
+                </div>
+            </div>
+            <div class="item" style="background: url('{{ STATIC_URL }}frontend/images/logo-enervit-corporate.gif') no-repeat 0 0;background-color: #e40421;background-position: center;">
+
+                    <div class="carousel-caption">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <a  style="display:none;" class="left carousel-control" href="#myCarousel" data-slide="prev"><span class="glyphicon glyphicon-chevron-left"></span></a>
+        <a  style="display:none;" class="right carousel-control" href="#myCarousel" data-slide="next"><span class="glyphicon glyphicon-chevron-right"></span></a>
+    </div><!-- /.carousel -->
+
+
+
+    <!-- Marketing messaging and featurettes
+    ================================================== -->
+    <!-- Wrap the rest of the page in another container to center all the content. -->
+
+    <div class="container marketing">
+
+        <!-- START THE FEATURETTES -->
+
+       {% comment %} <hr class="featurette-divider"> {% endcomment %}
+        <div class="row featurette">
+            <div class="span12">
+                <h2 class="featurette-heading" style="margin-bottom: 40px;margin-top: 5px;">Prossimi Eventi</h2>
+                {% for ev in events %}
+                <div style="margin-bottom: 20px;">
+                    <p class="lead">{{ ev.date }} <span class="text-muted">{{ ev.title }}</span></p>
+                    <span style="display: block;font-style:italic">{{ ev.place }}</span>
+                    <p class="text-muted">{{ ev.description }}</p>
+
+                    <hr />
+                </div>
+                {% endfor %}
+            </div>
+            <span class="text-muted" style="margin-top: 20px;"><a href="#" id="auth2">Entra</a> o <a href="#" id="register2">Registrati</a> per Iscriverti agli eventi</span>
+        </div>
+
+       <hr class="featurette-divider">
+        <!-- /END THE FEATURETTES -->
+
+
+        <!-- FOOTER -->
+        <footer style="bottom:0">
+            <p class="text-center">&copy;Enervit {% now 'Y' %}, All rights reserved  P.IVA 02375690134</p>
+        </footer>
+
+    </div><!-- /.container -->
+
+
+    <!-- Register Form -->
+    <div class="wrap2" id="overlay_form2">
+        <a href="#" id="close3" ></a>
+        <h1>Registrati </h1>
+        <div class="divider2"> </div>
+        <form id="registration" class="form-contact2" action="/accounts/register/" method="post">
+            {% csrf_token %}
+            <table>
+
+                <tr>
+                    <td><input type="text" id="id_username" placeholder="Nome utente" name="username" /></td>
+                </tr>
+
+                <tr>
+                    <td><input type="text" id="id_email" placeholder="Email" name="email" /></td>
+                </tr>
+
+                <tr>
+                    <td><input type="password" id="id_password1" placeholder="Password" name="password1" /></td>
+                </tr>
+
+                <tr>
+                    <td><input type="password" id="id_password2" placeholder="Password (di nuovo)" name="password2" /></td>
+                </tr>
+
+                <tr>
+                    <td><input type="button" id="signup" class="submit2" value="Registrati" /></td>
+                </tr>
+            </table>
+        </form>
+    </div>
+    <div id="popi-bg2" style="height:100%;width:100%;position:fixed;top:0;left:0;z-index: 700;background-color: #808080"><!-- ff --></div>
+    <!-- Register Form End -->
+
+    <!-- Login Form -->
+    <div class="wrap2" id="overlay_form3">
+        <a href="#" id="close4" ></a>
+        <h1>Entra </h1>
+        <div class="divider2"> </div>
+        <form id="loginForm" class="form-contact2" action="/accounts/login/" method="post">
+            {% csrf_token %}
+            <table>
+                <tr>
+                    <td><input type="text" id="id_username" placeholder="Nome utente" name="username" /></td>
+                </tr>
+                <tr>
+                    <td><input type="password" id="id_password" placeholder="Password" name="password" /></td>
+                </tr>
+
+                <tr>
+                    <td><input type="submit" id="login" class="submit2" value="Login" /></td>
+                </tr>
+            </table>
+            <p>Password <a href="/accounts/password/reset/">dimenticata?</a></p>
+        </form>
+    </div>
+
+    <!-- Login Form End -->
+
+
+
+{% endblock %}
+{% block additionalscripts %}
+<script>
+
+    function validateEmail(email) {
+        var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        return re.test(email);
+    }
+
+    $(document).ready(function(){
+
+        $("#overlay_form2").css({
+            "position": "fixed",
+            "top": "20%",
+            "left": "50%",
+            "margin-left": "-100px",
+            "display":"none"
+        });
+
+        $("#overlay_form3").css({
+            "position": "fixed",
+            "top": "20%",
+            "left": "50%",
+            "margin-left": "-100px",
+            "display":"none"
+        });
+
+        $("#register").click(function(){
+            $("#err").remove();
+            $("#err").remove();
+            $("#msg").remove();
+            $("#overlay_form3").fadeOut(500);
+            $("#registration").show();
+            $("#overlay_form2").fadeIn(1000);
+            $("#popi-bg2").css({
+                "opacity": "0.7"
+            });
+            $("#popi-bg2").fadeIn("slow");
+        });
+        $("#close3").click(function(){
+            $("#overlay_form2").fadeOut(500);
+            $("#popi-bg2").fadeOut("slow");
+        });
+
+        $("#auth2").on("click",function(){
+           $("#auth").trigger("click");
+        });
+
+        $("#register2").on("click",function(){
+            $("#register").trigger("click");
+        });
+
+        $("#auth").click(function(){
+            $("#overlay_form2").fadeOut(500);
+            $("#loginForm").show();
+            $("#overlay_form3").fadeIn(1000);
+            $("#popi-bg2").css({
+                "opacity": "0.7"
+            });
+            $("#popi-bg2").fadeIn("slow");
+        });
+        $("#close4").click(function(){
+            $("#overlay_form3").fadeOut(500);
+            $("#popi-bg2").fadeOut("slow");
+        });
+
+
+
+
+        $('#signup').on("click",function(e){
+            $("#err").remove();
+            e.preventDefault();
+
+            if(!validateEmail($("#id_email").val())){
+                $(".divider2").before("<div id='err'>Inserire una mail valida</div>");
+            }else if($("#id_password1").val()!=$("#id_password2").val()){
+                $(".divider2").before("<div id='err'>I due campi password non coincidono</div>");
+            }else if(validateEmail($("#id_email").val()) && $("#id_password1").val()==$("#id_password2").val() ){
+                $.getJSON("/testuser?username="+$("#id_username").val(),function(data){
+                    if(data.value=="KO"){
+                        $(".divider2").before("<div id='err'>Username già presente</div>");
+                    }else if(data.value=="OK"){
+                         $("#registration").submit();
+                    }
+                });
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,105 @@
+{% load crowdsourcing %}
+<html>
+<head>
+  <title>Enervit | {{ survey.title }}</title>
+  {% include "admin/survey/header_tags.html" %}
+</head>
+<body>
+<div id="header">
+    <a href="http://www.enervit.com">
+        <img src="{{ STATIC_URL }}admin/images/logo-enervit-corporate.gif"  title="Enervit"/>
+    </a>
+</div>
+<h1>{{ survey.title }}</h1>
+<div id="description">
+    Ciao {{contact.name}},
+    {% thanks_for_entering request forms survey %}
+    <p>{% firstof survey.description survey.tease %} </p>
+</div>
+{% if forms %}
+  <form method="POST" id="survey-form" enctype="multipart/form-data" class="survey">
+    {% csrf_token %}
+    {% for form in forms %}
+      <div id='domanda-{{forloop.counter|add:"-1"}}'>
+      {%if forloop.counter > 1%}
+         <span style="font-weight: bold;">Domanda {{forloop.counter|add:"-1"}}</span>
+      {%endif%}
+      {{ form.as_p }}
+      </div>
+        <hr class="separator" />
+    {% endfor %}
+
+
+    <div id="lineeguida">
+    <p>
+        <label style="font-weight: bold;font-size: 22px;">Per accettazione delle <a href="javascript: void(0)" onclick="window.open('/static/lineeguida.html','Linee Guida', 'width=600, height=400'); return false;">linee guida</a>:</label>
+        <ul >
+        <li>
+            <label style="font-size: 21px;"><input id="accetto" name="accetto" type="radio" value="accetto"> Accetto</label>
+        </li>
+        </ul>
+    </p>
+   </div>
+
+    <hr class="separator" />
+    <input id="submit" type="submit" class="red" value="Invia risposte"/>
+  </form>
+{% endif %}
+
+<div id="footer">
+   <hr />
+   &copy;Enervit{% now "Y" %}, All rights reserved. P.IVA 02375690134 <img src="{{ STATIC_URL }}admin/images/certifications.png" alt="Certifications"></div>
+</div>
+<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+<script>
+
+    function _checkCompleteAnswers(){
+        var ul=$("ul");
+        for(var i=0;i<ul.length;i++){
+            var li = $(ul[i]).children("li").find("input");
+            var completed = false;
+            for(var j=0;j<li.length;j++){
+
+                if ($(li[j]).prop('checked')){
+                    completed = true;
+                }
+            }
+            if(completed == false){
+                $("div").css("border-style","none");
+                if($("#domanda-"+(i+1)).is(":visible")){
+                    alert("!!!Attenzione!!!\n\nNon risulta compilata la domanda: "+(i+1));
+                    $("#domanda-"+(i+1)).css({"border-style": "solid","border-color": "red","border-radius": "5px","border-spacing": "20px"});
+                    $('html, body').animate({
+                        scrollTop:  $("#domanda-"+(i+1)).offset().top
+                    }, 1000);
+                    return false;
+                }
+            }
+        }
+     return true;
+    }
+
+
+    $("form").on("submit",function(e){
+        var test = _checkCompleteAnswers();
+        if(test == true){
+            if ($("#accetto").prop("checked")) {
+                $("#survey-form").submit();
+                return;
+            } else {
+                alert("Attenzione!!!\n\nAccettare le linee guida!!");
+                $("#lineeguida").css({"border-style": "solid", "border-color": "red", "border-radius": "5px", "border-spacing": "20px"});
+                $('html, body').animate({
+                    scrollTop: $("#lineeguida").offset().top
+                }, 1000);
+                return false;
+            }
+        }
+        e.preventDefault();
+
+    });
+</script>
+
+
+</body>
+</html>

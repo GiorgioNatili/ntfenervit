@@ -1,0 +1,8 @@
+{% extends "admin/survey/base.html" %}
+{% load crowdsourcing %}
+
+{% block title %}{{ survey.title }}{% endblock %}
+
+{% block content %}
+  {% include "admin/survey/embeded_survey_report.html" %}
+{% endblock %}

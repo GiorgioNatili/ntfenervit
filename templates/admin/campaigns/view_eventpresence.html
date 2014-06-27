@@ -1,0 +1,180 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static bootstrapped_goodies_tags %}
+{% block icon-detail %}<i class="icon-ok"></i>{% endblock %}
+{% block content_title %}Evento del {{ signups.0.event.date|date:"d F Y" }} - {% if signups.0.event.title %}{{ signups.0.event.title }}{% else %} {{ signups.0.event.description }}{% endif %}{% endblock %}
+{% block content_subtitle %}<h5>Registro presenze</h5>{% endblock %}
+{% block object-tools %}
+    <ul class="object-tools form-inline pull-right inline">
+        <li>
+            <a href="/admin/campaigns/eventpresence/export/{{ signups.0.event.id}}" class="btn btn-green">
+                <i class="icon-download-alt icon-white"></i> Esporta XLS
+            </a>
+        </li>
+    </ul>
+
+{% endblock %}
+{% block content %}
+    <div class="container-fluid padded">
+
+        <div class="box">
+            <div class="box-content padded" style="text-align: center">
+                <div id="total" style="width:200px;height: 160px;display: inline-block;" data-title="Totale"></div>
+                <div id="staff" style="width:200px;height: 160px;display: inline-block;" data-title="Staff"></div>
+                <div id="omaggio" style="width:200px;height: 160px;display: inline-block;" data-title="Omaggio"></div>
+                <div id="pagante" style="width:200px;height: 160px;display: inline-block;" data-title="Pagante"></div>
+            </div>
+        </div>
+
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Registro presenze </span>
+                    </div>
+                    <div class="box-content">
+                        <div id="dataTables">
+
+                            <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
+                                <thead>
+                                <tr>
+                                    <th><div>Id</div></th>
+                                    <th><div>Nome Cognome</div></th>
+                                    <th><div>Email</div></th>
+                                    <th><div>Telefono</div></th>
+                                    <th><div>Indirizzo</div></th>
+                                    <th><div>Attributo</div></th>
+                                    <th>Presente</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+
+                                {% for signup in signups %}
+                                    <tr>
+                                        <td>{{ signup.id }}</td>
+                                        <td>{{ signup.contact.name |title}} {{ signup.contact.surname |title}}</td>
+                                        <td>{{ signup.contact.email }}</td>
+                                        <td>{{ signup.contact.phone_number }}</td>
+                                        <td>{{ signup.contact.street}} {{signup.contact.civic}}{% if signup.contact.city %}, {{signup.contact.city|title}} ({{signup.contact.province.code}}){% endif %}</td>
+                                        <td>{% if signup.staff %}
+                                            Staff
+                                        {% elif signup.omaggio %}
+                                            Omaggio {% if signup.note %}({{ signup.note }}){% endif %}
+                                        {% elif signup.pagante %}
+                                            Pagante
+                                        {% endif %}
+                                        </td>
+
+                                        <td><input name="presence" type="checkbox" value="" {% if signup.presence %}checked=checked{% endif %}/>
+
+                                        </td>
+                                    </tr>
+
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+        $(document).ready(function() {
+            var staff = new JustGage({
+                id: "staff",
+                value: {{ pstaff }},
+                min: 0,
+                max: {{ nstaff }},
+                title: "Staff",
+		labelFontColor: "black"
+            });
+
+            var total= new JustGage({
+                id: "total",
+                value: {{ ptotal }},
+                min: 0,
+                max: {{ total }},
+                title: "Presenze",
+		labelFontColor: "black"
+
+            });
+            var omaggio= new JustGage({
+                id: "omaggio",
+                value: {{ pomaggio }},
+                min: 0,
+                max: {{ nomaggio }},
+                title: "Omaggio",
+		labelFontColor: "black"
+
+            });
+            var pagante= new JustGage({
+                id: "pagante",
+                value: {{ ppagante }},
+                min: 0,
+                max: {{ npagante }},
+		labelFontColor: "black",
+                title: "Pagante"
+            });
+
+
+
+            $(".dTable2").dataTable({
+                bJQueryUI:!1
+                ,bAutoWidth:!1,
+                sPaginationType:"full_numbers",
+                sDom:'<"table-header"fl>t<"table-footer"ip>',
+                "oLanguage": {
+                    "sSearch":"Cerca",
+                    "sLengthMenu": "Mostra _MENU_ righe per pagina",
+                    "sZeroRecords": "Nessun risultato trovato",
+                    "sInfo": "Risultati da _START_ a _END_ di _TOTAL_ ",
+                    "sInfoEmpty": "Mostrati da 0 a 0 di 0 records",
+                    "sInfoFiltered": "(filtrati da _MAX_ records totali)",
+                    "oPaginate":{
+                        "sFirst":"Primo",
+                        "sLast":"Ultimo",
+                        "sNext":"Prossimo",
+                        "sPrevious":"Precedente"
+
+                    }
+                },
+                fnDrawCallback:function(){
+                    $('.dTable2 tbody tr').off('click');
+                    $('.dTable2 tbody tr').on('click', function () {
+                        var nTds = $('td', this);
+                        var signupID=$(nTds[0]).text();
+                        var presence= $(nTds[6]).children("input").is(":checked");
+                        $.getJSON(
+                                "/admin/campaigns/rest/eventpresence",
+                                {
+                                    signup : signupID,
+                                    presence: presence
+                                },
+                                function(data){
+                                    if(data.value=="OK"){
+                                        if(data.presence=="true"){
+                                            $(nTds[6]).children("input").attr('checked', true);
+                                        }else{
+                                            $(nTds[6]).children("input").attr('checked', false);
+                                        }
+                                        staff.refresh(data.pstaff)
+                                        omaggio.refresh(data.pomaggio)
+                                        pagante.refresh(data.ppagante)
+                                        total.refresh(data.ptotal)
+
+                                    }
+                                }
+                        );
+                    });
+                }
+            });
+
+            $(".active").removeClass("active");
+            $("#eventsMenu").addClass("active");
+
+
+
+        });
+    </script>
+{% endblock %}

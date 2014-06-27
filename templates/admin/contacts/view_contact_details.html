@@ -1,0 +1,625 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static bootstrapped_goodies_tags %}
+{% block icon-detail %}<i class="icon-book"></i>{% endblock %}
+{% block content_title %}Contatto{% endblock %}
+{% block content_subtitle %}<h5>visualizza e modifica gli attributi del contatto selezionato</h5>{% endblock %}
+{% block extrastyle %}
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDFh1lZtdBAwcyVuLmi-y14M-yfSB4i05Q&sensor=false&language=it"></script>
+    <style>
+        #map-canvas {
+            height: 100%;
+            margin: 0px;
+            padding: 0px
+        }
+        #map-canvas img {
+            max-width: none;
+        }
+    </style>
+{% endblock %}
+{% block content %}
+
+    <div class="container-fluid padded">
+        <div class="row-fluid">
+            <div class="span12">
+
+                <div class="box">
+                    <div class="box-header">
+
+                        <ul class="nav nav-tabs nav-tabs-left">
+                            <li id="contactTab" class="active"><a href="#" data-toggle="tab"><i class="icon-book"></i>Contatto</a></li>
+                            <li id="mapTab"><a href="#" data-toggle="tab"><i class="icon-map-marker"></i>Mappa</a></li>
+
+                        </ul>
+
+                        <ul class="box-toolbar">
+                            <li>
+                                <a href="#" id="hideDetails"><i class="icon-arrow-up"></i> Nascondi
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="box-content" id="mapDetails" style="display: none;">
+                        <div id="map-canvas"></div>
+                        <div class="row-fluid">
+                            <div class="span6">
+                                <form name="findRoute" action="">
+                                    <div class="row-fluid"> <!-- contenitore form -->
+                                        <!-- primo tab -->
+                                        <div class="span6">
+                                            <ul class="padded separate-sections">
+                                                <li><label><span style="font-weight: bold;">Calcola Percorso</span></label></li>
+                                                <li>
+                                                    <label>Indirizzo di Partenza</label>
+                                                    <input type="text" name="partenza" id="partenza" placeholder="Indirizzo di partenza" />
+
+                                                </li>
+                                                <li>
+                                                    <label>Indirizzo di Arrivo</label>
+                                                    <input type="text" name="arrivo" id="arrivo" placeholder="Indirizzo di arrivo" value="{{ contact.street }} {{ contact.civic }} {{ contact.city }}" />
+
+                                                </li>
+                                                <li>
+                                                    <button name="calcola" id="calcola" class="btn btn-blue">Calcola</button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="span6">
+                                <div id="route" style="background-color: #fff;padding: 5px;border: 1px solid #999;height: 100%;float: right;overflow: auto;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="box-content" id="contactDetails">
+                        <form class="fill-up validatable" enctype="multipart/form-data" method="post" id="contact_form">
+                            {% csrf_token %}
+                            {% if form.errors %}
+                                <div class="alert alert-error">
+                                    Correggi i seguenti errori:
+                                    <ul>
+                                        {% for field, errors in form.errors.items %}
+                                            {% for error in errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+
+                            <div class="row-fluid"> <!-- contenitore form -->
+                                <!-- primo tab -->
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>Anagrafica:</label>
+                                        </li>
+                                        <li class="input">
+                                            <input type="text" style="text-transform:capitalize;" name="name" class="validate[required]" data-prompt-position="topLeft" placeholder="Nome" value="{{ contact.name }}"/>
+                                        </li>
+                                        <li class="input">
+                                            <input type="text" style="text-transform:capitalize;" name="surname" class="validate[required]" data-prompt-position="topLeft" placeholder="Cognome" value="{{ contact.surname }}"/>
+                                        </li>
+                                        <li class="input">
+                                            <label style="display: inline;margin-right: 15px">Sesso:</label>
+                                            <select class="uniform" name="sex" value="{{contact.sex}}" >
+                                                <option value="m" selected="selected">Maschile</option>
+                                                <option value="f" >Femminile</option>
+                                                <option value="n" >Neutro</option>
+                                            </select>
+                                        </li>
+                                        <li class="input">
+
+                                            <input id="birthdate" type="text" name="birthdate" class="validate[required]" data-prompt-position="topLeft" placeholder="Data di nascita" value="{{ contact.birthdate|date:'d/m/Y'|default_if_none:"" }}"/>
+                                        </li>
+                                        <li>
+                                            <input type="text" id="code" name="code" class="validate[required]" data-prompt-position="topLeft" placeholder="Codice Fiscale" value="{{ contact.code|default_if_none:"" }}" disabled/>
+                                        </li>
+                                        <li>
+                                            <input type="text" id="email" name="email" class="validate[custom[email]]" placeholder="Email" value="{{ contact.email|default_if_none:""}}"/>
+                                        </li>
+                                        <li>
+                                            <input type="text" id="phone_number" name="phone_number" class="validate[custom[phone]]" placeholder="Telefono" value="{{ contact.phone_number|default_if_none:""}}"/>
+                                        </li>
+
+                                    </ul>
+                                </div>
+                                <!-- secondo tab -->
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>Indirizzo:</label>
+                                        </li>
+                                        <li>
+                                            <input type="text"  name="street" class="validate[required]" data-prompt-position="topLeft" placeholder="Via" value="{{ contact.street|default_if_none:"" }}"/>
+                                        </li>
+                                        <li>
+                                            <input type="text"  name="civic" class="validate[required,min[6]]" data-prompt-position="topLeft" placeholder="Civico" value="{{ contact.civic|default_if_none:"" }}"/>
+                                        </li>
+                                        <li>
+                                            <input type="text"  name="zip" class="validate[required,min[4]]" data-prompt-position="topLeft" placeholder="CAP" value="{{ contact.zip|default_if_none:"" }}"/>
+                                        </li>
+                                        <li>
+                                            <input type="text"  style="text-transform:capitalize;" name="city" class="validate[required]" data-prompt-position="topLeft" placeholder="Comune" value="{{ contact.city|default_if_none:"" }}"/>
+                                        </li>
+                                        <li>
+                                            <label>Provincia:</label>
+                                            <select class="chzn-select" name="province" >
+                                                {% for prov in provinces %}
+
+                                                    <option value="{{ prov.id }}" {% if prov.id == contact.province.id %} selected="selected"{% endif %}>{{ prov }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div> <!-- contenitore prima parte -->
+                            <div class="row-fluid"> <!-- contenitore seconda parte -->
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>Lavoro:</label>
+                                        </li>
+                                        <li>
+                                            <label>Azienda di appartenenza:</label>
+                                            <select class="chzn-select" name="company" >
+                                                <option value="" selected="selected">Nessuna</option>
+                                                {% for company in companies %}
+                                                    <option value="{{ company.name }}" {% if company.name == form.instance.company.name %} selected="selected"{% endif %}>{{ company }}</option>
+                                                {% endfor  %}
+                                            </select>
+                                        </li>
+                                        <label>Settore:</label>
+                                        <select id="sector" class="chzn-select" name="sector" >
+
+                                            {% for s in sectors %}
+                                                <option value="{{ s.id }}" {% if s.id == sector.id %} selected="selected"{% endif %}>{{ s }}</option>
+                                            {% endfor  %}
+                                        </select>
+                                        <li id="workLi">
+                                            <label>Professione:</label>
+                                            <select id="work" class="chzn-select" name="work" >
+                                                {% for w in works %}
+                                                    <option value="{{ w.id }}" {% if w.id == contact.work.id %} selected="selected"{% endif %}>{{ w }}</option>
+                                                {% endfor  %}
+                                            </select>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>Categoria contatto:</label>
+                                        </li>
+                                        <li>
+                                            <label>Divisione:</label>
+                                            <select id="division" class="chzn-select" name="division" >
+
+                                                {% for division in divisions %}
+                                                    <option value="{{ division.id }}" {% if division.id == ana_division.id %} selected="selected"{% endif %}>{{ division }}</option>
+                                                {% endfor  %}
+                                            </select>
+                                        </li>
+                                        <li id="subdivisionLi">
+                                            <label>Sottocategoria:</label>
+                                            <select id="subdivision" class="chzn-select" name="anagrafic_subdivision" >
+                                                {% for subdivision in subdivisions %}
+                                                    <option value="{{ subdivision.id }}" {% if subdivision.id == contact.anagrafic_subdivision.all.0.id %} selected="selected"{% endif %}>{{ subdivision }}</option>
+                                                {% endfor  %}
+                                            </select>
+                                        </li>
+                                        <li>
+                                            <label>Rank di importanza aziendale</label>
+                                            <input type="text"  name="company_ranking" class="validate[required,custom[integer]" data-prompt-position="topLeft" placeholder="Rank di importanza aziendale" value="{{ contact.company_ranking }}"/>
+
+                                        </li>
+                                        <li>
+                                            <label>Rank di partecipazione</label>
+                                            <input type="text"  name="participation_ranking" class="validate[required,custom[integer]" data-prompt-position="topLeft" placeholder="Rank di partecipazione" value="{{ contact.participation_ranking }}"/>
+
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div><!-- contenitore seconda parte -->
+                            <div class="row-fluid">
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+
+                                        {% if contact.owner %}
+                                            <li>
+                                                <label>Utente registrato</label>
+                                                <a style="font-weight: bold;" href="/admin/backend/utenti/details/{{contact.owner.id}}">{{ contact.owner }}</a>
+                                            </li>
+                                        {% endif %}
+                                        <li>
+                                            <label style="display: inline;margin-right: 15px">Stato:</label>
+                                            <select class="uniform" name="status" >
+                                                <option value="I" {% if contact.status == 'I' %}selected="selected"{% endif %}>Inerte</option>
+                                                <option value="A" {% if contact.status == 'A' %}selected="selected"{% endif %}>Attivo</option>
+                                                <option value="N" {% if contact.status == 'N' %}selected="selected"{% endif %}>Non Attivo</option>
+                                                <option value="C" {% if contact.status == 'C' %}selected="selected"{% endif %}>Cancellato</option>
+                                                <option value="D" {% if contact.status == 'D' %}selected="selected"{% endif %}>Non Interessato</option>
+                                            </select>
+                                        </li>
+
+                                        <li>
+                                            <label style="display: inline;margin-right: 15px">Consenso privacy:</label>
+                                            <select class="uniform" name="privacy_consensus" >
+                                                <option value="true" {% if contact.privacy_consensus == True %}selected="selected"{% endif %}>Fornito</option>
+                                                <option value="false"{% if contact.privacy_consensus == False %}selected="selected"{% endif %} >Non fornito</option>
+
+                                            </select>
+                                        </li>
+
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <input type="hidden" id="code" name="code" value="{{ contact.code|default_if_none:"" }}" />
+                                <button type="submit" name="_save" class="btn btn-blue">Salva</button>
+                                <button type="submit" name="_addanother" class="btn btn-green">Salva e aggiungi un altro</button>
+                            </div>
+                        </form>
+                    </div>
+                </div> <!-- end box -->
+            </div> <!-- span 12 -->
+        </div><!-- row fluid -->
+    </div>
+    <div class="container-fluid padded" id="history">
+        <div class="box">
+            <div class="box-header">
+                <span class="title">Storia</span>
+            </div>
+
+        <div class="row-fluid" style="margin-top: 20px;">
+            <div class="span6">
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Destinatario newsletter</span>
+                    </div>
+                    <div class="box-content">
+                        <div id="newsletterDataTables">
+                            <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
+                                <thead>
+                                <tr>
+                                    <th>
+                                        <div>Id</div>
+                                    </th>
+                                    <th>
+                                        <div>Denominazione</div>
+                                    </th>
+                                    <th>
+                                        <div>Campagna</div>
+                                    </th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for nl in newsletter_target %}
+                                    <tr>
+                                        <td>{{ nl.newsletter.id }}</td>
+                                        <td>{{ nl.newsletter.name }}</td>
+                                        <td>{{ nl.newsletter.campaign }}</td>
+
+                                    </tr>
+
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="span6">
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Eventi</span>
+                    </div>
+                    <div class="box-content">
+                        <div id="dataTables">
+                            <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
+                                <thead>
+                                <tr>
+                                    <th>
+                                        <div>Id</div>
+                                    </th>
+                                    <th>
+                                        <div>Data</div>
+                                    </th>
+                                    <th>
+                                        <div>Descrizione</div>
+                                    </th>
+                                    <th>
+                                        <div>Attributo</div>
+                                    </th>
+                                    <th>
+                                        <div>Presente</div>
+                                    </th>
+
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for event in event_signup %}
+                                    <tr>
+                                        <td>{{ event.event.id }}</td>
+                                        <td>{{ event.event.date|date:"d-m-Y" }}</td>
+                                        <td>{% if event.event.title %}{{ event.event.title }}{% else %}{{ event.event.description }}{% endif %}</td>
+                                        <td>{% if event.staff %}
+                                            Staff
+                                        {% elif event.omaggio %}
+                                            Omaggio {% if event.note %}({{ event.note }}){% endif %}
+                                        {% elif event.pagante %}
+                                            Pagante
+                                        {% endif %}
+                                        </td>
+                                        <td>{{ event.presence|yesno:"Si,No"  }}</td>
+                                    </tr>
+
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row-fluid">
+                  <div class="span6">
+                      <div class="box">
+                          <div class="box-header">
+                              <span class="title">Sottomissioni questionari</span>
+                          </div>
+                          <div class="box-content">
+                              <div id="submissionDataTables">
+                                  <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
+                                      <thead>
+                                      <tr>
+                                          <th>
+                                              <div>Id</div>
+                                          </th>
+                                          <th>
+                                              <div>Questionario</div>
+                                          </th>
+                                          <th>
+                                              <div>Risposto il</div>
+                                          </th>
+                                          <th>
+                                              <div>Punteggio</div>
+                                          </th>
+                                          <th>
+                                              <div>&nbsp;</div>
+                                          </th>
+                                      </tr>
+                                      </thead>
+                                      <tbody>
+                                      {% for nl in submissions %}
+                                          <tr>
+                                              <td>{{ nl.survey.id }}</td>
+                                              <td>{{ nl.survey.title }}</td>
+                                              <td>{{ nl.submitted_at|date:"d-m-Y H:i" }}</td>
+                                              <td>{{ nl.score }} / {{ nl.total_score }}</td>
+                                              <td><a href="/admin/survey/report/details/{{ nl.id }}"><i
+                                                      class="icon-tasks"></i></a></td>
+                                          </tr>
+
+                                      {% endfor %}
+                                      </tbody>
+                                  </table>
+                              </div>
+                          </div>
+                      </div>
+              </div>
+        </div>
+
+    </div>
+
+    <script>
+        $(function() {
+
+
+            $("#mapDetails").width($("#contactDetails").width());
+            $("#mapDetails").height($("#contactDetails").height()/2);
+            $("#map-canvas").width($("#contactDetails").width());
+            $("#map-canvas").height($("#contactDetails").height()/2);
+
+            var mapOptions = {
+                center: new google.maps.LatLng( 45.465454, 9.186516),
+                zoom: 9,
+                mapTypeControl: true,
+                mapTypeControlOptions: {style: google.maps.MapTypeControlStyle.DROPDOWN_MENU},
+                navigationControl: true,
+                mapTypeId: google.maps.MapTypeId.ROADMAP
+            };
+            var map = new google.maps.Map(document.getElementById('map-canvas'),mapOptions);
+
+            var city="{{ contact.city }}";
+            var address="{{ contact.street }}, {{ contact.city }} Italy";
+
+            var directionsService = new google.maps.DirectionsService();
+            var directionsDisplay= new google.maps.DirectionsRenderer();;
+            directionsDisplay.setMap(map);
+            directionsDisplay.setPanel(document.getElementById('route'));
+
+            $("#calcola").on("click",function(e){
+                e.preventDefault();
+                if(address!="" && city!=""){
+                    if($("#partenza").val()!="" && $("#arrivo").val()!=""){
+                        getRoute();
+                    }else{
+                        alert("Inserire indirizzo di partenza e arrivo!!!");
+                    }
+                }else{
+                    alert("Non è possibile calcolare il percorso: Non esiste l'indirizzo del contatto!!!");
+                }
+            });
+
+            function getRoute(){
+                var request = {
+                    origin:$("#partenza").val(),
+                    destination:$("#arrivo").val(),
+                    travelMode: google.maps.TravelMode.DRIVING
+                };
+                directionsService.route(request, function(result, status) {
+                    if (status == google.maps.DirectionsStatus.OK) {
+                        directionsDisplay.setDirections(result);
+                    }
+                });
+            }
+
+            $(document).on("ready",function(){
+               $("#contactTab").addClass("active");
+               $("#mapTab").removeClass("active");
+
+
+               google.maps.visualRefresh = true;
+
+           });
+
+            $("#contactTab").on("click",function(e){
+                $("#contactTab").addClass("active");
+                $("#mapTab").removeClass("active");
+                $("#mapDetails").hide();
+                $("#contactDetails").show();
+                $("#hideDetails").show();
+                $("#history").show();
+            });
+
+            $("#mapTab").on("click",function(e){
+                $("#mapTab").addClass("active");
+                $("#contactTab").removeClass("active");
+                $("#mapDetails").show();
+                $("#contactDetails").hide();
+                $("#hideDetails").hide();
+                $("#history").hide();
+
+                if(address!="" && city!=""){
+                    geocoder = new google.maps.Geocoder();
+                    geocoder.geocode({
+                        'address': address
+                    }, function(results, status) {
+                        if (status == google.maps.GeocoderStatus.OK) {
+                            var marker = new google.maps.Marker({
+                                map: map,
+                                position: results[0].geometry.location
+                            });
+                            map.panTo(marker.getPosition());
+                            map.setZoom(15);
+                        }
+                    });
+                }else{
+                    map.panTo(new google.maps.LatLng( 45.465454, 9.186516));
+                    map.setZoom(9);
+                }
+                google.maps.event.trigger(map, 'resize');
+            });
+
+            $("#birthdate" ).datepicker({"language":"it","format":"dd/mm/yyyy"});
+
+            $("#sector").on("change",function(){
+                console.log("SELECTED: "+$("#sector").val());
+                var sector = $("#sector").val();
+                if(sector == -1){
+                    $("#work option").remove();
+                    $("#work").html('<option value="-1"> Selezionare prima il Settore </option>');
+                }
+                $.getJSON(
+                        "/admin/contacts/rest/work",
+                        {
+                            sector : sector
+                        },
+                        function(data){
+                            $("#work").prop('disabled', false);
+                            $("#work option").remove();
+                            $("#workLi").find("span").text("---");
+                            var html='';
+                            $.each(data,function(i,opt){
+                                html+="<option value='"+opt.pk+"'";
+                                if(i==0){
+                                    html+="selected='selected'";
+                                }
+                                html+=">"+opt.fields.name+"</opt>";
+                            });
+                            $("#work").append(html);
+
+                        }
+                );
+
+            });
+
+
+            $("#division").on("change",function(){
+                var sector = $("#division").val();
+                if(sector == -1){
+                    $("#subdivision option").remove();
+                    $("#subdivision").html('<option value="-1"> Selezionare prima la Divisione </option>');
+                }
+                $.getJSON(
+                        "/admin/contacts/rest/subdivision",
+                        {
+                            division : sector
+                        },
+                        function(data){
+                            $("#subdivision").prop('disabled', false);
+                            $("#subdivision option").remove();
+                            $("#subdivisionLi").find("span").text("---");
+                            var html='';
+                            $.each(data,function(i,opt){
+                                html+="<option value='"+opt.pk+"'";
+                                if(i==0){
+                                    html+="selected='selected'";
+                                }
+                                html+=">"+opt.fields.name+"</opt>";
+                            });
+                            $("#subdivision").append(html);
+
+                        }
+                );
+
+            });
+
+            $("#code").on("keyup",function(e){
+                $("#code").val($("#code").val().toUpperCase());
+            });
+            $("#email").on("keyup",function(e){
+                $("#email").val($("#email").val().toLowerCase());
+            });
+
+            $(".active").removeClass("active");
+            $("#contactsMenu").addClass("active");
+
+            $(".dTable2").dataTable({
+                bJQueryUI: !1, bAutoWidth: !1,
+                sPaginationType: "full_numbers",
+                sDom: '<"table-header"fl>t<"table-footer"ip>',
+                "oLanguage": {
+                    "sSearch": "Cerca",
+                    "sLengthMenu": "Mostra _MENU_ righe per pagina",
+                    "sZeroRecords": "Nessun risultato trovato",
+                    "sInfo": "Risultati da _START_ a _END_ di _TOTAL_ ",
+                    "sInfoEmpty": "Mostrati da 0 a 0 di 0 records",
+                    "sInfoFiltered": "(filtrati da _MAX_ records totali)",
+                    "oPaginate": {
+                        "sFirst": "Primo",
+                        "sLast": "Ultimo",
+                        "sNext": "Prossimo",
+                        "sPrevious": "Precedente"
+
+                    }
+                }
+            });
+
+            $("#hideDetails").on("click",function(e){
+                e.preventDefault();
+                if($("#contactDetails").is(":visible")){
+                    $("#contactDetails").hide();
+                    $("#hideDetails").html('<i class="icon-arrow-down"></i> Mostra')
+                }else{
+                    $("#contactDetails").show();
+                    $("#hideDetails").html('<i class="icon-arrow-up"></i> Nascondi')
+                }
+            });
+
+        });
+    </script>
+{% endblock %}

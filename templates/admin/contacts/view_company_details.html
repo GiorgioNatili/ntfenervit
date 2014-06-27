@@ -1,0 +1,93 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static bootstrapped_goodies_tags %}
+{% block icon-detail %}<i class="icon-building"></i>{% endblock %}
+{% block content_title %}Azienda{% endblock %}
+{% block content_subtitle %}<h5>visualizza e modifica gli attributi dell'azienda selezionata</h5>{% endblock %}
+{% block content %}
+
+    <div class="container-fluid padded">
+        <div class="row-fluid">
+            <div class="span12">
+
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Azienda: {{ company.name }}</span>
+
+                    </div>
+                    <div class="box-content">
+                        <form class="fill-up validatable" enctype="multipart/form-data" method="post" id="company_form">
+                            {% csrf_token %}
+                            {% if form.errors %}
+                                <div class="alert alert-error">
+                                    Correggi i seguenti errori:
+                                    <ul>
+                                        {% for field, errors in form.errors.items %}
+                                            {% for error in errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+                            <div class="row-fluid"> <!-- contenitore form -->
+                                <!-- primo tab -->
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>Anagrafica:</label>
+                                        </li>
+                                        <li class="input">
+                                            <input type="text" name="name" class="validate[required]" data-prompt-position="topLeft" placeholder="Denominazione" value="{{ company.name }}"/>
+                                        </li>
+                                        <li>
+                                            <input type="text"  name="vat" class="validate[required]" data-prompt-position="topLeft" placeholder="P.Iva" value="{{ company.vat }}"/>
+                                        </li>
+                                        <li>
+                                            <input type="text"  name="email" class="validate[custom[email]]" placeholder="Email" value="{{ company.email|default_if_none:""}}"/>
+                                        </li>
+
+                                    </ul>
+                                </div>
+                                <!-- secondo tab -->
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>Indirizzo:</label>
+                                        </li>
+                                        <li>
+                                            <input type="text"  name="street" class="validate[required]" data-prompt-position="topLeft" placeholder="Via" value="{{ company.street|default_if_none:"" }}"/>
+                                        </li>
+                                        <li>
+                                            <input type="text"  name="civic" class="validate[required,,min[6]]" data-prompt-position="topLeft" placeholder="Civico" value="{{ company.civic|default_if_none:"" }}"/>
+                                        </li>
+                                        <li>
+                                            <input type="text"  name="city" class="validate[required]" data-prompt-position="topLeft" placeholder="Comune" value="{{ company.city|default_if_none:"" }}"/>
+                                        </li>
+                                        <li>
+                                            <label>Provincia:</label>
+                                            <select class="chzn-select" name="province" >
+                                                {% for prov in provinces %}
+
+                                                    <option value="{{ prov.id }}" {% if prov.id == company.province.id %} selected="selected"{% endif %}>{{ prov }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div> <!-- contenitore form -->
+
+                            <div class="form-actions">
+                                <button type="submit" name="_save" class="btn btn-green ">Modifica</button>
+                                <a  href="delete/" name="delete" class="btn btn-red pull-right">Cancella</a>
+                            </div>
+                        </form>
+                    </div>
+                </div> <!-- end box -->
+            </div> <!-- span 12 -->
+        </div><!-- row fluid -->
+    </div>
+
+
+
+{% endblock %}

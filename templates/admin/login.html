@@ -1,0 +1,83 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static %}
+{% load url from future %}
+{% block navbar %}{% endblock %}
+{% block other-menu %}{% endblock %}
+{% block other-menu2 %}{% endblock %}
+{% block breadcrumbs %}{% endblock %}
+{% block extrastyle %}
+<style type="text/css">
+.main-content{margin-left: 0px!important;}
+</style>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+
+        <div class="span4 offset4">
+
+            <div class="padded">
+                <div class="login box" style="margin-top: 80px;">
+
+                    <div class="box-header">
+                        <span class="title">Login</span>
+                    </div>
+
+                    <div class="box-content padded">
+                        {% if form.errors and not form.non_field_errors and not form.this_is_the_login_form.errors %}
+                            <div class="alert alert-error">
+                                {% blocktrans count counter=form.errors.items|length %}Please correct the error below.{% plural %}Please correct the errors below.{% endblocktrans %}
+                            </div>
+                        {% endif %}
+                        {% if form.non_field_errors or form.this_is_the_login_form.errors %}
+                            {% for error in form.non_field_errors|add:form.this_is_the_login_form.errors %}
+                                <div class="alert alert-error">
+                                    {{ error }}
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                        <form class="separate-sections" action="{{ app_path }}" method="post" id="login-form">{% csrf_token %}
+                            <div class="input-prepend">
+                              <span class="add-on" href="#">
+                                <i class="icon-user"></i>
+                              </span>
+                                <input name="username" type="text" placeholder="username">
+                            </div>
+
+                            <div class="input-prepend">
+                              <span class="add-on" href="#">
+                                <i class="icon-key"></i>
+                              </span>
+                                <input name="password" type="password" placeholder="password">
+                                <input type="hidden" name="this_is_the_login_form" value="1" />
+                                <input type="hidden" name="next" value="{{ next }}" />
+                            </div>
+
+                            <div>
+                                <a class="btn btn-blue btn-block" name="submit" onclick="$('#login-form').submit();">
+                                    Login <i class="icon-signin"></i>
+                                </a>
+                            </div>
+
+                        </form>
+
+
+                    </div>
+
+                </div>
+
+
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('#id_username').attr('autocapitalize', 'off').focus();
+            $("#login-form").on("keypress",function(key){
+               if(key.which==13){
+                   $("#login-form").submit();
+               }
+            });
+        })
+    </script>
+{% endblock %}

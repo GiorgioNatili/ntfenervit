@@ -1,0 +1,182 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static bootstrapped_goodies_tags %}
+{% block icon-detail %}<i class="icon-search"></i>{% endblock %}
+{% block content_title %}Contatti{% endblock %}
+{% block content_subtitle %}<h5>ricerca di tutti i Contatti gestiti dal sistema</h5>{% endblock %}
+{% block object-tools %}{% endblock %}
+{% block content %}
+
+    <div class="container-fluid padded">
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Ricerca Contatti</span>
+                    </div>
+                    <div class="box-content">
+                        <form class="fill-up validatable" enctype="multipart/form-data" method="get" id="contact_form">
+                            {% csrf_token %}
+                            <ul class="padded separate-sections">
+                                <li class="input">
+                                    <label>Testo Libero</label>
+                                    <input type="text" style="text-transform:capitalize;margin-left: auto;" name="q"  data-prompt-position="topLeft" placeholder="Ricerca Libera" value="{{ form.instance.title |default_if_none:"" }}"/>
+                                </li>
+                            </ul>
+                            <div class="row-fluid">
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li class="input">
+                                            <input type="text" style="text-transform:capitalize;" name="name"  data-prompt-position="topLeft" placeholder="Nome" value="{{ form.name.value|default_if_none:"" }}"/>
+                                        </li>
+                                        <li class="input">
+                                            <input type="text" style="text-transform:capitalize;" name="city"  data-prompt-position="topLeft" placeholder="Città" value="{{ form.city.value|default_if_none:"" }}"/>
+                                        </li>
+                                        <li>
+                                            <label>Provincia:</label>
+                                            <select class="chzn-select" name="province" >
+                                                <option value="">---</option>
+                                                {% for prov in provinces %}
+                                                    <option value="{{ prov }}" {% if prov.name == form.province.value %} selected="selected"{% endif %}>{{ prov }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </li>
+                                        <li>
+                                            <label>Status:</label>
+                                            <select class="uniform" name="st" >
+                                                <option value="">---</option>
+                                                <option value="Inerte"">Inerte</option>
+                                                <option value="Attivo" >Attivo</option>
+                                                <option value="Non Attivo" >Non Attivo</option>
+                                                <option value="Cancellato" >Cancellato</option>
+                                                <option value="Non Interessato" >Non Interessato</option>
+                                            </select>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li class="input">
+                                            <input type="text" style="text-transform:capitalize;" name="surname"  data-prompt-position="topLeft" placeholder="Cognome" value="{{ form.surname.value|default_if_none:"" }}"/>
+                                        </li>
+                                        <li class="input">
+                                            <input type="text" style="text-transform:capitalize;" name="street"  data-prompt-position="topLeft" placeholder="Indirizzo" value="{{ form.street.value|default_if_none:"" }}"/>
+                                        </li>
+                                        <li class="input">
+                                            <input type="text" style="text-transform:capitalize;" name="zip"  data-prompt-position="topLeft" placeholder="Codice Postale" value="{{ form.zip.value|default_if_none:"" }}"/>
+                                        </li>
+                                        <li>
+                                            <label>Lavoro:</label>
+
+                                            <select class="chzn-select" name="work" >
+                                                <option value="">---</option>
+                                                {% for w in works %}
+                                                    <option value="{{ w }}" {% if w.name == form.work.value %}selected="selected"{% endif %}>{{ w }}</option>
+                                                {% endfor %}
+                                            </select>
+
+                                        </li>
+                                        <li>
+                                            <label>Numero di risultati:</label>
+                                            <select class="uniform" name="max_results" >
+                                                <option value="10">10</option>
+                                                <option value="20">20</option>
+                                                <option value="50">50</option>
+                                                <option value="100">100</option>
+                                                <option value="500">500</option>
+                                                <option value="10000" >Tutti</option>
+                                            </select>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-blue">Cerca</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+         </div>
+    </div>
+
+    <div class="container-fluid padded">
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Risultati</span>
+                        <ul class="object-tools form-inline pull-right inline">
+                            <li>
+                                <a href="#" id="export" class="btn btn-green">
+                                    <i class="icon-download icon-white"></i> Esporta
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="box-content">
+                        <div id="dataTables">
+                            <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
+                                <thead>
+                                <tr>
+                                    <th><div>Nome Cognome</div></th>
+                                    <th><div>Email</div></th>
+                                    <th><div>Telefono</div></th>
+                                    <th><div>Indirizzo</div></th>
+                                    <th>&nbsp;</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for contact in contacts %}
+                                    <tr>
+                                        <td>{% if contact.owner %}<i class="icon-user"></i> {% endif %}{{ contact.name |title}} {{ contact.surname |title}}</td>
+                                        <td>{{ contact.email }}</td>
+                                        <td>{{ contact.phone_number }}</td>
+                                        <td>{{ contact.street}} {{contact.civic}}, {{contact.city|title}} ({{contact.province.code}})</td>
+                                        <td><a href="/admin/contacts/contact/{{contact.code}}" target="_blank"><i class="icon-tasks"></i></a></td>
+                                    </tr>
+
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $(".dTable2").dataTable({
+                bJQueryUI:!1
+                ,bAutoWidth:!1,
+                sPaginationType:"full_numbers",
+                sDom:'<"table-header"fl>t<"table-footer"ip>',
+                "oLanguage": {
+                    "sSearch":"Cerca",
+                    "sLengthMenu": "Mostra _MENU_ righe per pagina",
+                    "sZeroRecords": "Nessun risultato trovato",
+                    "sInfo": "Risultati da _START_ a _END_ di _TOTAL_ ",
+                    "sInfoEmpty": "Mostrati da 0 a 0 di 0 records",
+                    "sInfoFiltered": "(filtrati da _MAX_ records totali)",
+                    "oPaginate":{
+                        "sFirst":"Primo",
+                        "sLast":"Ultimo",
+                        "sNext":"Prossimo",
+                        "sPrevious":"Precedente"
+
+                    }
+                }
+            });
+
+            $("#export").on("click",function(){
+                window.location.href ="/admin/search/contactexport?"+  $("#contact_form").serialize();
+
+            });
+
+            $(".active").removeClass("active");
+            $("#searchMenu").addClass("active");
+        });
+    </script>
+
+{% endblock %}

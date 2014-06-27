@@ -1,0 +1,175 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static bootstrapped_goodies_tags %}
+{% block icon-detail %}<i class="icon-bullseye"></i>{% endblock %}
+{% block content_title %}Campagne{% endblock %}
+{% block content_subtitle %}<h5>ricerca di tutte le Campagne gestite dal sistema</h5>{% endblock %}
+{% block object-tools %}{% endblock %}
+{% block content %}
+
+    <div class="container-fluid padded">
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Ricerca Campagne</span>
+                    </div>
+                    <div class="box-content">
+                        <form class="fill-up validatable" enctype="multipart/form-data" method="get" id="contact_form">
+                            {% csrf_token %}
+                            <ul class="padded separate-sections">
+                                <li class="input">
+                                    <label>Testo Libero</label>
+                                    <input type="text" style="text-transform:capitalize;margin-left: auto;" name="q"  data-prompt-position="topLeft" placeholder="Ricerca Libera" value="{{ form.instance.title |default_if_none:"" }}"/>
+                                </li>
+                            </ul>
+                            <div class="row-fluid">
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li class="input">
+                                            <input type="text" style="text-transform:capitalize;" name="name"  data-prompt-position="topLeft" placeholder="Nome" value="{{ form.name.value|default_if_none:"" }}"/>
+                                        </li>
+                                        <li class="input">
+                                            <input type="text" style="text-transform:capitalize;" name="description"  data-prompt-position="topLeft" placeholder="Descrizione" value="{{ form.description.value|default_if_none:"" }}"/>
+                                        </li>
+
+                                        <li>
+                                            <label>Status:</label>
+                                            <select class="uniform" name="status" >
+                                                <option value="">---</option>
+                                                <option value="Attiva">Attiva</option>
+                                                <option value="Non Attiva" >Non Attiva</option>
+                                                <option value="Conclusa" >Conclusa</option>
+                                                <option value="Cancellata" >Cancellata</option>
+                                            </select>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li class="input">
+                                            <input type="text" id="stardate" style="text-transform:capitalize;" name="startdate"  data-prompt-position="topLeft" placeholder="Data di Inizio" value="{{ form.startdate.value|default_if_none:"" }}"/>
+                                        </li>
+                                        <li class="input">
+                                            <input type="text" id="enddate" style="text-transform:capitalize;" name="enddate"  data-prompt-position="topLeft" placeholder="Data di Fine" value="{{ form.enddate.value|default_if_none:"" }}"/>
+                                        </li>
+
+
+                                        <li>
+                                            <label>Numero di risultati:</label>
+                                            <select class="uniform" name="max_results" >
+                                                <option value="10">10</option>
+                                                <option value="20">20</option>
+                                                <option value="50">50</option>
+                                                <option value="100">100</option>
+                                                <option value="500">500</option>
+                                                <option value="10000" >Tutti</option>
+                                            </select>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-blue">Cerca</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid padded">
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Risultati</span>
+                        <ul class="object-tools form-inline pull-right inline">
+                            <li>
+                                <a href="#" id="export" class="btn btn-green">
+                                    <i class="icon-download icon-white"></i> Esporta
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="box-content">
+                        <div id="dataTables">
+                            <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
+                                <thead>
+                                <tr>
+                                    <th><div>Denominazione</div></th>
+                                    <th><div>Data di Inizio</div></th>
+                                    <th><div>Data di Fine</div></th>
+                                    <th><div>Stato</div></th>
+                                    <th>&nbsp;</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for campaign in campaigns %}
+                                    <tr>
+
+                                        <td>{{ campaign.name }}</td>
+                                        <td>{{ campaign.startdate }}</td>
+                                        <td>{{ campaign.enddate }}</td>
+                                        <td>
+                                            {% if campaign.status == 'A' %} Attiva {% endif %}
+                                            {% if campaign.status == 'N' %} Non Attiva {% endif %}
+                                            {% if campaign.status == 'C' %} Conclusa {% endif %}
+                                            {% if campaign.status == 'D' %} Cancellata {% endif %}
+                                        </td>
+                                        <td><a href="/admin/campaigns/campaign/{{campaign.id}}" target="_blank"><i class="icon-tasks"></i></a></td>
+                                    </tr>
+
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+
+            var start=$("#startdate" ).datepicker({"language":"it","format":"dd/mm/yyyy"
+            }).on("changeDate",function(dt){
+                $("#enddate").datepicker('setStartDate', dt.date);
+            });
+            var end=$("#enddate" ).datepicker({"language":"it","format":"dd/mm/yyyy",
+            });
+
+            $(".dTable2").dataTable({
+                bJQueryUI:!1
+                ,bAutoWidth:!1,
+                sPaginationType:"full_numbers",
+                sDom:'<"table-header"fl>t<"table-footer"ip>',
+                "oLanguage": {
+                    "sSearch":"Cerca",
+                    "sLengthMenu": "Mostra _MENU_ righe per pagina",
+                    "sZeroRecords": "Nessun risultato trovato",
+                    "sInfo": "Risultati da _START_ a _END_ di _TOTAL_ ",
+                    "sInfoEmpty": "Mostrati da 0 a 0 di 0 records",
+                    "sInfoFiltered": "(filtrati da _MAX_ records totali)",
+                    "oPaginate":{
+                        "sFirst":"Primo",
+                        "sLast":"Ultimo",
+                        "sNext":"Prossimo",
+                        "sPrevious":"Precedente"
+
+                    }
+                }
+            });
+
+            $("#export").on("click",function(){
+                window.location.href ="/admin/search/campaignexport?"+  $("#contact_form").serialize();
+
+            });
+
+            $(".active").removeClass("active");
+            $("#searchMenu").addClass("active");
+        });
+    </script>
+
+{% endblock %}

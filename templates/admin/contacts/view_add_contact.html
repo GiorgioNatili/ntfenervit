@@ -1,0 +1,298 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static bootstrapped_goodies_tags %}
+{% block icon-detail %}<i class="icon-plus-sign-alt"></i>{% endblock %}
+{% block content_title %}Nuovo Contatto{% endblock %}
+{% block content_subtitle %}<h5>aggiungi un nuovo contatto compilando il seguente form</h5>{% endblock %}
+{% block content %}
+
+    <div class="container-fluid padded">
+        <div class="row-fluid">
+            <div class="span12">
+
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Contatto</span>
+                    </div>
+                    <div class="box-content">
+                        <form class="fill-up validatable" enctype="multipart/form-data" method="post" id="contact_form">
+                            {% csrf_token %}
+                            {% if form.errors %}
+                                <div class="alert alert-error">
+                                    Correggi i seguenti errori:
+                                    <ul>
+                                        {% for field, errors in form.errors.items %}
+                                            {% for error in errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+
+                            <div class="row-fluid"> <!-- contenitore form -->
+                                <!-- primo tab -->
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>Anagrafica:</label>
+                                        </li>
+                                        <li class="input">
+                                            <input type="text" style="text-transform:capitalize;" name="name" class="validate[required]" data-prompt-position="topLeft" placeholder="Nome" value="{{ form.instance.name|default_if_none:"" }}"/>
+                                        </li>
+                                        <li class="input">
+                                            <input type="text" style="text-transform:capitalize;" name="surname" class="validate[required]" data-prompt-position="topLeft" placeholder="Cognome" value="{{ form.instance.surname|default_if_none:"" }}"/>
+                                        </li>
+                                        <li class="input">
+                                            <label style="display: inline;margin-right: 15px">Sesso:</label>
+                                            <select class="uniform" name="sex" >
+                                               <option>---</option>
+                                                <option value="m">Maschile</option>
+                                                <option value="f" >Femminile</option>
+                                                <option value="n" >Neutro</option>
+                                            </select>
+                                        </li>
+                                        <li class="input">
+                                            <input id="birthdate" type="text" name="birthdate" class="validate[required]" data-prompt-position="topLeft" placeholder="Data di nascita" value="{{ form.instance.birthdate|default_if_none:"" }}"/>
+                                        </li>
+                                        <li>
+                                            <input type="text" style="text-transform:uppercase;" id="code" name="code" class="validate[required]" data-prompt-position="topLeft" placeholder="Codice Fiscale" value="{{ form.instance.code|default_if_none:"" }}"/>
+                                            <button class="btn btn-small btn-blue" id="generaCodice">Genera Codice</button>
+                                        </li>
+                                        <li>
+                                            <input type="text" id="email" name="email" class="validate[custom[email]]" placeholder="Email" value="{{ form.instance.email|default_if_none:""}}"/>
+                                        </li>
+                                        <li>
+                                            <input type="text" id="phone_number" name="phone_number" class="validate[custom[phone]]" placeholder="Telefono" value="{{ form.instance.phone_number|default_if_none:""}}"/>
+                                        </li>
+
+                                    </ul>
+                                </div>
+                                <!-- secondo tab -->
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>Indirizzo:</label>
+                                        </li>
+                                        <li>
+                                            <input type="text"  name="street" class="validate[required]" data-prompt-position="topLeft" placeholder="Via" value="{{ form.instance.street|default_if_none:"" }}"/>
+                                        </li>
+                                        <li>
+                                            <input type="text"  name="civic" class="validate[min[6]]" data-prompt-position="topLeft" placeholder="Civico" value="{{ form.instance.civic|default_if_none:"" }}"/>
+                                        </li>
+                                        <li>
+                                            <input type="text"  name="zip" class="validate[min[4]]" data-prompt-position="topLeft" placeholder="CAP" value="{{ form.instance.zip|default_if_none:"" }}"/>
+                                        </li>
+                                        <li>
+                                            <input type="text"  style="text-transform:capitalize;" name="city"  data-prompt-position="topLeft" class="validate[required]" placeholder="Comune" value="{{ form.instance.city|default_if_none:"" }}"/>
+                                        </li>
+                                        <li>
+                                            <label>Provincia:</label>
+                                            <select class="chzn-select" name="province" >
+                                               <option>---</option>
+                                                {% for prov in provinces %}
+
+                                                    <option value="{{ prov.id }}" {% if prov.id == form.instance.province.id %} selected="selected"{% endif %}>{{ prov }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div> <!-- contenitore prima parte -->
+                            <div class="row-fluid"> <!-- contenitore seconda parte -->
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>Lavoro:</label>
+                                        </li>
+                                        <li>
+                                            <label>Azienda di appartenenza:</label>
+                                            <select class="chzn-select" name="company" >
+                                                <option value="" selected="selected">Nessuna</option>
+                                                {% for company in companies %}
+                                                    <option value="{{ company.name }}" {% if company.name == form.instance.company.name %} selected="selected"{% endif %}>{{ company }}</option>
+                                                {% endfor  %}
+                                            </select>
+                                        </li>
+                                        <label>Settore:</label>
+                                        <select id="sector" class="chzn-select" name="sector" >
+                                            <option value="-1"> Selezionare </option>
+                                            {% for sector in sectors %}
+                                                <option value="{{ sector.id }}" {% if sector.id == form.instance.sector.id %} selected="selected"{% endif %}>{{ sector }}</option>
+                                            {% endfor  %}
+                                        </select>
+                                        <li id="workLi">
+                                            <label>Professione:</label>
+                                            <select id="work" class="chzn-select" name="work" >
+                                                <option value="-1"> Selezionare prima il Settore </option>
+                                            </select>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>Categoria contatto:</label>
+                                        </li>
+                                        <li>
+                                            <label>Divisione:</label>
+                                            <select id="division" class="chzn-select" name="division" >
+                                                <option value="-1"> Selezionare </option>
+                                                {% for division in divisions %}
+                                                    <option value="{{ division.id }}" {% if division.id == form.instance.division.id %} selected="selected"{% endif %}>{{ division }}</option>
+                                                {% endfor  %}
+                                            </select>
+                                        </li>
+                                        <li id="subdivisionLi">
+                                            <label>Sottocategoria:</label>
+                                            <select id="subdivision" class="chzn-select" name="anagrafic_subdivision" >
+                                                <option value="-1"> Selezionare prima la divisione </option>
+                                            </select>
+                                        </li>
+                                        <li>
+                                            <label>Rank di importanza aziendale</label>
+                                            <input type="text"  name="company_ranking" class="validate[required,custom[integer]" data-prompt-position="topLeft" placeholder="Rank di importanza aziendale" value="{{ form.instance.company_ranking }}"/>
+
+                                        </li>
+                                        <li>
+                                            <label>Rank di partecipazione</label>
+                                            <input type="text"  name="participation_ranking" class="validate[required,custom[integer]" data-prompt-position="topLeft" placeholder="Rank di partecipazione" value="{{ form.instance.participation_ranking }}"/>
+
+                                        </li>
+                                     </ul>
+                                </div>
+                            </div><!-- contenitore seconda parte -->
+                            <div class="row-fluid">
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label style="display: inline;margin-right: 15px">Stato:</label>
+                                            <select class="uniform" name="status" >
+                                                <option value="I" selected="selected">Inerte</option>
+                                                <option value="A" >Attivo</option>
+                                                <option value="N" >Non Attivo</option>
+                                                <option value="C" >Cancellato</option>
+                                                <option value="D" >Non Interessato</option>
+                                            </select>
+                                        </li>
+
+                                        <li>
+                                            <label style="display: inline;margin-right: 15px">Consenso privacy:</label>
+                                            <select class="uniform" name="privacy_consensus" >
+                                                <option value="true" selected="selected">Fornito</option>
+                                                <option value="false" >Non fornito</option>
+
+                                            </select>
+                                        </li>
+
+                                    </ul>
+                                   </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" name="_save" class="btn btn-blue">Salva</button>
+                                <button type="submit" name="_addanother" class="btn btn-green">Salva e aggiungi un altro</button>
+                            </div>
+                        </form>
+                    </div>
+                </div> <!-- end box -->
+            </div> <!-- span 12 -->
+        </div><!-- row fluid -->
+    </div>
+   <script>
+       $(function() {
+
+           function makeid(lenght)
+           {
+               var text = "";
+               var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+               for( var i=0; i < lenght; i++ )
+                   text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+               return text.toLowerCase();
+           }
+
+           $("#generaCodice").on("click",function(e){
+               e.preventDefault();
+               $("#code").val(makeid(16));
+           });
+
+           $("#work").prop('disabled', true);
+           $("#subdivision").prop('disabled', true);
+
+           $("#birthdate" ).datepicker({"language":"it","format":"dd/mm/yyyy"});
+
+           $("#sector").on("change",function(){
+               console.log("SELECTED: "+$("#sector").val());
+               var sector = $("#sector").val();
+               if(sector == -1){
+                   $("#work option").remove();
+                   $("#work").html('<option value="-1"> Selezionare prima il Settore </option>');
+               }
+               $.getJSON(
+                       "/admin/contacts/rest/work",
+                       {
+                           sector : sector
+                       },
+                       function(data){
+                           $("#work").prop('disabled', false);
+                           $("#work option").remove();
+                           $("#workLi").find("span").text("---");
+                           var html='';
+                           $.each(data,function(i,opt){
+                               html+="<option value='"+opt.pk+"'";
+                               if(i==0){
+                                   html+="selected='selected'";
+                               }
+                               html+=">"+opt.fields.name+"</opt>";
+                           });
+                           $("#work").append(html);
+
+                       }
+               );
+
+           });
+
+
+           $("#division").on("change",function(){
+               var sector = $("#division").val();
+               if(sector == -1){
+                   $("#subdivision option").remove();
+                   $("#subdivision").html('<option value="-1"> Selezionare prima la Divisione </option>');
+               }
+               $.getJSON(
+                       "/admin/contacts/rest/subdivision",
+                       {
+                           division : sector
+                       },
+                       function(data){
+                           $("#subdivision").prop('disabled', false);
+                           $("#subdivision option").remove();
+                           $("#subdivisionLi").find("span").text("---");
+                           var html='';
+                           $.each(data,function(i,opt){
+                               html+="<option value='"+opt.pk+"'";
+                               if(i==0){
+                                   html+="selected='selected'";
+                               }
+                               html+=">"+opt.fields.name+"</opt>";
+                           });
+                           $("#subdivision").append(html);
+
+                       }
+               );
+
+           });
+
+
+           $("#email").on("keyup",function(e){
+               $("#email").val($("#email").val().toLowerCase());
+           });
+
+           $(".active").removeClass("active");
+           $("#contactsMenu").addClass("active");
+       });
+   </script>
+
+
+{% endblock %}

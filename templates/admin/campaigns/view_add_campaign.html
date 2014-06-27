@@ -1,0 +1,95 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static bootstrapped_goodies_tags %}
+{% block icon-detail %}<i class="icon-plus-sign-alt"></i>{% endblock %}
+{% block content_title %}Nuova Campagna{% endblock %}
+{% block content_subtitle %}<h5>aggiungi una nuova campagna compilando il seguente form</h5>{% endblock %}
+{% block content %}
+
+    <div class="container-fluid padded">
+        <div class="row-fluid">
+            <div class="span12">
+
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Campagna</span>
+
+                    </div>
+                    <div class="box-content">
+                        <form class="fill-up validatable" enctype="multipart/form-data" method="post" id="campaign_form">
+                            {% csrf_token %}
+
+                            <div class="row-fluid"> <!-- contenitore form -->
+                                 <!-- primo tab -->
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>&nbsp;</label>
+                                        </li>
+                                        <li class="input">
+                                            {{ form.name.errors }}
+                                            <input type="text" name="name" class="validate[required]" data-prompt-position="topLeft" placeholder="Denominazione" value="{{ form.instance.name|default_if_none:"" }}"/>
+                                        </li>
+                                        <li>
+                                            {{ form.startdate.errors }}
+                                            <input id="startdate" type="text" name="startdate" data-prompt-position="topLeft" placeholder="Data di inizio" value="{{ form.instance.startdate|default_if_none:"" }}"/></li>
+                                        <li>
+                                            {{ form.enddate.errors }}
+                                            <input id="enddate" type="text" name="enddate" data-prompt-position="topLeft" placeholder="Data di fine" value="{{ form.instance.enddate|default_if_none:"" }}"/></li>
+                                        </li>
+
+                                    </ul>
+                                </div>
+                                <!-- secondo tab -->
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                       <li>
+                                           <label>&nbsp;</label>
+                                       </li>
+                                        <li>
+                                            {{ form.description.errors }}
+                                            <textarea form="campaign_form" rows="4" cols="50" name="description" class="validate[required]" data-prompt-position="topLeft" placeholder="Descrizione" >{{ form.instance.description|default_if_none:"" }}</textarea>
+                                        </li>
+                                        <li>
+                                            <label style="display: inline;margin-right: 15px">Stato:</label>
+                                            <select class="uniform" name="status" >
+                                                <option value="A" selected="selected">Attiva</option>
+                                                <option value="N" >Non Attiva</option>
+                                                <option value="C" >Conclusa</option>
+                                            </select>
+                                        </li>
+
+                                    </ul>
+                                </div>
+                              </div> <!-- contenitore form -->
+
+                            <div class="form-actions">
+                                <button type="submit" name="_save" class="btn btn-blue">Salva</button>
+                                <button type="submit" name="_addanother" class="btn btn-green">Salva e aggiungi un altro</button>
+                            </div>
+                        </form>
+                    </div>
+                 </div> <!-- end box -->
+            </div> <!-- span 12 -->
+        </div><!-- row fluid -->
+    </div>
+    <script>
+        $(document).ready(function(){
+
+            var start=$("#startdate" ).datepicker({"language":"it","format":"dd/mm/yyyy"
+            }).on("changeDate",function(dt){
+                $("#enddate").datepicker('setStartDate', dt.date);
+            });
+            var end=$("#enddate" ).datepicker({"language":"it","format":"dd/mm/yyyy",
+            });
+            $(".active").removeClass("active");
+            $("#campaignMenu").addClass("active");
+
+
+        });
+
+
+    </script>
+
+
+
+{% endblock %}

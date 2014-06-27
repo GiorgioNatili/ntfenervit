@@ -1,0 +1,126 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static bootstrapped_goodies_tags %}
+{% block icon-detail %}<i class="icon-ok"></i>{% endblock %}
+{% block content_title %}Iscrizione{% endblock %}
+{% block content_subtitle %}<h5>del contatto {{ signup.contact }} per l'evento {% if signup.event.title%} {{ signup.event.title }} {% else %}{{signup.event.description}}{% endif %} del {{ signup.event.date}}</h5>{% endblock %}
+
+{% block content %}
+    <div class="container-fluid padded">
+        <div class="row-fluid">
+            <div class="span12">
+
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Iscrizione</span>
+
+                    </div>
+                    <div class="box-content">
+                         <form class="fill-up validatable" enctype="multipart/form-data" method="post" id="event_form">
+                            <div class="row-fluid"> <!-- contenitore form -->
+                                
+                                <!-- primo tab -->
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>&nbsp;</label>
+                                        </li>
+                                        <li>
+                                            <label>Contatto</label>
+                                            <span class="text-success" style="font-weight: bold;">{{ signup.contact }} ({{signup.contact.email}}) </span>
+                                        </li>
+                                        <li>
+                                            <label>Tipologia</label>
+                                            {% if signup.pagante %}
+                                            <span class="text-success" style="font-weight: bold;">Pagante {% if payment %}(cro: {{ payment.way }}, importo: {{ signup.event.money }}){% endif %}</span>
+
+                                            {% elif signup.omaggio %}
+                                            <span class="text-success" style="font-weight: bold;">Omaggio</span>
+                                            {% elif signup.relatore %}
+                                            <span class="text-success" style="font-weight: bold;">Relatore</span>
+                                            {% elif signup.staff %}
+                                            <span class="text-success" style="font-weight: bold;">Staff</span>
+                                            {% endif %}
+                                        </li>
+
+                                        <li>
+                                             <label>Note</label>
+                                            <textarea rows="4" cols="50" name="note"  data-prompt-position="topLeft" placeholder="Note" >{{ signup.note}}</textarea>
+
+                                        </li>
+                                    </ul>
+                                </div>
+                                <!-- secondo tab -->
+                                <div class="span6">
+                                    {% if payment %}
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>Dati di fatturazione</label>
+                                        </li>
+                                        <li>
+                                            <label>Ragione Sociale</label>
+                                            <span class="text-success" style="font-weight: bold;">{{ payment.executor }}</span>
+                                        </li>
+                                        <li>
+                                            <label>Indirizzo</label>
+                                            {%if payment.street %}
+                                                 <span class="text-success" style="font-weight: bold;">{{ payment.street }} {{ payment.city }}, {{ payment.zip }}, ({{ payment.province.code }})</span>
+                                            {%endif%}
+                                        </li>
+                                        <li>
+                                            <label>P.Iva</label>
+                                            <span class="text-success" style="font-weight: bold;">{{ payment.vat }}</span>
+                                        </li>
+                                        <li>
+
+                                            <label>Codice Fiscale</label>
+                                            <span class="text-success" style="font-weight: bold;">{{ payment.code }}</span>
+
+                                        </li>
+                                    </ul>
+                                {% endif %}
+                                </div>
+                               
+                            </div> <!-- contenitore form -->
+                             <div class="form-actions">
+                                    <a  href="/admin/campaigns/eventsignup/{{signup.id}}/delete/" name="delete" class="btn btn-red pull-right">Cancella</a>
+                                </div>
+                    </form>
+                    </div>
+                </div> <!-- end box -->
+            </div> <!-- span 12 -->
+        </div><!-- row fluid -->
+    </div>
+    <script>
+        $(document).ready(function() {
+            $(".dTable2").dataTable({
+                bJQueryUI:!1
+                ,bAutoWidth:!1,
+                sPaginationType:"full_numbers",
+                sDom:'<"table-header"fl>t<"table-footer"ip>',
+                "oLanguage": {
+                    "sSearch":"Cerca",
+                    "sLengthMenu": "Mostra _MENU_ righe per pagina",
+                    "sZeroRecords": "Nessun risultato trovato",
+                    "sInfo": "Risultati da _START_ a _END_ di _TOTAL_ ",
+                    "sInfoEmpty": "Mostrati da 0 a 0 di 0 records",
+                    "sInfoFiltered": "(filtrati da _MAX_ records totali)",
+                    "oPaginate":{
+                        "sFirst":"Primo",
+                        "sLast":"Ultimo",
+                        "sNext":"Prossimo",
+                        "sPrevious":"Precedente"
+
+                    }
+                }
+            });
+
+            $('.dTable2 tbody tr').on('click', function () {
+                var nTds = $('td', this);
+                window.location="/admin/campaigns/event/eventsignups/"+$(nTds[0]).text();
+            });
+
+            $(".active").removeClass("active");
+            $("#eventsMenu").addClass("active");
+        });
+    </script>
+{% endblock %}

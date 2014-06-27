@@ -1,0 +1,179 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static bootstrapped_goodies_tags %}
+{% block icon-detail %}<i class="icon-plus-sign-alt"></i>{% endblock %}
+{% block content_title %}Nuovo Questionario{% endblock %}
+{% block content_subtitle %}<h5>aggiungi un nuovo questionario compilando il seguente form</h5>{% endblock %}
+{% block content %}
+
+    <div class="container-fluid padded">
+        <div class="row-fluid">
+            <div class="span12">
+
+                <div class="box">
+                    <div class="box-header">
+                    <span class="title">Questionario</span>
+
+                    </div>
+                    <div class="box-content">
+                        <form class="fill-up validatable" enctype="multipart/form-data" method="post" id="survey_form">
+                            {% csrf_token %}
+                            {% if form.errors %}
+                                <div class="alert alert-error">
+                                    Correggi i seguenti errori:
+                                    <ul>
+                                        {% for field, errors in form.errors.items %}
+                                            {% for error in errors %}
+                                                <li>{{ field }}{{ error }}</li>
+                                            {% endfor %}
+
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+                            <div class="row-fluid"> <!-- contenitore form -->
+                                <!-- primo tab -->
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>&nbsp;</label>
+                                        </li>
+                                        <li class="input">
+                                            {{ form.title.errors }}
+                                            <input id="title" type="text" name="title" class="validate[required]" data-prompt-position="topLeft" placeholder="Denominazione" value="{{ form.instance.title|default_if_none:"" }}"/>
+                                        </li>
+                                        <li class="input">
+                                            {{ form.slug.errors }}
+                                            <input id="slug" type="text" name="slug" class="validate[required]" data-prompt-position="topLeft" placeholder="Slug" value="{{ form.instance.slug|default_if_none:"" }}"/>
+                                        </li>
+                                        <li>
+                                            {{ form.tease.errors }}
+                                            <textarea form="survey_form" rows="4" cols="50" name="tease" data-prompt-position="topLeft" placeholder="Descrizione breve" >{{ form.instance.tease|default_if_none:"" }}</textarea>
+                                        </li>
+
+                                    </ul>
+                                </div>
+                                <!-- secondo tab -->
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>&nbsp;</label>
+                                        </li>
+                                        <li>
+                                            {{ form.description.errors }}
+                                            <textarea form="survey_form" rows="4" cols="50" name="description" class="validate[required]" data-prompt-position="topLeft" placeholder="Descrizione" >{{ form.instance.description|default_if_none:"" }}</textarea>
+                                        </li>
+                                        <li>
+                                            {{ form.thanks.errors }}
+                                            <textarea form="survey_form" rows="4" cols="50" name="thanks" class="validate[required]" data-prompt-position="topLeft" placeholder="Ringraziamento finale" >{{ form.instance.thanks|default_if_none:"" }}</textarea>
+                                            <span class="help-block note"><i class="icon-warning-sign"></i>Messaggio visualizzato quando un utente invia il questionario</span>
+                                        </li>
+
+                                    </ul>
+                                </div>
+                             </div>
+                            <div class="row-fluid">
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>Newsletter associata:</label>
+                                            <select class="chzn-select" name="newsletter" >
+                                                {% for nl in newsletters %}
+                                                    <option value="{{ nl.id }}" {% if nl.id == form.instance.newsletter.id %} selected="selected"{% endif %}>{{ nl }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </li>
+                                        <li>
+                                            <input type="checkbox" class="icheck" id="login" name="require_login" />
+                                            <label for="login" class="">E' richiesta l'autenticazione?</label>
+                                        </li>
+                                        <li>
+                                            <input id="startdate" type="text" name="starts_at"  data-prompt-position="topLeft" placeholder="Data di inizio" value="{{ form.instance.starts_at|default_if_none:"" }}"/>
+                                        </li>
+                                        <li>
+                                            <input type="checkbox" class="icheck" id="pubblished" name="is_published" />
+                                            <label for="pubblished" class="">Versione definitiva?</label>
+                                        </li>
+
+                                    </ul>
+                                </div>
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>Evento associato:</label>
+                                            <select class="chzn-select" name="event" >
+                                                {% for nl in events %}
+                                                    <option value="{{ nl.id }}" {% if nl.id == form.instance.event.id %} selected="selected"{% endif %}>{{ nl }}</option>
+                                                {% endfor %}
+                                            </select>
+
+                                        </li>
+                                        <li>
+                                            <input style="margin-left: 50px;" type="checkbox" class="icheck" id="allow_multiple_submissions" name="allow_multiple_submissions" />
+                                            <label for="allow_multiple_submissions" class="">Può essere rifatto?</label>
+                                        </li>
+                                        <li>
+                                            <input id="enddate" type="text" name="ends_at" data-prompt-position="topLeft" placeholder="Data di fine" value="{{ form.instance.ends_at|default_if_none:"" }}"/>
+                                        </li>
+
+                                    </ul>
+
+                                </div>
+
+                            </div> <!-- contenitore form -->
+                            <div class="form-actions">
+                                <input type="hidden" name="site" value="1" />
+                                <input type="hidden" name="archive_policy" value="1" />
+                                <button type="submit" name="_save" class="btn btn-blue">Salva</button>
+                                <button type="button" name="_addanother" class="btn btn-green">Salva e aggiungi un altro</button>
+                            </div>
+                        </form>
+                    </div>
+                </div> <!-- end box -->
+            </div> <!-- span 12 -->
+        </div><!-- row fluid -->
+    </div>
+    <script>
+        var slug = function(str) {
+            str = str.replace(/^\s+|\s+$/g, ''); // trim
+            str = str.toLowerCase();
+
+            // remove accents, swap ñ for n, etc
+            var from = "ãàáäâẽèéëêìíïîõòóöôùúüûñç·/_,:;";
+            var to   = "aaaaaeeeeeiiiiooooouuuunc------";
+            for (var i=0, l=from.length ; i<l ; i++) {
+                str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i));
+            }
+
+            str = str.replace(/[^a-z0-9 -]/g, '') // remove invalid chars
+                    .replace(/\s+/g, '-') // collapse whitespace and replace by -
+                    .replace(/-+/g, '-'); // collapse dashes
+
+            return str;
+        };
+
+        $(document).ready(function(){
+            $("#title").on("keypress",function(){
+                $("#slug").val(slug($("#title").val()));
+            });
+            $("#title").on("change",function(){
+                $("#slug").val(slug($("#title").val()));
+            });
+
+            var start=$("#startdate" ).datepicker({"language":"it","format":"dd/mm/yyyy"
+            }).on("changeDate",function(dt){
+                        $("#enddate").datepicker('setStartDate', dt.date);
+                    });
+            var end=$("#enddate" ).datepicker({"language":"it","format":"dd/mm/yyyy",
+            });
+            $(".active").removeClass("active");
+            $("#surveyMenu").addClass("active");
+
+
+        });
+
+
+    </script>
+
+
+
+{% endblock %}

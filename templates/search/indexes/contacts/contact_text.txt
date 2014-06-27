@@ -1,0 +1,17 @@
+{{object.text}}
+{{object.name}}
+{{object.surname}}
+{{object.province}}
+{{object.work}}
+{{object.birthdate}}
+{{object.email}}
+{{object.street}}
+{{object.city}}
+{{object.anagrafic_subdivision}}
+{{object.action_subdivision}}
+{{object.owner}}
+{{object.zip}}
+{{object.status}}
+{{object.company_ranking}}
+{{object.participation_ranking}}
+

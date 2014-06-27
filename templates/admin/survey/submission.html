@@ -1,0 +1,9 @@
+{% extends "admin/survey/base.html" %}
+{% load crowdsourcing %}
+
+{% block title %}{{ submission.survey.title }}{% endblock %}
+
+{% block content %}
+  {% submission_fields submission %}
+  {% submission_link submission %}
+{% endblock %}

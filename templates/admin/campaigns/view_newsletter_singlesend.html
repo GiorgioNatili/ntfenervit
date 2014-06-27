@@ -1,0 +1,137 @@
+{% extends "admin/base_site.html" %}
+{% block extrastyle %}
+    <style>
+        div.ajax-loading{
+            position: fixed;
+            top: 0;
+            left: 0;
+            height:100%;
+            width:100%;
+            z-index: 9999999;
+            background-color: rgba(252, 252, 252, 0.9);
+            opacity: 0.9;
+            filter: alpha(opacity=90); /* ie */
+            -moz-opacity: 0.9; /* mozilla */
+            display:none;
+        }
+        div.ajax-loading2  {
+            height:100%;
+            width:100%;
+            background-image: url('/static/admin/images/loading3.gif');
+            background-position:  center center;
+            background-repeat: no-repeat;
+            opacity: 1;
+            filter: alpha(opacity=100); /* ie */
+            -moz-opacity: 1; /* mozilla */
+        }
+        #loadingText{
+            left: 42%;
+            top: 34%;
+            position: fixed;
+            font-size: 30px;
+            font-weight: bold;
+        }
+    </style>
+{% endblock %}
+{% load i18n admin_static bootstrapped_goodies_tags %}
+{% block icon-detail %}<i class="icon-upload"></i>{% endblock %}
+{% block content_title %}Invia newsletter {% endblock %}
+{% block content_subtitle %}<h5>invia/reinvia una newsletter ad un singolo contatto valido (ovvero con email associata)</h5>{% endblock %}
+{% block object-tools %}
+    <ul class="object-tools form-inline pull-right inline">
+        <li>
+            <a href="/admin/contacts/contact/add/" class="btn btn-blue">
+                <i class="icon-plus icon-white"></i> Aggiungi Contatto
+            </a>
+        </li>
+    </ul>
+
+{% endblock %}
+{% block content %}
+
+    <div class="container-fluid padded">
+        <div class="row-fluid">
+            <div class="span12">
+
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Contatto</span>
+
+                    </div>
+                    <div class="box-content">
+                        <form class="fill-up validatable" enctype="multipart/form-data" method="post" id="singlesend_form">
+                            {% csrf_token %}
+
+                            <div class="row-fluid"> <!-- contenitore form -->
+                                <!-- primo tab -->
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>&nbsp;</label>
+                                        </li>
+                                        <li>
+                                            <label>Contatto</label>
+
+                                            <select class="chzn-select" name="contact" id="contact">
+                                                {% for ct in contacts %}
+                                                    {% if ct.email %}
+                                                    <option value="{{ ct.email }}" {% if ct.email == form.instance.contact.email %} selected="selected"{% endif %}>{{ ct.name }} {{ ct.surname }} ({{ ct.email }})</option>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </select>
+                                        </li>
+
+                                    </ul>
+                                </div>
+                                <!-- secondo tab -->
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>&nbsp;</label>
+                                        </li>
+                                        <li>
+                                            <label>Newsletter</label>
+                                            <select class="chzn-select" name="newsletter" id="newsletter">
+                                                {% for nl in newsletters %}
+
+                                                    <option value="{{ nl.id }}" {% if nl.id == form.instance.newsletter.id %} selected="selected"{% endif %}>{{ nl.name}} ({{ nl.campaign }})</option>
+                                                {% endfor %}
+                                            </select>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div> <!-- contenitore form -->
+
+                            <div class="form-actions">
+                                <button id="sendButton" type="button" name="_send" class="btn btn-blue">Invia</button>
+                            </div>
+                        </form>
+                    </div>
+                </div> <!-- end box -->
+            </div> <!-- span 12 -->
+        </div><!-- row fluid -->
+    </div>
+    <div class="ajax-loading">
+        <span id="loadingText"></span>
+        <div class="ajax-loading2"></div>
+    </div>
+    <script>
+      $(document).on("ready",function(){
+         $("#sendButton").on("click",function(e){
+             $("#loadingText").text("Invio in corso...");
+             $(".ajax-loading").show();
+             $.getJSON("/admin/campaigns/newsletter/sendsingleemail",
+                     {
+                       ct:$("#contact").val(),
+                       nl:$("#newsletter").val()
+                     },
+                     function(data){
+                         if(data.value== 'OK')
+                             $(".ajax-loading").hide();
+                         alert('Newsletter inviata!!');
+                     });
+
+         });
+      });
+    </script>
+{% endblock %}

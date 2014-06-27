@@ -1,0 +1,87 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static bootstrapped_goodies_tags %}
+{% block icon-detail %}<i class="icon-code"></i>{% endblock %}
+{% block content_title %}Newsletter Template{% endblock %}
+{% block content_subtitle %}<h5>lista di tutti i template per newsletter gestiti dal sistema</h5>{% endblock %}
+{% block object-tools %}
+    <ul class="object-tools form-inline pull-right inline">
+        <li>
+            <a href="/admin/campaigns/newslettertemplate/add/" class="btn btn-blue">
+                <i class="icon-plus icon-white"></i> Aggiungi Template
+            </a>
+        </li>
+
+    </ul>
+
+{% endblock %}
+{% block content %}
+    <div class="container-fluid padded">
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Template</span>
+                    </div>
+                    <div class="box-content">
+                        <div id="dataTables">
+                            <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
+                                <thead>
+                                <tr>
+                                    <th><div>Id</div></th>
+                                    <th><div>Npme</div></th>
+                                    <th>&nbsp;</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for nl in newslettertemplates %}
+                                    <tr>
+                                        <td>{{ nl.id }}</td>
+
+                                        <td>{{ nl.name }}</td>
+
+                                        <td><a href="/admin/campaigns/newslettertemplate/{{nl.id }}"><i class="icon-tasks"></i></a></td>
+                                    </tr>
+
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function() {
+            $(".dTable2").dataTable({
+                bJQueryUI:!1
+                ,bAutoWidth:!1,
+                sPaginationType:"full_numbers",
+                sDom:'<"table-header"fl>t<"table-footer"ip>',
+                "oLanguage": {
+                    "sSearch":"Cerca",
+                    "sLengthMenu": "Mostra _MENU_ righe per pagina",
+                    "sZeroRecords": "Nessun risultato trovato",
+                    "sInfo": "Risultati da _START_ a _END_ di _TOTAL_ ",
+                    "sInfoEmpty": "Mostrati da 0 a 0 di 0 records",
+                    "sInfoFiltered": "(filtrati da _MAX_ records totali)",
+                    "oPaginate":{
+                        "sFirst":"Primo",
+                        "sLast":"Ultimo",
+                        "sNext":"Prossimo",
+                        "sPrevious":"Precedente"
+
+                    }
+                }
+            });
+
+            $('.dTable2 tbody tr').on('click', function () {
+                var nTds = $('td', this);
+                window.location="/admin/campaigns/newslettertemplate/"+$(nTds[0]).text();
+            });
+
+            $(".active").removeClass("active");
+            $("#newsletterMenu").addClass("active");
+        });
+    </script>
+{% endblock %}

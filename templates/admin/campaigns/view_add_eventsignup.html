@@ -1,0 +1,118 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static bootstrapped_goodies_tags %}
+{% block icon-detail %}<i class="icon-plus-sign-alt"></i>{% endblock %}
+{% block content_title %}Nuovo Partecipante {% endblock %}
+{% block content_subtitle %}<h5>registra un nuovo partecipante ad un evento compilando il seguente form</h5>{% endblock %}
+{% block object-tools %}
+    <ul class="object-tools form-inline pull-right inline">
+        <li>
+            <a href="/admin/contacts/contact/add/" class="btn btn-blue">
+                <i class="icon-plus icon-white"></i> Aggiungi Contatto
+            </a>
+        </li>
+    </ul>
+
+{% endblock %}
+{% block content %}
+
+    <div class="container-fluid padded">
+        <div class="row-fluid">
+            <div class="span12">
+
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Partecipante</span>
+
+                    </div>
+                    <div class="box-content">
+                        <form class="fill-up validatable" enctype="multipart/form-data" method="post" id="signup_form">
+                            {% csrf_token %}
+
+                            <div class="row-fluid"> <!-- contenitore form -->
+                                <!-- primo tab -->
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>&nbsp;</label>
+                                        </li>
+                                        <li>
+                                            <label>Contatto</label>
+
+                                            <select class="chzn-select" name="contact" >
+                                                {% for ct in contacts %}
+                                                    <option value="{{ ct.code }}" {% if ct.code == form.instance.contact.code %} selected="selected"{% endif %}>{{ ct.name }} {{ ct.surname }}{% if ct.email %} ({{ ct.email }}){% endif %}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </li>
+                                        <li>
+                                            <input type="checkbox" class="icheck" id="relatore" name="relatore" />
+                                            <label for="relatore" class="">Relatore</label>
+                                            <label>Costo Relatore</label>
+                                            <input id="relatore_payment" type="text" data-prompt-position="topLeft" placeholder="Costo Relatore" value="{{ form.instance.relatore_payment|default_if_none:"" }}" name="relatore_payment" />
+                                        </li>
+                                    </ul>
+                                </div>
+                                <!-- secondo tab -->
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>&nbsp;</label>
+                                        </li>
+                                        <li>
+                                            <label>Evento</label>
+                                            <select class="chzn-select" name="event" >
+                                                {% for ev in events %}
+
+                                                    <option value="{{ ev.id }}" {% if ev.id == form.instance.event.id %} selected="selected"{% endif %}>{% if ev.title %} {{ev.title}} {% else %}{{ ev.description }} {% endif %} {{ ev.date }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </li>
+                                        <li>
+                                            <input type="checkbox" class="icheck" id="staff" name="staff" />
+                                            <label for="staff" class="" style="margin-right:10px;">Staff</label>
+                                            <input type="checkbox" class="icheck" id="omaggio" name="omaggio" />
+                                            <label for="omaggio" style="margin-right:10px;" class="">Omaggio</label>
+                                            <input type="checkbox" class="icheck" id="pagante" name="pagante" />
+                                            <label for="pagante" class="">Pagante</label>
+                                        </li>
+                                        <li>
+                                        <li>
+                                            <textarea form="signup_form" rows="4" cols="50" name="note"  data-prompt-position="topLeft" placeholder="Note" >{{ form.instance.note|default_if_none:"" }}</textarea>
+
+                                        </li>
+
+                                    </ul>
+                                </div>
+                            </div> <!-- contenitore form -->
+
+                            <div class="form-actions">
+                                <button type="submit" name="_save" class="btn btn-blue">Salva</button>
+                                <button type="submit" name="_addanother" class="btn btn-green">Salva e aggiungi un altro</button>
+                            </div>
+                        </form>
+                    </div>
+                </div> <!-- end box -->
+            </div> <!-- span 12 -->
+        </div><!-- row fluid -->
+    </div>
+    <script>
+        $(document).ready(function(){
+
+            var start=$("#startdate" ).datepicker({"language":"it","format":"dd/mm/yyyy"
+            }).on("changeDate",function(dt){
+                        $("#enddate").datepicker('setStartDate', dt.date);
+                    });
+            var end=$("#enddate" ).datepicker({"language":"it","format":"dd/mm/yyyy",
+            });
+            $(".active").removeClass("active");
+            $("#eventsMenu").addClass("active");
+
+
+        });
+
+
+    </script>
+
+
+
+{% endblock %}

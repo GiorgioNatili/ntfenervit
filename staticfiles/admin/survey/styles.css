@@ -1,0 +1,204 @@
+@font-face {
+    font-family: 'trade_gothic_lt_stdregular';
+    src: url('../font/tradegothicltstd-webfont.eot');
+    src: url('../font/tradegothicltstd-webfont.eot?#iefix') format('embedded-opentype'),
+    url('../font/tradegothicltstd-webfont.woff') format('woff'),
+    url('../font/tradegothicltstd-webfont.ttf') format('truetype'),
+    url('../font/tradegothicltstd-webfont.svg#trade_gothic_lt_stdregular') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'trade_gothic_lt_stdbold';
+    src: url('../font/tradegothic-boldcondtwenty-webfont.eot');
+    src: url('../font/tradegothic-boldcondtwenty-webfont.eot?#iefix') format('embedded-opentype'),
+    url('../font/tradegothic-boldcondtwenty-webfont.woff') format('woff'),
+    url('../font/tradegothic-boldcondtwenty-webfont.ttf') format('truetype'),
+    url('../font/tradegothic-boldcondtwenty-webfont.svg#trade_gothic_lt_stdbold') format('svg');
+    font-weight: bold;
+    font-style: normal;
+}
+
+
+body {
+	font: 9.5pt Arial, Helvetica, sans-serif;
+    background-color: #dcdcdc;
+}
+
+ul {
+	list-style-type: none;
+	padding: 0;
+}	
+
+ul li {
+	margin: 4px 0;
+}
+
+.survey label, .survey input, .survey textarea {
+	display: block;
+	margin: 2px 0;
+
+}
+
+.survey label {
+	font-weight: bold;
+    font-family: 'trade_gothic_lt_stdregular';
+    font-size: 18px;
+}
+
+.survey ul li input {
+	display: inline;
+}
+
+.survey label.help_text {
+	display: inline;
+    font-family: 'trade_gothic_lt_stdregular';
+}
+
+.required {
+        color: #dd0000;
+        margin: 0 5px;
+}
+
+.enlarge_link { background-image: url('/media/enlarge-icon.png'); }
+
+#latest_survey_results_div {
+	border-top: 2px solid #ddd;
+	margin-top: 20px;
+}
+
+form{
+    margin: 0 40px 20px;
+}
+
+form .filters {
+        margin: 10px 0 15px;
+        padding: 10px 12px;
+        background-color: #f6f6f6;
+        border: 1px solid #ddd;
+}
+
+form .filters ul li {
+        margin: 5px 0;
+}
+
+form .filters label {
+        margin-right: 10px;
+}
+
+form .filters #location label,
+form .filters #number label,
+form .filters #decimal label {
+        color: #666;
+        margin: 0 0 0 5px;
+}
+
+h2.chart_title {
+	background-color: #F6F6F6;
+	border-top: 1px solid #DDDDDD;
+	display: block;
+	margin: 20px 0 0;
+	padding: 5px 10px;
+}
+
+.submission {
+	border-top: 2px dotted #CCCCCC;
+	padding: 15px 0;
+}
+
+.submission .field {
+	padding: 3px 0;
+} 
+
+.submission .field label {
+	font-weight: bold;
+	padding-right: 2px;
+}
+
+.jcarousel-skin-tango .jcarousel-clip-horizontal {
+  height: 275px;
+  width: 500px;
+}
+
+.jcarousel-skin-tango .jcarousel-container-horizontal {
+  width: 510px;
+}
+
+.jcarousel-skin-tango .jcarousel-item {
+    height: 275px;
+    width: 250px;
+}
+
+#header{
+    background-color:#e40421;
+    min-height:160px;
+    text-align:center;
+    margin-bottom: 20px;
+}
+#header img, a{
+    margin-top: 20px;
+    border:0;outline:0;text-decoration:none !important;color:#e40421;
+}
+
+#footer{
+    /*display: table;*/
+    text-align: center;
+    margin-left: auto;
+    margin-right: auto;
+    font-size:11px;
+    padding:7px 20px 0 20px;
+    font-family: 'trade_gothic_lt_stdregular';
+}
+#footer hr{
+    display: block;
+    height: 2px;
+    border: 0;
+    border-top: 2px solid #e40421;
+    margin: 1em 0;
+    padding: 0;
+}
+
+.separator{
+    border: 0;
+    height: 1px;
+    background-image: -webkit-linear-gradient(left, rgba(0,0,0,0), rgba(197, 40, 44, 0.74), rgba(0,0,0,0));
+    background-image:    -moz-linear-gradient(left, rgba(0,0,0,0), rgba(197, 40, 44, 0.74), rgba(0,0,0,0));
+    background-image:     -ms-linear-gradient(left, rgba(0,0,0,0), rgba(197, 40, 44, 0.74), rgba(0,0,0,0));
+    background-image:      -o-linear-gradient(left, rgba(0,0,0,0), rgba(197, 40, 44, 0.74), rgba(0,0,0,0));
+
+}
+
+
+.red:hover{
+    background-color:#999; color:#FFFFFF;
+}
+
+.red{
+    margin-right:5px;
+    text-transform:uppercase;
+    background-color:#e40421;
+    color:#FFFFFF;
+    font-size:14px;
+    font-family: 'trade_gothic_lt_stdbold';
+    padding:5px 10px;
+    text-decoration:none;
+    display:block;
+    margin-top:5px;
+}
+
+h1{
+    font-family: 'trade_gothic_lt_stdregular';
+    color: #e40421;
+    margin-left: 60px;
+}
+
+#description{
+    font-family: 'trade_gothic_lt_stdregular';
+    margin-left: 20px;
+    margin-right: auto;
+    margin-bottom: 30px;
+    margin-top: 20px;
+    color: rgb(77, 77, 77);
+    font-size: 20px;
+}

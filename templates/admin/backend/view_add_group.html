@@ -1,0 +1,128 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static bootstrapped_goodies_tags %}
+{% block icon-detail %}<i class="icon-plus"></i>{% endblock %}
+{% block content_title %}Gruppo{% endblock %}
+{% block content_subtitle %}<h5>Aggiungi un nuovo gruppo</h5>{% endblock %}
+{% block content %}
+
+    <div class="container-fluid padded">
+        <div class="row-fluid">
+            <div class="span12">
+
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Gruppo</span>
+
+                    </div>
+                    <div class="box-content">
+                        <form class="fill-up validatable" enctype="multipart/form-data" method="post" id="company_form">
+                            {% csrf_token %}
+                            {% if form.errors %}
+                                <div class="alert alert-error">
+                                    Correggi i seguenti errori:
+                                    <ul>
+                                        {% for field, errors in form.errors.items %}
+                                            {% for error in errors %}
+                                                <li>{{ field }}{{ error }}</li>
+                                            {% endfor %}
+
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+                            <div class="row-fluid"> <!-- contenitore form -->
+                                <!-- primo tab -->
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li class="input">
+                                            <label>Nome</label>
+                                            <input type="text" name="name" class="validate[required]" data-prompt-position="topLeft" placeholder="Nome" value="{{ form.instance.name }}"/>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div> <!-- contenitore form -->
+                            <div class="row-fluid">
+                               <label style="margin-left: 20px;">Un utente di questo gruppo può:</label>
+                               <div class="span6">
+
+                                  <ul class="padded separate-sections">
+                                      <label><span style="font-weight: bold">Contatti</span></label>
+                                      <li>
+                                          <input type="checkbox" class="icheck"  name="add_contact" />
+                                          <label  class="" style="margin-right:10px;">Creare</label>
+                                          <input type="checkbox" class="icheck"  name="change_contact" />
+                                          <label  class="" style="margin-right:10px;">Modificare</label>
+                                          <input type="checkbox" class="icheck"  name="delete_contact" />
+                                          <label  class="" style="margin-right:10px;">Eliminare</label>
+                                      </li>
+                                      <label><span style="font-weight: bold">Campagne</span></label>
+                                      <li>
+                                          <input type="checkbox" class="icheck"  name="add_campaign" />
+                                          <label  class="" style="margin-right:10px;">Creare</label>
+                                          <input type="checkbox" class="icheck"  name="change_campaign" />
+                                          <label  class="" style="margin-right:10px;">Modificare</label>
+                                          <input type="checkbox" class="icheck"  name="delete_campaign" />
+                                          <label  class="" style="margin-right:10px;">Eliminare</label>
+                                      </li>
+                                      <label<span style="font-weight: bold">Eventi</span></label>
+                                      <li>
+                                          <input type="checkbox" class="icheck"  name="add_event" />
+                                          <label  class="" style="margin-right:10px;">Creare</label>
+                                          <input type="checkbox" class="icheck"  name="change_event" />
+                                          <label  class="" style="margin-right:10px;">Modificare</label>
+                                          <input type="checkbox" class="icheck"  name="delete_event" />
+                                          <label  class="" style="margin-right:10px;">Eliminare</label>
+                                          <input type="checkbox" class="icheck"  name="change_eventsignup" />
+                                          <label  class="" style="margin-right:10px;">Gestione Presenze</label>
+                                      </li>
+                                      <label><span style="font-weight: bold">Newsletter</span></label>
+                                      <li>
+                                          <input type="checkbox" class="icheck"  name="add_newsletter" />
+                                          <label  class="" style="margin-right:10px;">Creare</label>
+                                          <input type="checkbox" class="icheck"  name="change_newsletter" />
+                                          <label  class="" style="margin-right:10px;">Modificare</label>
+                                          <input type="checkbox" class="icheck"  name="delete_newsletter" />
+                                          <label  class="" style="margin-right:10px;">Eliminare</label>
+                                          <input type="checkbox" class="icheck"  name="add_newsletterschedulation" />
+                                          <label  class="" style="margin-right:10px;">Spedire</label>
+                                        </li>
+                                        <label><span style="font-weight: bold">Newsletter Template</span></label>
+                                        <li>
+                                          <input type="checkbox" class="icheck"  name="add_newslettertemplate" />
+                                          <label  class="" style="margin-right:10px;">Creare Template</label>
+                                          <input type="checkbox" class="icheck"  name="change_newslettertemplate" />
+                                          <label  class="" style="margin-right:10px;">Modificare Template</label>
+                                          <input type="checkbox" class="icheck"  name="delete_newslettertemplate" />
+                                          <label  class="" style="margin-right:10px;">Eliminare Template</label>
+                                       </li>
+
+                                      <label><span style="font-weight: bold">Questionari</span></label>
+                                      <li>
+                                          <input type="checkbox" class="icheck"  name="add_survey" />
+                                          <label  class="" style="margin-right:10px;">Creare</label>
+                                          <input type="checkbox" class="icheck"  name="change_survey" />
+                                          <label  class="" style="margin-right:10px;">Modificare</label>
+                                          <input type="checkbox" class="icheck"  name="delete_survey" />
+                                          <label  class="" style="margin-right:10px;">Eliminare</label>
+
+                                      </li>
+
+                                  </ul>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+
+                                <button type="submit" name="_save" class="btn btn-blue">Salva</button>
+
+                            </div>
+                        </form>
+                    </div>
+                </div> <!-- end box -->
+            </div> <!-- span 12 -->
+        </div><!-- row fluid -->
+    </div>
+
+
+
+{% endblock %}

@@ -1,0 +1,27 @@
+{% load crowdsourcing %}
+<html>
+<head>
+    <title>Enervit | {{ survey.title }}</title>
+    {% include "admin/survey/header_tags.html" %}
+</head>
+<body>
+<div id="header">
+    <a href="http://www.enervit.com">
+        <img src="{{ STATIC_URL }}admin/images/logo-enervit-corporate.gif"  title="Enervit"/>
+    </a>
+</div>
+<h1>{{ survey.title }}</h1>
+<div id="description">
+    <p>{{ survey.thanks }} </p>
+   {% if total_score > 0 and survey_score > 0 %}
+    <p>Il tuo punteggio finale è di {{ total_score }}/{{ survey_score }}</p>
+    {% endif %}
+</div>
+
+<div id="footer">
+    <hr />
+    &copy;Enervit{% now "Y" %}, All rights reserved. P.IVA 02375690134 <img src="{{ STATIC_URL }}admin/images/certifications.png" alt="Certifications"></div>
+</div>
+
+</body>
+</html>

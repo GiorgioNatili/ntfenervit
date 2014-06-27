@@ -1,0 +1,217 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static bootstrapped_goodies_tags %}
+{% block icon-detail %}<i class="icon-ok"></i>{% endblock %}
+{% block content_title %}Destinatari  Newsletter  {% endblock %}
+{% block content_subtitle %}<h5>Destinatari per la newsletter: <b>{{ newsletter.name }}</b></h5>{% endblock %}
+{% block content %}
+    <div class="container-fluid padded">
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Destinatari </span>
+                    </div>
+                    <div class="box-content">
+                        <div id="dataTables">
+
+                            <table id="targets" cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
+                                <thead>
+                                <tr>
+                                    <th><div>Id</div></th>
+                                    <th><div>Nome Cognome</div></th>
+                                    <th><div>Email</div></th>
+                                    <th><div>Professione</div></th>
+                                    <th><div>Pref. Azione</div></th>
+                                    <th><div>Pref. Anagrafica</div></th>
+                                    <th><div>Città</div></th>
+                                    <th>&nbsp;</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Rubrica contatti </span>
+                    </div>
+                    <div class="box-content">
+                        <div id="dataTables">
+
+                            <table id="contacts" cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
+                                <thead>
+                                <tr>
+                                    <th><div>Nome Cognome</div></th>
+                                    <th><div>Email</div></th>
+                                    <th><div>Professione</div></th>
+                                    <th><div>Pref. Azione</div></th>
+                                    <th><div>Pref. Anagrafica</div></th>
+                                    <th><div>Città</div></th>
+                                    <th>&nbsp;</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+
+                                {% for contact in contacts %}
+                                    <tr>
+                                        <td>{{ contact.name |title}} {{ contact.surname |title}}</td>
+                                        <td>{{ contact.email }}</td>
+                                        <td>{{ contact.work }}</td>
+                                        <td>{% for sub in contact.action_subdivision.all %}{{ sub.name }} {% endfor %}</td>
+                                        <td>{% for sub in contact.anagrafic_subdivision.all %}{{ sub.name }} {% endfor %}</td>
+                                        <td>{{ contact.city }}{% if contact.province %}({{contact.province.code}}){% endif %}</td>
+                                        <td><a href="#" id="addButton_{{contact.email}}"><i class="icon-plus-sign"></i></a></td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <script>
+
+        $(document).ready(function() {
+
+            var newsletter = "{{ newsletter.id }}"
+
+            var targets=$("#targets").dataTable({
+                bJQueryUI:!1
+                ,bAutoWidth:!1,
+                sPaginationType:"full_numbers",
+                sDom:'<"table-header"fl>t<"table-footer"ip>',
+                "oLanguage": {
+                    "sSearch":"Cerca",
+                    "sLengthMenu": "Mostra _MENU_ righe per pagina",
+                    "sZeroRecords": "Nessun risultato trovato",
+                    "sInfo": "Risultati da _START_ a _END_ di _TOTAL_ ",
+                    "sInfoEmpty": "Mostrati da 0 a 0 di 0 records",
+                    "sInfoFiltered": "(filtrati da _MAX_ records totali)",
+                    "oPaginate":{
+                        "sFirst":"Primo",
+                        "sLast":"Ultimo",
+                        "sNext":"Prossimo",
+                        "sPrevious":"Precedente"
+
+                    }
+                },
+                fnDrawCallback:function(){
+                    $('#targets tbody tr td a').off('click');
+                    $('#targets tbody tr td a').on('click', function () {
+                    var id = $(this).attr("id");
+                    var targetId = id.replace("deleteButton_",'');
+                        $.getJSON(
+                                "/admin/campaigns/rest/newslettertargetaremove",
+                                {
+                                    target : targetId
+                                },
+                                function(data){
+                                    if(data.value=="OK"){
+                                        updateTargets();
+
+                                    }
+                                }
+                        );
+                        
+                    });
+                }
+                    
+            });
+
+            
+
+
+            var contactsTable = $("#contacts").dataTable({
+                bJQueryUI:!1
+                ,bAutoWidth:!1,
+                sPaginationType:"full_numbers",
+                sDom:'<"table-header"fl>t<"table-footer"ip>',
+                "oLanguage": {
+                    "sSearch":"Cerca",
+                    "sLengthMenu": "Mostra _MENU_ righe per pagina",
+                    "sZeroRecords": "Nessun risultato trovato",
+                    "sInfo": "Risultati da _START_ a _END_ di _TOTAL_ ",
+                    "sInfoEmpty": "Mostrati da 0 a 0 di 0 records",
+                    "sInfoFiltered": "(filtrati da _MAX_ records totali)",
+                    "oPaginate":{
+                        "sFirst":"Primo",
+                        "sLast":"Ultimo",
+                        "sNext":"Prossimo",
+                        "sPrevious":"Precedente"
+
+                    }
+                },
+                fnDrawCallback:function(){
+                    $('#contacts tbody tr td a').off('click');
+                    $('#contacts tbody tr td a').on('click', function () {
+                    var id = $(this).attr("id");
+                    var contactId = id.replace("addButton_",'');
+                    $.getJSON(
+                        "/admin/campaigns/rest/newslettertargetadd",
+                        {
+                            contact: contactId,
+                            newsletter: newsletter
+                        },
+                        function(data){
+                            if(data.value=="OK"){
+                                updateTargets();
+                                }
+                        }
+                    );
+                            
+                  });
+                }
+            });
+                
+            
+
+
+
+
+            $(".active").removeClass("active");
+            $("#presenceMenu").addClass("active");
+
+            function updateTargets(){
+                $.getJSON(
+                        "/admin/campaigns/rest/newslettertargetlist",
+                        {
+                            newsletter: newsletter
+                        },
+                        function(data){
+                            if(data.value=="OK"){
+                                targets.fnClearTable();
+                                $.each(data.targets,function(i,row){
+                                    var address="";
+                                    if(row.city!="" || row.city!=null){
+                                        address+=row.city+" ("+row.province+")";
+                                    }
+                                    azione = "";
+                                    $.each(row.action_subdivision,function(i,r){
+                                        azione += r+" ";
+                                    });
+                                    anagrafic = "";
+                                    $.each(row.anagrafic_subdivision,function(i,r){
+                                        anagrafic += r+" ";
+                                    });
+                                    targets.fnAddData([row.id,row.contact,row.email,row.work,azione,anagrafic,address,'<a href="#" id="deleteButton_'+row.id+'"><i class="icon-remove-sign"></i></a>']);
+                                });
+                            }
+                        }
+                );
+            }
+
+          updateTargets();
+        });
+    </script>
+{% endblock %}

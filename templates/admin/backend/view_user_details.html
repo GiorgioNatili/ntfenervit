@@ -1,0 +1,121 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static bootstrapped_goodies_tags %}
+{% block icon-detail %}<i class="icon-user"></i>{% endblock %}
+{% block content_title %}Utente{% endblock %}
+{% block content_subtitle %}<h5>visualizza e modifica gli attributi dell'utente selezionato</h5>{% endblock %}
+{% block content %}
+
+    <div class="container-fluid padded">
+        <div class="row-fluid">
+            <div class="span12">
+
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Utente: {{ usr.username }}</span>
+
+                    </div>
+                    <div class="box-content">
+                        <form class="fill-up validatable" enctype="multipart/form-data" method="post" id="company_form">
+                            {% csrf_token %}
+                            {% if form.errors %}
+                                <div class="alert alert-error">
+                                    Correggi i seguenti errori:
+                                    <ul>
+                                        {% for field, errors in form.errors.items %}
+                                            {% for error in errors %}
+                                                <li>{{ field }} {{ error }}</li>
+                                            {% endfor %}
+
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+                            <div class="row-fluid"> <!-- contenitore form -->
+                                <!-- primo tab -->
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li class="input">
+                                            <label>Nome</label>
+                                            <input type="text" name="first_name" class="validate[required]" data-prompt-position="topLeft" placeholder="Nome" value="{{ usr.first_name }}"/>
+                                        </li>
+                                        <li>
+                                            <label>Cognome</label>
+                                            <input type="text"  name="last_name" class="validate[required]" data-prompt-position="topLeft" placeholder="Cognome" value="{{ usr.last_name }}"/>
+                                        </li>
+                                        <li>
+                                            <label>Email</label>
+                                            <input type="text"  name="email" class="validate[custom[email]]" placeholder="Email" value="{{usr.email|default_if_none:""}}"/>
+                                        </li>
+
+                                    </ul>
+                                </div>
+                                <!-- secondo tab -->
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>Password</label>
+                                           <a class="btn btn-blue" href="/admin/auth/user/{{ usr.id }}/password/"><i class="icon-lock icon-white"></i> Cambio Password</a>
+                                        </li>
+                                        <li>
+                                            <label>Gruppo di appartenenza</label>
+                                            <select class="chzn-select" name="gruppo" >
+                                                <option value="-1" > --- </option>
+                                                {% for g in gruppi %}
+                                                    <option value="{{ g.id }}" {% if g.id == ugruppo.id %}selected="selected"{% endif %}>{{ g }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </li>
+                                        <li>
+                                            <label>Data di Registrazione</label>
+                                            <label>{{ usr.date_joined}}</label>
+                                        </li>
+                                        <li>
+                                            <label>Ultimo Accesso</label>
+                                            <label>{{ usr.last_login}}</label>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div> <!-- contenitore form -->
+                            <div class="row-fluid">
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <input type="checkbox" class="icheck" id="is_staff" name="is_staff" {% if usr.is_staff == True %}checked{% endif %} />
+                                            <label for="is_staff" class="" style="margin-right:10px;">Membro dello Staff</label>
+                                            <input type="checkbox" class="icheck" id="is_superuser" name="is_superuser" {% if usr.is_superuser == True %}checked{% endif %} />
+                                            <label for="is_superuser" class="" style="margin-right:10px;">Superutente</label>
+                                            <input type="checkbox" class="icheck" id="is_active" name="is_active" {% if usr.is_active == True %}checked{% endif %} />
+                                            <label for="is_active" class="" style="margin-right:10px;">Attivo</label>
+
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            {% if contact %}
+                                                <label>Contatto Associato</label>
+                                                <a style="font-weight: bold" href="/admin/contacts/contact/{{ contact.code }}">{{ contact.name }} {{ contact.surname }} ({{ contact.email }})</a>
+                                            {% endif %}
+                                        </li>
+                                     </ul>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <input type="hidden" name="username" value="{{ usr.username }}" />
+                                <input type="hidden" name="password" value="{{ usr.password }}" />
+                                <input type="hidden" name="last_login" value="{{ usr.last_login|date:'d/m/Y 00:00' }}" />
+                                <input type="hidden" name="date_joined" value="{{ usr.date_joined|date:'d/m/Y 00:00' }}" />
+                                <button type="submit" name="_save" class="btn btn-green ">Modifica</button>
+                                <a  href="/admin/auth/user/{{ usr.id }}/delete/    " name="delete" class="btn btn-red pull-right">Cancella</a>
+                            </div>
+                        </form>
+                    </div>
+                </div> <!-- end box -->
+            </div> <!-- span 12 -->
+        </div><!-- row fluid -->
+    </div>
+
+
+
+{% endblock %}

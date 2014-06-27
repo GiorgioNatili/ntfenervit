@@ -1,0 +1,252 @@
+{% extends "admin/base_site.html" %}
+{% block extrastyle %}
+    <link rel="stylesheet" href="/static/redactor/redactor.css" />
+    <script type="text/javascript" src="/static/redactor/jquery-migrate.min.js"></script>
+
+    <script type="text/javascript" src="/static/redactor/redactor.js"></script>
+    <script type="text/javascript" src="/static/redactor/lang/it.js"></script>
+    <style type="text/css">
+        body .redactor_toolbar li a.redactor_btn_button1  {
+            background: url(/static/admin/images/placeholder2.png) no-repeat;
+        }
+    </style>
+{% endblock %}
+{% load i18n admin_static bootstrapped_goodies_tags %}
+{% block icon-detail %}<i class="icon-plus-sign-alt"></i>{% endblock %}
+{% block content_title %}Nuova Newsletter{% endblock %}
+{% block content_subtitle %}<h5>aggiungi una nuova newsletter compilando il seguente form</h5>{% endblock %}
+{% block content %}
+
+    <div class="container-fluid padded">
+        <div class="row-fluid">
+            <div class="span12">
+
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Newsletter</span>
+
+                    </div>
+                    <div class="box-content">
+                        <form class="fill-up validatable" enctype="multipart/form-data" method="post" id="newsletter_form">
+                            {% csrf_token %}
+                            {% if form.errors %}
+                                <div class="alert alert-error">
+                                    Correggi i seguenti errori:
+                                    <ul>
+                                        {% for field, errors in form.errors.items %}
+                                            {% for error in errors %}
+                                                <li>{{ field }} {{ error }}</li>
+                                            {% endfor %}
+
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+
+                            <div class="row-fluid"> <!-- contenitore form -->
+                                <!-- primo tab -->
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>&nbsp;</label>
+                                        </li>
+                                        <li class="input">
+                                            <input id="name" type="text" name="name" class="validate[required]" data-prompt-position="topLeft" placeholder="Denominazione" value="{{ form.instance.name|default_if_none:"" }}"/>
+                                        </li>
+                                        <li class="input">
+                                            <input id="slug" type="text" name="slug" class="validate[required]" data-prompt-position="topLeft" placeholder="Slug" value="{{ form.instance.slug|default_if_none:"" }}"/>
+                                            <span class="help-block note"><i class="icon-warning-sign"></i>Slug è un campo automatico non modificare</span>
+                                        </li>
+                                        <li class="input">
+                                            <input id="subject" type="text" name="subject"  data-prompt-position="topLeft" placeholder="Oggetto della mail" value="{{ form.instance.subject|default_if_none:"" }}"/>
+                                        </li>
+                                        <li>
+                                            <textarea form="newsletter_form" rows="4" cols="50" name="description" class="validate[required]" data-prompt-position="topLeft" placeholder="Descrizione" >{{ form.instance.description|default_if_none:"" }}</textarea>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <!-- secondo tab -->
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>&nbsp;</label>
+                                        </li>
+                                        <li>
+                                            <input id="startdate" type="text" name="startdate" class="validate[required]" data-prompt-position="topLeft" placeholder="Data di inizio" value="{{ form.instance.startdate|default_if_none:"" }}"/>
+                                        </li>
+                                        <li>
+                                            <input id="enddate" type="text" name="enddate" class="validate[required]" data-prompt-position="topLeft" placeholder="Data di fine" value="{{ form.instance.enddate|default_if_none:"" }}"/>
+                                        </li>
+                                        <li>
+                                            <input type="text" id="email" name="testcontact" class="validate[custom[email]]" placeholder="Email di test" value="{{ form.instance.testcontact|default_if_none:""}}"/>
+                                            <span class="help-block note"><i class="icon-warning-sign"></i>Email usata per testare la newsletter</span>
+                                        </li>
+                                        <li>
+                                            <label>Campagna:</label>
+                                            <select class="chzn-select" name="campaign" >
+                                                 <option>---</option>
+                                                {% for campaign in campaigns %}
+
+                                                    <option value="{{ campaign.id }}" {% if campaign.id == form.instance.campaign.id %} selected="selected"{% endif %}>{{ campaign }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </li>
+
+                                        <li>
+                                            <label>Evento associato:</label>
+                                            <select class="chzn-select" name="event" >
+                                               <option value="" selected="selected">---</option>
+                                                {% for event in events %}
+
+                                                    <option value="{{ event.id }}" {% if event.id == form.instance.event.id %} selected="selected"{% endif %}>{{ event }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </li>
+
+                                    </ul>
+                                </div>
+                            </div> <!-- contenitore form -->
+                            <div class="row-fluid"> <!-- contenitore body della newsletter -->
+                                <div class="span12">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>Contenuto</label>
+                                            <select class="chzn-select" id="ntemplates">
+                                                <option value="nothing" selected="selected">Seleziona template</option>
+                                                {% for nt in ntemplates %}
+                                                    <option value="{{ nt.id }}">{{ nt }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </li>
+                                        <li>
+                                            <textarea class="vLargeTextField" cols="40" id="id_body" name="content" rows="40">
+
+                                            </textarea>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="row-fluid">
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>Allegati</label>
+                                            <div class="attachments">
+                                                {{ attachments.as_p }}
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label style="display: inline;margin-right: 15px">Stato:</label>
+                                            <select class="uniform" name="status" >
+                                                <option value="D" selected="selected">Bozza</option>
+                                                <option value="W" >In attesa di invio</option>
+                                                <option value="S" >Invio in corso</option>
+                                                <option value="F" >Inviata</option>
+                                                <option value="C" >Cancellata</option>
+                                            </select>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="submit" name="_save" class="btn btn-blue">Salva</button>
+                                <button type="submit" name="_addanother" class="btn btn-green">Salva e aggiungi un altro</button>
+                            </div>
+                        </form>
+                    </div>
+                </div> <!-- end box -->
+            </div> <!-- span 12 -->
+        </div><!-- row fluid -->
+    </div>
+
+    <script>
+        var slug = function(str) {
+            str = str.replace(/^\s+|\s+$/g, ''); // trim
+            str = str.toLowerCase();
+
+            // remove accents, swap ñ for n, etc
+            var from = "ãàáäâẽèéëêìíïîõòóöôùúüûñç·/_,:;";
+            var to   = "aaaaaeeeeeiiiiooooouuuunc------";
+            for (var i=0, l=from.length ; i<l ; i++) {
+                str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i));
+            }
+
+            str = str.replace(/[^a-z0-9 -]/g, '') // remove invalid chars
+                    .replace(/\s+/g, '-') // collapse whitespace and replace by -
+                    .replace(/-+/g, '-'); // collapse dashes
+
+            return str;
+        };
+
+
+
+        $(document).ready(function(){
+
+            $("#startdate" ).datepicker({"language":"it","format":"dd/mm/yyyy"});
+            $("#enddate" ).datepicker({"language":"it","format":"dd/mm/yyyy"});
+            $(".active").removeClass("active");
+            $("#newsletterMenu").addClass("active");
+            $("#name").on("keypress",function(){
+                 $("#slug").val(slug($("#name").val()));
+            });
+            $("#name").on("change",function(){
+                $("#slug").val(slug($("#name").val()));
+            });
+            $("#email").on("keyup",function(e){
+                $("#email").val($("#email").val().toLowerCase());
+            });
+
+            $("#ntemplates").on("change",function(){
+                var nt = $("#ntemplates").val();
+                if(nt != "nothing"){
+                    $.getJSON(
+                            "/admin/campaigns/rest/newslettertemplate",
+                            {
+                                id : nt
+
+                            },
+                            function(data){
+                                $('#id_body').redactor('insertHtml', data[0].fields.content);
+                            }
+                    );
+
+
+                }
+            });
+
+            $('#id_body').redactor({
+                lang: 'it',
+                buttonsAdd: ['|','button1'],
+                buttonsCustom:{
+                    button1:{
+                        title: 'Placeholders',
+                        dropdown:{
+                            nome:{title:"Nome",callback: function(buttonName, buttonDOM, buttonObject){this.execCommand('inserthtml', '[[NOME]] ');}},
+                            cognome:{title:"Cognome",callback: function(buttonName, buttonDOM, buttonObject){this.execCommand('inserthtml', '[[COGNOME]] ');}},
+                            email: {title:"Email",callback: function(buttonName, buttonDOM, buttonObject){this.execCommand('inserthtml', '[[EMAIL]] ');}}
+
+                        }
+                    }
+                },
+                removeEmptyTags: false,
+                convertDivs: false,
+                iframe: true,
+                //css: "/static/admin/css/iframe.css",
+                //fullpage: true,
+                imageUpload: '/ajax/photos/upload/',
+                imageGetJson: '/ajax/photos/recent/'
+
+            });
+
+
+        });
+
+    </script>
+
+
+
+{% endblock %}

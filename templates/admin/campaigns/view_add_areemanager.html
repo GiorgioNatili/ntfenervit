@@ -1,0 +1,69 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static bootstrapped_goodies_tags %}
+{% block icon-detail %}<i class="icon-plus-sign-alt"></i>{% endblock %}
+{% block content_title %}Nuovo Area Manager{% endblock %}
+{% block content_subtitle %}<h5>aggiungi una nuovo Area Manager compilando il seguente form</h5>{% endblock %}
+{% block content %}
+
+    <div class="container-fluid padded">
+        <div class="row-fluid">
+            <div class="span12">
+
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Area Manager</span>
+                    </div>
+                    <div class="box-content">
+                        <form class="fill-up validatable" enctype="multipart/form-data" method="post" id="company_form">
+                            {% csrf_token %}
+                            {% if form.errors %}
+                                <div class="alert alert-error">
+                                    Correggi i seguenti errori:
+                                    <ul>
+                                        {% for field, errors in form.errors.items %}
+                                            {% for error in errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+
+                            <div class="row-fluid"> <!-- contenitore form -->
+                                <!-- primo tab -->
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+
+                                        <li class="input">
+                                            <input type="text" name="name" class="validate[required]" data-prompt-position="topLeft" placeholder="Nome" value="{{ form.instance.name|default_if_none:"" }}"/>
+                                        </li>
+                                        <li class="input">
+                                            <input type="text" name="surname" class="validate[required]" data-prompt-position="topLeft" placeholder="Cognome" value="{{ form.instance.surname|default_if_none:"" }}"/>
+                                        </li>
+
+                                    </ul>
+                                </div>
+                            </div> <!-- contenitore form -->
+
+                            <div class="form-actions">
+                                <button type="submit" name="_save" class="btn btn-blue">Salva</button>
+                                <button type="submit" name="_addanother" class="btn btn-green">Salva e aggiungi un altro</button>
+                            </div>
+                        </form>
+                    </div>
+                </div> <!-- end box -->
+            </div> <!-- span 12 -->
+        </div><!-- row fluid -->
+    </div>
+    <script>
+        $(document).ready(function(){
+            $(".active").removeClass("active");
+            $("#optionsMenu").addClass("active");
+        });
+
+    </script>
+
+
+
+{% endblock %}

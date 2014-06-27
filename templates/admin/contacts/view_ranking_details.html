@@ -1,0 +1,99 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static bootstrapped_goodies_tags %}
+{% block icon-detail %}<i class="icon-sort-up"></i>{% endblock %}
+{% block content_title %}Ranking Contatto{% endblock %}
+{% block content_subtitle %}<h5>visualizza e modifica la configurazione dell'algoritmo di calcolo del Ranking dei Contatti</h5>{% endblock %}
+{% block content %}
+
+    <div class="container-fluid padded">
+        <div class="row-fluid">
+            <div class="span12">
+
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Configurazione</span>
+
+                    </div>
+                    <div class="box-content">
+                        <form class="fill-up validatable" enctype="multipart/form-data" method="post" id="division_form">
+                            {% csrf_token %}
+                            {% if form.errors %}
+                                <div class="alert alert-error">
+                                    Correggi i seguenti errori:
+                                    <ul>
+                                        {% for field, errors in form.errors.items %}
+                                            {% for error in errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+                            <div class="row-fluid"> <!-- contenitore form -->
+                                <!-- primo tab -->
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li class="input">
+                                            <label>Valore Minimo</label>
+                                            <input type="number" name="minvalue" class="validate[required]" data-prompt-position="topLeft" placeholder="Valore Minimo" value="{{ ranking.minvalue }}"/>
+                                            <small>il Ranking di un Contatto parte da questo valore</small>
+                                        </li>
+
+                                        <li>
+                                            <label>Valore Massimo</label>
+                                            <input type="number" name="maxvalue" class="validate[required]" data-prompt-position="topLeft" placeholder="Valore Massimo" value="{{ ranking.maxvalue }}"/>
+                                            <small>il Ranking di un Contatto non può superare questo valore</small>
+                                        </li>
+                                        <li>
+                                            <label>Premio Iscrizione Evento</label>
+                                            <input type="number" name="eventsignup" class="validate[required]" data-prompt-position="topLeft" placeholder="Premio Iscrizione Evento" value="{{ ranking.eventsignup }}"/>
+                                        </li>
+                                        <li>
+                                            <label>Premio Presenza Evento</label>
+                                            <input type="number" name="eventpresence" class="validate[required]" data-prompt-position="topLeft" placeholder="Premio Presenza Evento" value="{{ ranking.eventpresence }}"/>
+                                        </li>
+                                        <li>
+                                            <label>Premio Presenza Evento</label>
+                                            <input type="number" name="eventpresence" class="validate[required]" data-prompt-position="topLeft" placeholder="Premio Presenza Evento" value="{{ ranking.eventpresence }}"/>
+                                        </li>
+                                        <li>
+                                            <label>Premio Risposta Questionario</label>
+                                            <input type="number" name="survey" class="validate[required]" data-prompt-position="topLeft" placeholder="Premio Risposta Questionario" value="{{ ranking.survey }}"/>
+                                        </li>
+                                        <li>
+                                            <label>Periodo di Inattività </label>
+                                            <input type="number" name="inactivity_period" class="validate[required]" data-prompt-position="topLeft" placeholder="Periodo di inattività" value="{{ ranking.inactivity_period }}"/>
+                                            <small>Espresso in mesi: es. 36</small>
+                                        </li>
+                                        <li>
+                                            <label>Penalizzazione Inattività</label>
+                                            <input type="number" name="inactive" class="validate[required]" data-prompt-position="topLeft" placeholder="Penalizzazione Inattività" value="{{ ranking.inactive }}"/>
+                                        </li>
+
+                                        <li>
+                                            <label>Valore di soglia contatto ATTIVO</label>
+                                            <input type="number" name="active_threshold" class="validate[required]" data-prompt-position="topLeft" placeholder="Soglia contatto ATTIVO" value="{{ ranking.active_threshold }}"/>
+                                            <small>Valore oltre il quale il contatto viene considerato ATTIVO. Per valori inferiori a tale soglia il contatto è considerato INERTE</small>
+                                        </li>
+
+
+
+                                    </ul>
+                                </div>
+
+                            </div> <!-- contenitore form -->
+
+                            <div class="form-actions">
+                                <button type="submit" name="_save" class="btn btn-green ">Modifica</button>
+                            </div>
+                        </form>
+                    </div>
+                </div> <!-- end box -->
+            </div> <!-- span 12 -->
+        </div><!-- row fluid -->
+    </div>
+
+
+
+{% endblock %}

@@ -1,0 +1,6 @@
+{{object.text}}
+{{object.name}}
+{{object.description}}
+{{object.startdate}}
+{{object.enddate}}
+{{object.status}}

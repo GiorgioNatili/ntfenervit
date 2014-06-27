@@ -1,0 +1,11 @@
+Ciao,
+
+{% block body %}
+{% endblock %}
+
+Saluti,
+
+Enervit
+
+
+PS: Questa e' una mail automatica, non utilizzare per comunicazioni verso Enervit

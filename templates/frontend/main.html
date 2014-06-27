@@ -1,0 +1,738 @@
+{% extends "frontend/base.html" %}
+{% block additionalstyles %}
+    <style>
+     ul{list-style-type: none;}
+    </style>
+{% endblock %}
+
+{% block content %}
+     {% if messages.success %}
+        <script>alert("Informazioni Aggiornate!!!"); </script>
+    {% endif %}
+     <div class="header" style="display:block;width:100%;height:85px;position:absolute;top:0;left:0;background: url('{{ STATIC_URL }}frontend/images/enerzona_small.png') no-repeat 0 0;background-color: #92BF2D;background-position: right;">
+         <div class="container">
+             <div class="carousel-caption">
+             </div>
+         </div>
+     </div>
+    <div class="signup-bar" style="top:85px!important;">
+        <span class="span-bar"><a id="logout" class="link-bar" href="/accounts/logout">Esci</a></span>
+
+    </div>
+    <div class="main-container" style="position: absolute;top:85px;left:0;width: 100%;">
+        {% if contact.0 %}
+            <h2 class="featurette-heading" style="margin-top: 10px!important;">Ciao <span class="text-muted">{{ contact.0.name }}</span>,</h2>
+            <span class="text-muted" style="font-size: 25px;">Benvenuto nella tua area riservata</span>
+            <ul id="menu" class="nav nav-tabs nav-justified" style="margin-top: 20px;">
+                <li class="active">
+                    <a href="#events">Prossimi Eventi</a>
+                </li>
+                <li>
+                    <a href="#profile">Profilo</a>
+                </li>
+                <li>
+                    <a href="#about">Contattaci</a>
+                </li>
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane active" id="events">
+                   <div class="col-md-12" style="margin-top: 20px;">
+                       {% for ev in events %}
+                        <div class="panel {% if ev in signups %}panel-success{% else %}panel-primary{% endif %}" style="margin-bottom: 20px;">
+                            <div class="panel-heading" style="clear: both">
+                                <h3>{{ ev.date|date:"d/M/Y" }} - {{ ev.title }}{% if ev in signups %}<span class="badge pull-right">Iscritto</span>{% endif %}</h3>
+
+                            </div>
+                           <div class="panel-body">
+                                <span style="font-style: italic;display: block;">{{ ev.place }}</span>
+                                <p class="text-muted">{{ ev.description }}</p>
+                                <span style="font-style:italic; font-weight:bold;display: block;">Quota di partecipazione: {{ ev.money }}</span>
+                                <p>{{ev.money_description}}</p>
+                                <span style="font-weight:bold;display: block;">Modalità di pagamento</span>
+                                <p style="font-style: italic">{{ev.payment}}</p>
+                                {{ signups.all }}
+                                {% if not ev in signups %}
+                                    {% if ev.signups_enabled %}
+                                         <button type="button" class="iscrizione btn btn-success text-right">Iscriviti</button>
+                                    {% else %}
+                                        <button type="button" class="btn btn-danger text-right">Iscrizioni Chiuse</button>
+                                    {% endif %}
+                                <form  enctype="multipart/form-data" method="post" id="signup_form-{{ev.id}}" role="form" style="display: none;margin-top: 10px;background-color: #f7f7f9;padding-top: 9px;padding-right: 14px;padding-bottom: 9px;padding-left: 14px;">
+                                    {% csrf_token %}
+                                 
+                                    <div class="row">
+                                     <div  {%if ev.money == '0' %}style="display:none;"{%endif%}>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="cro">Numero di CRO</label>
+                                                <small>(11 cifre)</small>
+                                                <input type="text" class="form-control" id="cro-{{ev.id}}" name="cro" placeholder="Numero di CRO">
+                                            </div>
+                        					<div class="form-group">
+                        					    <label for="cro" style="margin-left: 63%;">Importo pagato</label>
+                                                                    <input style="display:inline;width:20%" type="text" class="form-control" id="money-{{ev.id}}" name="money" value="{{ev.money}}" placeholder="{{ev.money}}">	
+                        					</div>
+                                            <div class="form-group">
+                                                <label for="name">Note</label>
+                                                <textarea id="note-{{ev.id}}" style="width:100%!important;resize: none;" name="note" class="form-control row-fluid" rows="6"></textarea>
+                                            </div>
+                                        </div>
+                                        <div id="fatturazione" class="col-md-6">
+                                            <div class="form-group">
+                                                <label class="text-muted" style="margin: 0 auto; display:block;">Dati di fatturazione</label>
+                                             </div>
+                                             <div class="form-group">
+                                                <label  for="note">Ragione Sociale</label>
+                                                <input type="text" name="ragionesociale" class="form-control" placeholder="Ragione sociale" />
+                                            </div>
+                                            <div class="form-group">
+                                                <label  for="note">Indirizzo</label>
+                                                <input type="text" name="indirizzo" class="form-control" placeholder="Indirizzo" />
+                                            </div>
+                                            <div>
+                                                <div class="form-group" style="display: inline;">
+                                                    <label  for="note">Città</label>
+                                                    <input type="text" name="citta" class="form-control" style="width:40%;display:inline;" placeholder="Città" />
+                                                </div>
+                                                <div class="form-group" style="display: inline;">
+                                                    <label  for="note">Cap</label>
+                                                    <input type="text" name="cap" class="form-control" style="width:10%;display:inline;" placeholder="Cap" />
+                                                </div>
+                                                <div class="form-group" style="display: inline;">
+                                                    <label  for="note">Prov</label>
+                                                    <select class="form-control chzn-select" style="width:25%;display: inline;" name="provincia" >
+                                                         <option>---</option>
+                                                        {% for prov in provinces %}
+                                                            <option value="{{ prov.id }}">{{ prov.code }}</option>
+                                                        {% endfor %}
+                                                    </select>
+                                                </div>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label  for="note">P.Iva</label>
+                                                <input type="text" name="piva" class="form-control" placeholder="P.Iva" />
+                                            </div>
+                                            <div class="form-group">
+                                                <label  for="note">Codice Fiscale</label>
+                                                <input type="text" name="codefiscale" class="form-control" placeholder="Codice Fiscale" />
+                                            </div>
+                                        </div>
+     				                   <p class="text-danger text-center" style="font-weight:bold;">Attenzione! L'iscrizione potrebbe essere revocata nel caso non ci fosse corrispondenza tra il numero di CRO e l'importo versato</p>	
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="hidden" name="event" value="{{ ev.id }}" />
+                                        <button id="submitSignup-{{ev.id}}" type="button" class="btn btn-primary">Conferma Iscrizione</button>
+                                    </div>
+                                    </div>
+                                </form>
+                                {% else %}
+                                  <span class="text-muted" style="display: block;">Risulti regolarmente iscritto.</span>
+                                  <span>Per problemi o domande <a id="signupQuestions" href="#about">contattaci</a></span>
+                                {% endif %}
+                           </div>
+                        </div>
+                     {% endfor %}
+                 </div>
+                </div>
+                <div class="tab-pane" id="profile">
+                        <div class="row">
+                            <div id="contactDetails" class="col-md-12" style="margin-top: 10px;">
+                                <h3 class="text-muted text-center" style="margin-bottom:20px;margin-top: 10px!important;">Informazioni memorizzate</h3>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="name">Username: </label><span style="text-muted"> {{ user }}</span>
+                                     </div>
+                                     <div class="form-group">
+                                        <label for="name">Data di registrazione: </label><span style="text-muted"> {{ user.date_joined|date:"d/m/Y" }}</span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="email">Email:</label><span style="text-muted"> {{ contact.0.email }}</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="name">Nome completo:</label><span style="text-muted"> {{ contact.0.name }} {{ contact.0.surname }}</span>
+                                    </div>
+                                    <div class="form-group  {% if form.sex.errors %}has-error{% endif %}">
+                                        <label for="name">Sesso:</label><span style="text-muted"> {{ contact.0.sex }}</span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="name">Codice Fiscale:</label><span style="text-muted"> {{ contact.0.code }}</span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="name">Data di nascita:</label><span style="text-muted"> {{ contact.0.birthdate }}</span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="name">Indirizzo:</label><span style="text-muted"> {{ contact.0.street }} {{ contact.0.civic }}, {{ contact.0.city }} ({{ contact.0.province.code }})</span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="phone">Telefono:</label><span style="text-muted"> {{ contact.0.phone_number }}</span>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="name">Professione</label><span style="text-muted"> {{ contact.0.work }}</span>
+                                    </div>
+
+                                </div>
+                                <button type="button" class="modifica btn btn-primary text-right" style="margin-left: 20px;">Modifica Informazioni</button>
+                                <a href="/accounts/password/change/" style="margin-left: 20px;" class="btn btn-danger text-right">Cambia password</a>
+
+                            </div>
+
+                            <!-- FORM MODIFICA CONTATTO -->
+
+                            <div id="modifyContact" class="col-md-12" style="margin-top: 10px;display: none;">
+                                <div class="box">
+                                    <div class="box-content">
+                                        <form class="fill-up validatable" enctype="multipart/form-data" method="post" id="modify_form">
+                                            {% csrf_token %}
+
+                                            {% if form.errors %}
+                                                <div class="alert alert-error">
+                                                    Correggi i seguenti errori:
+                                                    <ul>
+                                                        {% for field, errors in form.errors.items %}
+                                                            {% for error in errors %}
+                                                                <li>{{ error }}</li>
+                                                            {% endfor %}
+
+                                                        {% endfor %}
+                                                    </ul>
+                                                </div>
+                                            {% endif %}
+
+
+
+                                                <div class="col-md-6">
+                                                    <div class="form-group {% if form.name.errors %}has-error{% endif %}">
+                                                        <label for="name">Nome</label>
+                                                        <input type="text" style="text-transform:capitalize;" name="name" class="form-control validate[required]" data-prompt-position="topLeft" placeholder="Nome" value="{{ contact.0.name|default_if_none:"" }}"/>
+                                                        <span class="help-block">{{form.name.errors}}</span>
+                                                    </div>
+                                                    <div class="form-group  {% if form.sex.errors %}has-error{% endif %}">
+                                                        <label for="name">Sesso</label>
+                                                        <select class="form-control" name="sex" >
+                                                            <option value="m" {% if contact.0.sex == "m" %}selected="selected"{% endif %}>Maschile</option>
+                                                            <option value="f" {% if contact.0.sex == "f" %}selected="selected"{% endif %}>Femminile</option>
+                                                            <option value="n" {% if contact.0.sex == "n" %}selected="selected"{% endif %}>Neutro</option>
+                                                        </select>
+                                                        <span class="help-block">{{form.sex.errors}}</span>
+                                                    </div>
+                                                    <div class="form-group {% if form.code.errors %}has-error{% endif %}">
+                                                        <label for="name">Codice Fiscale</label>
+                                                        <span style="text-muted" > {{ contact.0.code }}</span>
+                                                    </div>
+
+                                                    <div class="form-group {% if form.street.errors %}has-error{% endif %}">
+                                                        <label for="name">Via</label>
+                                                        <input type="text"  name="street" class="form-control validate[required]" data-prompt-position="topLeft" placeholder="Via" value="{{ contact.0.street|default_if_none:"" }}"/>
+                                                        <span class="help-block">{{form.street.errors}}</span>
+                                                    </div>
+                                                    <div class="form-group {% if form.phone_number.errors %}has-error{% endif %}">
+                                                        <label for="phone">Telefono</label>
+                                                        <input pattern="[0-9.]+" type="text" id="phone_number" name="phone_number" class="form-control validate[custom[phone]]" placeholder="Telefono" value="{{ contact.0.phone_number|default_if_none:""}}"/>
+                                                        <span class="help-block">{{contact.0.phone_number.errors}}</span>
+                                                    </div>
+                                                    <div class="form-group {% if form.city.errors %}has-error{% endif %}">
+                                                        <label for="name">Comune</label>
+                                                        <input type="text"  style="text-transform:capitalize;" name="city" class="form-control validate[required]" data-prompt-position="topLeft" placeholder="Comune" value="{{ contact.0.city|default_if_none:"" }}"/>
+                                                        <span class="help-block">{{form.city.errors}}</span>
+                                                    </div>
+                                                </div>
+                                                <!-- secondo tab -->
+                                                <div class="col-md-6">
+                                                    <div class="form-group {% if form.surname.errors %}has-error{% endif %}">
+                                                        <label for="name">Cognome</label>
+                                                        <input type="text" style="text-transform:capitalize;" name="surname" class="form-control validate[required]" data-prompt-position="topLeft" placeholder="Cognome" value="{{ contact.0.surname|default_if_none:"" }}"/>
+                                                        <span class="help-block">{{form.surname.errors}}</span>
+                                                    </div>
+                                                    <div class="form-group {% if form.birthdate.errors %}has-error{% endif %}">
+                                                        <label for="name">Data di nascita</label>
+                                                        <input id="birthdate" type="text" name="birthdate" class="form-control validate[required]" data-prompt-position="topLeft" placeholder="__/__/____" value="{{ contact.0.birthdate|date:"d/m/Y" }}"/>
+                                                        <span class="help-block">{{form.birthdate.errors}}</span>
+                                                    </div>
+                                                    <div class="form-group {% if form.email.errors %}has-error{% endif %}">
+                                                        <label for="email">Email</label>
+                                                        <input type="text" id="email" name="email" class="form-control validate[custom[email]]" placeholder="Email" value="{{contact.0.email}}"/>
+                                                        <span class="help-block">{{form.email.errors}}</span>
+                                                    </div>
+
+                                                    <div class="form-group {% if form.civic.errors %}has-error{% endif %}">
+                                                        <label for="name">Civico</label>
+                                                        <input type="text"  name="civic" class="form-control validate[required,min[6]]" data-prompt-position="topLeft" placeholder="Civico" value="{{ contact.0.civic|default_if_none:"" }}"/>
+                                                        <span class="help-block">{{form.civic.errors}}</span>
+                                                    </div>
+                                                    <div class="form-group {% if form.zip.errors %}has-error{% endif %}">
+                                                        <label for="name">CAP</label>
+                                                        <input type="text"  name="zip" class="form-control validate[required,min[4]]" data-prompt-position="topLeft" placeholder="CAP" value="{{ contact.0.zip|default_if_none:"" }}"/>
+                                                        <span class="help-block">{{form.zip.errors}}</span>
+                                                    </div>
+
+                                                    <div class="form-group {% if form.province.errors %}has-error{% endif %}">
+                                                        <label for="name">Provincia</label>
+                                                        <select class="form-control chzn-select" name="province" >
+                                                            {% for prov in provinces %}
+                                                                <option value="{{ prov.id }}" {% if prov.id == contact.0.province.id %} selected="selected"{% endif %}>{{ prov }}</option>
+                                                            {% endfor %}
+                                                        </select>
+                                                        <span class="help-block">{{form.province.errors}}</span>
+                                                    </div>
+                                                    <div class="form-group  {% if form.work.errors %}has-error{% endif %}">
+
+                                                        <label for="name">Professione</label>
+                                                        <select id="work" class="form-control chzn-select" name="work" >
+                                                            <option value="54" {% if work_str == "54" %}selected="selected"{% endif %}>Altro</option>
+                                                            <option value="24" {% if work_str == "24" %}selected="selected"{% endif %}>Biologo</option>
+                                                            <option value="8" {% if work_str == "8" %}selected="selected"{% endif %}>Farmacista</option>
+                                                            <option value="17" {% if work_str == "17" %}selected="selected"{% endif %}>Dietista</option>
+                                                            <option value="25" {% if work_str == "25" %}selected="selected"{% endif %}>Medico</option>
+                                                            <option value="49" {% if work_str == "49" %}selected="selected"{% endif %}>Naturopata</option>
+                                                            <option value="81" {% if work_str == "81" %}selected="selected"{% endif %}>Tecnologo Alimentare</option>
+                                                            <option value="50" {% if work_str == "50" %}selected="selected"{% endif %}>Fisioterapista</option>
+                                                            <option value="38" {% if work_str == "38" %}selected="selected"{% endif %}>Laureato in Scienze Motorie</option>
+                                                        </select>
+                                                        <span class="help-block">{{form.work.errors}}</span>
+                                                    </div>
+
+                                             </div><!-- contenitore seconda parte -->
+                                            <div class="form-group text-right">
+                                                <input type="hidden" name="privacy_consensus" value="{{ contact.0.privacy_consensus }}" />
+                                                <input type="hidden" name="code" value="{{ contact.0.code }}" />
+                                                <button id="modProfile" type="button" name="_save" style="margin-right: 20px;" class="btn btn-danger text-right">Modifica profilo</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div> <!-- end box -->
+                            </div> <!-- span 12 -->
+
+
+
+                        </div><!-- contenitore seconda parte -->
+                </div>
+                <div class="tab-pane" id="about">
+                    <div class="container padded" style="margin-top: 20px;">
+                        <div class="row">
+                            <h3 class="text-muted text-center" style="margin-bottom:20px;margin-top: 10px!important;">Se desideri contattarci, compila il form sottostante</h3>
+                            <div class="col-md-6">
+                                        <form class="form-horizontal" role="form" enctype="multipart/form-data" method="post" id="email_form">
+                                            {% csrf_token %}
+                                            <div class="form-group">
+                                                <label for="name" class="text-muted">Motivo del contatto:</label>
+                                                <select class="form-control" name="reason">
+                                                    <option value="Informazioni sugli Eventi" selected="selected">Informazioni sugli Eventi</option>
+                                                    <option value="Informazioni sui prodotti" >Informazioni sui prodotti</option>
+                                                    <option value="Richiesta di assistenza" >Richiesta di assistenza</option>
+                                                    <option value="Problemi" >Problemi</option>
+                                                    <option value="Suggerimenti" >Suggerimenti</option>
+                                                    <option value="Altro" >Altro</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="name" class="text-muted">Il tuo messaggio:</label>
+                                                    <textarea id="message" style="width:100%!important;" name="message" class="form-control row-fluid" rows="6"></textarea>
+                                            </div>
+                                            <div class="form-group">
+                                                <button id="sendMessage" type="button" name="_send" class="btn btn-primary">Invia</button>
+                                            </div>
+                                        </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+
+        {% else %}
+           <h2 class="featurette-heading" style="margin-top: 10px!important;">Non hai ancora creato il tuo contatto</h2>
+           <span class="text-muted" style="font-size: 25px;">Devi creare il tuo contatto prima di poterti iscrivere ad un evento</span>
+            <div class="container padded" style="margin-top: 25px;">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="box">
+                            <div class="box-content">
+                                <form class="fill-up validatable" enctype="multipart/form-data" method="post" id="contact_form">
+                                    {% csrf_token %}
+
+                                    {% if form.errors %}
+                                        <div class="alert alert-error">
+                                            Correggi i seguenti errori:
+                                            <ul>
+                                                {% for field, errors in form.errors.items %}
+                                                    {% for error in errors %}
+                                                        <li>{{ error }}</li>
+                                                    {% endfor %}
+
+                                                {% endfor %}
+                                            </ul>
+                                        </div>
+                                    {% endif %}
+
+
+                                    <div class="row"> <!-- contenitore form -->
+                                        <!-- primo tab -->
+
+                                        <div class="col-md-6">
+                                            <div class="form-group {% if form.name.errors %}has-error{% endif %}">
+                                                <label for="name">Nome</label>
+                                                <input type="text" style="text-transform:capitalize;" name="name" class="form-control validate[required]" data-prompt-position="topLeft" placeholder="Nome" value="{{ form.name.value|default_if_none:"" }}"/>
+                                                <span class="help-block">{{form.name.errors}}</span>
+                                            </div>
+                                            <div class="form-group  {% if form.sex.errors %}has-error{% endif %}">
+                                                <label for="name">Sesso</label>
+                                                <select class="form-control" name="sex" >
+                                                    <option>---</option>
+                                                    <option value="m" >Maschile</option>
+                                                    <option value="f" >Femminile</option>
+                                                    <option value="n" >Neutro</option>
+                                                </select>
+                                                <span class="help-block">{{form.sex.errors}}</span>
+                                            </div>
+                                            <div class="form-group {% if form.code.errors %}has-error{% endif %}">
+                                                <label for="name">Codice Fiscale</label>
+                                                <input maxlength="16" size="16" type="text" style="text-transform:uppercase;" id="code" name="code" class="form-control validate[required]" data-prompt-position="topLeft" placeholder="Codice Fiscale" value="{{ form.code.value|default_if_none:"" }}"/>
+                                                <span class="help-block">{{form.code.errors}}</span>
+                                            </div>
+
+                                            <div class="form-group {% if form.street.errors %}has-error{% endif %}">
+                                                <label for="name">Via</label>
+                                                <input type="text"  name="street" class="form-control validate[required]" data-prompt-position="topLeft" placeholder="Via" value="{{ form.street.value|default_if_none:"" }}"/>
+                                                <span class="help-block">{{form.street.errors}}</span>
+                                            </div>
+                                            <div class="form-group {% if form.phone_number.errors %}has-error{% endif %}">
+                                                <label for="phone">Telefono</label>
+                                                <input pattern="[0-9.]+" type="text" id="phone_number" name="phone_number" class="form-control validate[custom[phone]]" placeholder="Telefono" value="{{ form.phone_number.value|default_if_none:""}}"/>
+                                                <span class="help-block">{{form.phone_number.errors}}</span>
+                                            </div>
+                                            <div class="form-group {% if form.city.errors %}has-error{% endif %}">
+                                                <label for="name">Comune</label>
+                                                <input type="text"  style="text-transform:capitalize;" name="city" class="form-control validate[required]" data-prompt-position="topLeft" placeholder="Comune" value="{{ form.city.value|default_if_none:"" }}"/>
+                                                <span class="help-block">{{form.city.errors}}</span>
+                                            </div>
+                                        </div>
+                                        <!-- secondo tab -->
+                                        <div class="col-md-6">
+                                            <div class="form-group {% if form.surname.errors %}has-error{% endif %}">
+                                                <label for="name">Cognome</label>
+                                                <input type="text" style="text-transform:capitalize;" name="surname" class="form-control validate[required]" data-prompt-position="topLeft" placeholder="Cognome" value="{{ form.surname.value|default_if_none:"" }}"/>
+                                                <span class="help-block">{{form.surname.errors}}</span>
+                                            </div>
+                                            <div class="form-group {% if form.birthdate.errors %}has-error{% endif %}">
+                                                <label for="name">Data di nascita</label>
+                                                <input id="birthdate" type="text" name="birthdate" class="form-control validate[required]" data-prompt-position="topLeft" placeholder="__/__/____" value="{{ form.birthdate.value|default_if_none:"" }}"/>
+                                                <span class="help-block">{{form.birthdate.errors}}</span>
+                                            </div>
+                                            <div class="form-group {% if form.email.errors %}has-error{% endif %}">
+                                                <label for="email">Email</label>
+                                                <input type="text" id="email" name="email" class="form-control validate[custom[email]]" placeholder="Email" value="{{user.email}}"/>
+                                                <span class="help-block">{{form.email.errors}}</span>
+                                            </div>
+
+                                            <div class="form-group {% if form.civic.errors %}has-error{% endif %}">
+                                                <label for="name">Civico</label>
+                                                <input type="text"  name="civic" class="form-control validate[required,min[6]]" data-prompt-position="topLeft" placeholder="Civico" value="{{ form.civic.value|default_if_none:"" }}"/>
+                                                <span class="help-block">{{form.civic.errors}}</span>
+                                            </div>
+                                            <div class="form-group {% if form.zip.errors %}has-error{% endif %}">
+                                                <label for="name">CAP</label>
+                                                <input type="text"  name="zip" class="form-control validate[required,min[4]]" data-prompt-position="topLeft" placeholder="CAP" value="{{ form.zip.value|default_if_none:"" }}"/>
+                                                <span class="help-block">{{form.zip.errors}}</span>
+                                            </div>
+
+                                            <div class="form-group {% if form.province.errors %}has-error{% endif %}">
+                                                <label for="name">Provincia</label>
+                                                <select id="province" class="form-control chzn-select" name="province" >
+                                                    <option value="-1" selected="selected"> --- </option>
+                                                    {% for prov in provinces %}
+                                                      <option value="{{ prov.id }}" {% if prov.id == form.instance.province.id %} selected="selected"{% endif %}>{{ prov }}</option>
+                                                    {% endfor %}
+
+                                                </select>
+                                                <span class="help-block">{{form.province.errors}}</span>
+                                            </div>
+                                            <div class="form-group  {% if form.work.errors %}has-error{% endif %}">
+                                                <label for="name">Professione</label>
+                                                <select id="work" class="form-control chzn-select" name="work" >
+					            <option value="54">Altro</option>
+						    <option value="24">Biologo</option>
+						    <option value="8">Farmacista</option>
+						    <option value="17">Dietista</option>
+						    <option value="25">Medico</option>
+						    <option value="49">Naturopata</option>
+						    <option value="81">Tecnologo Alimentare</option>
+						    <option value="50">Fisioterapista</option>
+						    <option value="38">Laureato in Scienze Motorie</option>			
+                                                </select>
+                                                <span class="help-block">{{form.work.errors}}</span>
+                                            </div>
+                                        </div>
+                                    </div><!-- contenitore seconda parte -->
+                                    <div class="row" style="margin-top: 20px;">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="name">Consenso <a href="javascript: void(0)" onclick="window.open('/static/privacy.html','Privacy', 'width=600, height=400'); return false;">privacy</a>:</label>
+                                                <select class="form-control uniform" name="privacy_consensus" id="privacy_consensus">
+                                                    <option value="true" selected="selected">Si</option>
+                                                    <option value="false" >No </option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group text-right">
+                                        <button id="addProfile" type="button" name="_save" class="btn btn-primary text-right">Crea profilo</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div> <!-- end box -->
+                    </div> <!-- span 12 -->
+                </div><!-- row fluid -->
+            </div>
+        {% endif %}
+        <footer>
+            <p class="text-center">&copy;Enervit {% now 'Y' %}, All rights reserved  P.IVA 02375690134</p>
+        </footer>
+    </div>
+
+
+{% endblock %}
+{% block additionalscripts %}
+    <script src="{{ STATIC_URL }}frontend/js/date.js"><!-- ff --></script>
+    <script src="{{ STATIC_URL }}frontend/js/jquery.maskedinput.min.js"><!-- ff --></script>
+    <script>
+        $(function() {
+
+
+            function validateEmail(email) {
+                var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+                return re.test(email);
+            }
+
+           var bdate = "{{ contact.0.birthdate }}"
+
+           $(document).on("ready",function(){
+
+             $(".modifica").on("click",function(e){
+                $("#contactDetails").hide();
+                $("#modifyContact").show();
+                $("#birthdate").mask("99/99/9999").val("{{ contact.0.birthdate|date:"d/m/Y" }}");
+             });
+
+             $("#modProfile").on("click",function(e){
+                alert("Informazioni Aggiornate!!!");
+                $("#modify_form").submit();
+             });
+
+             $('#menu a').click(function (e) {
+                   e.preventDefault();
+                   $(this).tab('show');
+              });
+
+             $("#signupQuestions").on("click",function(e){
+                 e.preventDefault();
+                 $('#menu a:last').tab('show')
+             });
+
+
+             $("#sendMessage").on("click",function(e){
+                 e.preventDefault();
+                 if($("#message").val().length>0){
+                     $.ajax({
+                         type: "POST",
+                         url: "/frontend/contactme/",
+                         data: $("#email_form").serialize(),
+                         dataType: "json",
+                         success: function(msg)
+                         {
+                           alert("Grazie! Verrai ricontattato a breve");
+                           $("#message").val("");
+                         },
+                         error: function()
+                         {
+                            alert("Servizio al momento non disponibile. Si prega di riprovare a breve");
+                         }
+                     });
+                 }else{
+                     alert("Il messaggio è vuoto!");
+                 }
+             });
+
+
+            //$("#work").prop('disabled', true);
+            $("#subdivision").prop('disabled', true);
+
+            $("#birthdate" ).mask("99/99/9999").on("change",function(){
+                var birthdate = Date.parse($(this).val());
+                var today = Date.today();
+                birthyear=parseInt(birthdate.getFullYear());
+                currentyear=parseInt(today.getFullYear());
+                if(birthdate==null ||birthyear >= currentyear || birthyear > (currentyear - 18)){
+                   alert("Inserire una data di nascita valida!!!");
+                   $(this).val("").focus();
+                }
+            });
+
+
+
+            $("#sector").on("change",function(){
+                var sector = $("#sector").val();
+                if(sector == -1){
+                    $("#work option").remove();
+                    $("#work").html('<option value="-1"> Selezionare prima il Settore </option>');
+                }
+                $.getJSON(
+                        "/admin/contacts/rest/work",
+                        {
+                            sector : sector
+                        },
+                        function(data){
+                            $("#work").prop('disabled', false);
+                            $("#work option").remove();
+                            $("#workLi").find("span").text("---");
+                            var html='';
+                            $.each(data,function(i,opt){
+                                html+="<option value='"+opt.pk+"'";
+                                if(i==0){
+                                    html+="selected='selected'";
+                                }
+                                html+=">"+opt.fields.name+"</opt>";
+                            });
+                            $("#work").append(html);
+
+                        }
+                );
+
+            });
+
+
+            $("#division").on("change",function(){
+                var sector = $("#division").val();
+                if(sector == -1){
+                    $("#subdivision option").remove();
+                    $("#subdivision").html('<option value="-1"> Selezionare prima la Divisione </option>');
+                }
+                $.getJSON(
+                        "/admin/contacts/rest/subdivision",
+                        {
+                            division : sector
+                        },
+                        function(data){
+                            $("#subdivision").prop('disabled', false);
+                            $("#subdivision option").remove();
+                            $("#subdivisionLi").find("span").text("---");
+                            var html='';
+                            $.each(data,function(i,opt){
+                                html+="<option value='"+opt.pk+"'";
+                                if(i==0){
+                                    html+="selected='selected'";
+                                }
+                                html+=">"+opt.fields.name+"</opt>";
+                            });
+                            $("#subdivision").append(html);
+
+                        }
+                );
+
+            });
+
+            $("#email").on("keyup",function(e){
+                $("#email").val($("#email").val().toLowerCase());
+            }).on("change",function(){
+                if(!validateEmail($(this).val())){
+                    alert("inserire una email valida");
+                }
+            });
+
+            $("#addProfile").on("click",function(){
+               if($("#province").val()=="-1"){
+                   alert("Selezionare la provincia!!!");
+               }else{
+                   if($("#privacy_consensus").val()=="true"){
+                       $("#contact_form").submit();
+                   }else{
+                       alert("Accettare i termini del consenso privacy prima di procedere!");
+                   }
+               }
+            });
+
+           $(".iscrizione").on("click",function(e){
+               e.preventDefault();
+               var nextForm=$(this).next("form");
+               if(!$(nextForm).is(":visible")){
+                   $(this).next("form").show();
+                   $(this).removeClass("btn-success")
+                           .addClass("btn-warning")
+                           .text("Annulla");
+               }else{
+                   $(this).addClass("btn-success")
+                           .removeClass("btn-warning")
+                           .text("Iscriviti");
+                   $(this).next("form").hide();
+               }
+           });
+
+          {% for ev in events %}
+           $("#submitSignup-{{ev.id}}").on("click",function(e){
+                var cro=$("#cro-{{ev.id}}").val();
+                var note=$("#note-{{ev.id}}").val();
+                var ragionesociale=$("#ragionesociale-{{ev.id}}").val();
+                var indirizzo = $("#indirizzo-{{ev.id}}").val();
+                var citta = $("#citta-{{ev.id}}").val();
+                var cap=$("#cap-{{ev.id}}").val();
+                var provincia=$("#provincia-{{ev.id}}").val();
+                var piva=$("#piva-{{ev.id}}").val();
+                var codefiscale=$("#codefiscale-{{ev.id}}").val();
+
+                var valid=false;
+                if(cro.length==0){
+                    valid=true;
+                }else if(cro.length>0 && cro.length<11){
+                    alert("Inserire Cro valido: 11 cifre");
+                }else if( cro.length == 11 && cro.match(/^[0-9]+$/)!=null){
+                    valid=true;
+                }else if(cro.match(/^[0-9]+$/)==null){
+                    alert("Il CRO contiene caratteri non validi. Inserire un CRO valido di 11 cifre");
+                }else if(cro.length>11 && cro!="00000000000000"){
+	                alert("Inserito CRO non valido (11 cifre) o codice Omaggio non valido");
+		        }
+                if(cro=="00000000000000"){
+                    if(note.length==0){
+                        alert("Inserire il nome di chi elargisce l'omaggio!!!");
+                        valid=false;
+                    }else{
+        		     valid = true;
+          		    }
+                }
+
+                if(valid){
+                    $.ajax({
+                        type: "POST",
+                        url: "/frontend/signup/",
+                        data: $("#signup_form-{{ev.id}}").serialize(),
+                        dataType: "json",
+                        success: function(msg)
+                        {
+                            if(msg.error){
+                                alert(msg.error);
+                            }
+                            if(msg.success){
+                                alert(msg.success);
+                                setTimeout(function(){alert("Attendere caricamento della pagina")},2000);
+                                window.location.reload(true);
+                            }
+                        },
+                        error: function()
+                        {
+                            alert("Ricontrollare i dati inseriti");
+                        }
+                    });
+                }
+
+
+           });
+        {% endfor %}
+
+           });
+        });
+    </script>
+
+{% endblock %}

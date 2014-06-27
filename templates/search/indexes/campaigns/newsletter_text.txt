@@ -1,0 +1,9 @@
+{{object.text}}
+{{object.name}}
+{{object.description}}
+{{object.startdate}}
+{{object.enddate}}
+{{object.campaign}}
+{{object.content}}
+{{object.status}}
+{{object.event}}

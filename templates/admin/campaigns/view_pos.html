@@ -1,0 +1,75 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static bootstrapped_goodies_tags %}
+{% block icon-detail %}<i class="icon-shopping-cart"></i>{% endblock %}
+{% block content_title %}Tipologie Punti Vendita{% endblock %}
+{% block content_subtitle %}<h5>lista di tutte le Tipologie di Punti Vendita dal sistema</h5>{% endblock %}
+{% block object-tools %}
+    <ul class="object-tools form-inline pull-right inline">
+        <li>
+            <a href="/admin/campaigns/pointofsaletype/add/" class="btn btn-blue">
+                <i class="icon-plus icon-white"></i> Aggiungi Tipologia
+            </a>
+        </li>
+    </ul>
+
+{% endblock %}
+{% block content %}
+    <div class="container-fluid padded">
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Tipologie</span>
+                    </div>
+                    <div class="box-content">
+                        <div id="dataTables">
+                            <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
+                                <thead>
+                                <tr>
+                                    <th><div>Descrizione</div></th>
+
+                                    <th>&nbsp;</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for pos in poses %}
+                                    <tr>
+                                        <td>{{ pos.description }}</td>
+                                        <td><a href="/admin/campaigns/pointofsaletype/{{pos.id }}"><i class="icon-tasks"></i></a></td>
+                                    </tr>
+
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function() {
+            $(".dTable2").dataTable({
+                bJQueryUI:!1
+                ,bAutoWidth:!1,
+                sPaginationType:"full_numbers",
+                sDom:'<"table-header"fl>t<"table-footer"ip>',
+                "oLanguage": {
+                    "sSearch":"Cerca",
+                    "sLengthMenu": "Mostra _MENU_ righe per pagina",
+                    "sZeroRecords": "Nessun risultato trovato",
+                    "sInfo": "Risultati da _START_ a _END_ di _TOTAL_ ",
+                    "sInfoEmpty": "Mostrati da 0 a 0 di 0 records",
+                    "sInfoFiltered": "(filtrati da _MAX_ records totali)",
+                    "oPaginate":{
+                        "sFirst":"Primo",
+                        "sLast":"Ultimo",
+                        "sNext":"Prossimo",
+                        "sPrevious":"Precedente"
+
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}

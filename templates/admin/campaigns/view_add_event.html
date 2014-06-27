@@ -1,0 +1,385 @@
+{% extends "admin/base_site.html" %}
+{% block extrastyle %}
+    <link rel="stylesheet" href="/static/redactor/redactor.css" />
+    <script type="text/javascript" src="/static/redactor/jquery-migrate.min.js"></script>
+
+    <script type="text/javascript" src="/static/redactor/redactor.js"></script>
+    <script type="text/javascript" src="/static/redactor/lang/it.js"></script>
+    <style type="text/css">
+        body .redactor_toolbar li a.redactor_btn_button1  {
+            background: url(/static/admin/images/placeholder2.png) no-repeat;
+        }
+    </style>
+{% endblock %}
+{% load i18n admin_static bootstrapped_goodies_tags %}
+{% block icon-detail %}<i class="icon-plus-sign-alt"></i>{% endblock %}
+{% block content_title %}Nuovo Evento{% endblock %}
+{% block content_subtitle %}<h5>aggiungi un nuovo evento compilando il seguente form</h5>{% endblock %}
+{% block content %}
+
+    <div class="container-fluid padded">
+        <div class="row-fluid">
+            <div class="span12">
+
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Evento</span>
+                    </div>
+                    <div class="box-content">
+                        <form class="fill-up validatable" enctype="multipart/form-data" method="post" id="event_form">
+                            {% csrf_token %}
+                            {% if form.errors %}
+                                <div class="alert alert-error">
+                                    Correggi i seguenti errori:
+                                    <ul>
+                                        {% for field, errors in form.errors.items %}
+                                            {% for error in errors %}
+                                                <li>{{ error }}</li>
+                                            {% endfor %}
+
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+
+                            <h3 style="text-align: center;">Attributi Principali</h3>
+                            <div class="row-fluid"> <!-- contenitore form -->
+                                <!-- primo tab -->
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>Data evento</label>
+                                            {{ form.date.errors }}
+                                            <input id="date" type="text" name="date" data-prompt-position="topLeft" placeholder="Data" value="{{ form.instance.date|default_if_none:"" }}"/>
+                                        </li>
+                                        <li>
+                                            <input type="checkbox" class="icheck" id="enddateCheck" >
+                                            <label for="enddate" class="" style="margin-right:10px;">Evento più lungo di un giorno</label>
+                                            {{ form.enddate.errors }}
+                                            <input style="display: none;" id="enddate" type="text" name="enddate" class="validate[required]" data-prompt-position="topLeft" placeholder="Data di fine" value="{{ form.instance.enddate|default_if_none:"" }}"/>
+                                        </li>
+                                        <li>
+                                            <label>Descrizione Evento</label>
+                                            {{ form.description.errors }}
+                                            <textarea form="event_form" rows="4" cols="50" name="description" class="validate[required]" data-prompt-position="topLeft" placeholder="Descrizione" >{{ form.instance.description|default_if_none:"" }}</textarea>
+                                        </li>
+
+                                        <li>
+                                            <label>Campagna:</label>
+                                            {{ form.campaign.errors }}
+                                            <select class="chzn-select" name="campaign" >
+                                                <option>---</option>
+                                                {% for campaign in campaigns %}
+
+                                                    <option value="{{ campaign.id }}" {% if campaign.id == form.instance.campaign.id %} selected="selected"{% endif %}>{{ campaign }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </li>
+                                        <li>
+                                            <label>Canale</label>
+                                            <select class="chzn-select" name="channel" >
+                                                <option>---</option>
+                                                {% for pos in channel %}
+                                                    <option value="{{ pos.id }}" {% if pos.id == form.instance.channel.id %} selected="selected"{% endif %}>{{ pos }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </li>
+                                        <li>
+                                            <label>Area Manager</label>
+                                            <select class="chzn-select" name="districtmanager" >
+                                                <option>---</option>
+                                                {% for pos in areamanager %}
+                                                    <option value="{{ pos.id }}" {% if pos.id == form.instance.areamanager.id %} selected="selected"{% endif %}>{{ pos }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </li>
+
+                                    </ul>
+                                </div>
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>Titolo evento</label>
+                                            {{ form.title.errors }}
+                                            <input type="text" id="title" name="title" id="title" placeholder="Titolo" class="validate[required]" value="{{ form.instance.title|default_if_none:"" }}"/>
+                                        </li>
+                                        <li>
+                                            <label>Formatore</label>
+                                            {{ form.trainer.errors }}
+                                            <input type="text" name="trainer" id="trainer" placeholder="Formatore" value="{{ form.instance.trainer|default_if_none:"" }}"/>
+
+                                        </li>
+
+                                        <li>
+                                            <label>Tipologia Evento</label>
+                                            <select class="chzn-select" name="eventtype" >
+                                                <option>---</option>
+                                                {% for pos in eventtype %}
+                                                    <option value="{{ pos.id }}" {% if pos.id == form.instance.eventtype.id %} selected="selected"{% endif %}>{{ pos }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </li>
+
+                                        <li>
+                                            <label>Tema Evento</label>
+                                            <select class="chzn-select" name="theme" >
+                                                <option>---</option>
+                                                {% for pos in theme %}
+                                                    <option value="{{ pos.id }}" {% if pos.id == form.instance.theme.id %} selected="selected"{% endif %}>{{ pos }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </li>
+                                        <li>
+                                            <label>ITS</label>
+                                            <select class="chzn-select" name="areamanager" >
+                                                <option>---</option>
+                                                {% for pos in district %}
+                                                    <option value="{{ pos.id }}" {% if pos.id == form.instance.districtmanager.id %} selected="selected"{% endif %}>{{ pos }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div> <!-- contenitore form -->
+
+                            <h3 style="text-align: center;">Punto Vendita</h3>
+                            <div class="row-fluid">
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>Codice Punto Vendita</label>
+                                            {{ form.pointofsale.errors }}
+                                            <input type="text" name="pointofsale" id="pointofsale" placeholder="Codice Punto Vendita" value="{{ form.instance.pointofsale|default_if_none:"" }}"/>
+                                        </li>
+                                        <li>
+                                            {{ form.typepointofsale.errors }}
+                                            <label>Tipologia Punto Vendita</label>
+                                            <select class="chzn-select" name="typepointofsale" >
+                                                <option>---</option>
+                                                {% for pos in pointofsaletype %}
+
+                                                    <option value="{{ pos.id }}" {% if pos.id == form.instance.typepointofsale.id %} selected="selected"{% endif %}>{{ pos }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </li>
+                                        <li>
+                                            <label>Provincia</label>
+                                            <select class="chzn-select" name="province" >
+                                                <option>---</option>
+                                                {% for pos in province %}
+                                                    <option value="{{ pos.id }}" {% if pos.id == form.instance.province.id %} selected="selected"{% endif %}>{{ pos }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>Nominativo Punto Vendita</label>
+                                            {{ form.pointofsaledescription.errors }}
+                                            <input type="text" name="pointofsaledescription" id="pointofsaledescription" placeholder="Nominativo Punto Vendita" value="{{ form.instance.pointofsaledescription|default_if_none:"" }}"/>
+
+                                        </li>
+                                        <li>
+                                            <label>Indirizzo e Località</label>
+                                            {{ form.place.errors }}
+                                            <textarea form="event_form" rows="4" cols="50" name="place" class="validate[required]" data-prompt-position="topLeft" placeholder="Sede" >{{ form.instance.place|default_if_none:"" }}</textarea>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <h3 style="text-align: center;">Iscrizione</h3>
+                            <div class="row-fluid">
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>Quota di partecipazione</label>
+                                            {{ form.money.errors }}
+                                            <input type="text" id="money" name="money"  placeholder="Quota di partecipazione" class="validate[required]" value="{{ form.instance.money|default_if_none:"" }}"/>
+                                        </li>
+                                        <li>
+                                            <label>Modalità di pagamento</label>
+                                            {{ form.payment.errors }}
+                                            <textarea form="event_form" rows="4" cols="50" name="payment" class="validate[required]" data-prompt-position="topLeft" placeholder="Modalità di Pagamento" >{{ form.instance.payment|default_if_none:"" }}</textarea>
+                                        </li>
+                                        <li>
+                                            <label>Data inizio sconto</label>
+                                            {{ form.salestartdate.errors }}
+                                            <input id="salestartdate" type="text" name="salestartdate" data-prompt-position="topLeft" placeholder="Data di inizio sconto" value="{{ form.instance.salestartdate|default_if_none:"" }}"/>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>Termini di Iscrizione</label>
+                                            {{ form.money_description.errors }}
+                                            <textarea form="event_form" rows="4" cols="50" name="money_description" class="validate[required]" data-prompt-position="topLeft" placeholder="Termini di iscrizione" >{{ form.instance.money_description|default_if_none:"" }}</textarea>
+                                        </li>
+                                        <li>
+                                            <label>Quota scontata di partecipazione</label>
+                                            {{ form.salevalue.errors }}
+                                            <input type="text" id="salevalue" name="salevalue" placeholder="Quota di partecipazione scontata"  value="{{ form.instance.salevalue|default_if_none:"" }}"/>
+                                        </li>
+                                        <li>
+                                            <label>Data fine sconto</label>
+                                            {{ form.saleenddate.errors }}
+                                            <input id="saleenddate" type="text" name="saleenddate" data-prompt-position="topLeft" placeholder="Data di fine sconto" value="{{ form.instance.saleenddate|default_if_none:"" }}"/>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                           <h3 style="text-align: center;">Informazione Pubbliche</h3>
+                            <div class="row-fluid">
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <input type="checkbox" class="" id="abilita_email" name="abilita_email" checked/>
+                                            <label for="abilita_email" class="" style="margin-right:10px;">Abilita Email di Iscrizione</label>
+                                        </li>
+                                        <li id="emailText">
+                                            <label>Email di conferma</label>
+
+                                            <textarea class="vLargeTextField" cols="40" id="id_body" name="emailcontent" rows="10">
+
+                                            </textarea>
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <input type="checkbox" class="icheck" id="is_public" name="is_public" />
+                                            <label for="is_public" class="" style="margin-right:10px;">Evento Pubblico (visibile lato frontend)</label>
+                                        </li>
+                                        <li>
+                                            <input type="checkbox" class="icheck" id="signups_enabled" name="signups_enabled" />
+                                            <label for="signups_enabled" class="" style="margin-right:10px;">Iscrizioni lato frontend abilitate</label>
+                                        </li>
+                                        <li id="emailAttachments">
+                                            <label>Allegato in Email di conferma</label>
+                                            <input type="file" name="emailattachment" />
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <h3 style="text-align: center;">Informazioni di Chiusura</h3>
+                            <div class="row-fluid">
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>Valutazione chiusura evento</label>
+                                            <input id="feedback" type="number" min="0" max="3" name="feedback" data-prompt-position="topLeft" placeholder="Feedback" value="{{ form.instance.feedback|default_if_none:"" }}"/>
+
+                                        </li>
+                                        <li>
+                                            <label>Numero di partecipanti</label>
+                                            <input id="population" type="number" min="0" max="10000" name="population" data-prompt-position="topLeft" placeholder="Numero di Partecipanti" value="{{ form.instance.population|default_if_none:"" }}"/>
+
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li>
+                                            <label>Note di Feedback</label>
+                                            <textarea form="event_form" rows="4" cols="50" name="feedback_note" data-prompt-position="topLeft">{{ form.instance.feedback_note|default_if_none:"" }}</textarea>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" name="_save" class="btn btn-blue">Salva</button>
+                                <button type="submit" name="_addanother" class="btn btn-green">Salva e aggiungi un altro</button>
+                            </div>
+                        </form>
+                    </div>
+                </div> <!-- end box -->
+            </div> <!-- span 12 -->
+        </div><!-- row fluid -->
+    </div>
+
+   <script>
+     $(document).ready(function(){
+
+         $("#abilita_email").on("click",function(){
+             if($(this).is(":checked")==true){
+                 $("#emailText").show();
+                 $("#emailAttachments").show();
+             }else{
+                 $("#emailText").hide();
+                 $("#emailAttachments").hide();
+                 $("#id_body").redactor('insertHTML','');
+             }
+         });
+
+         $('#id_body').redactor({
+             lang: 'it',
+             buttonsAdd: ['|','button1'],
+             buttonsCustom:{
+                 button1:{
+                     title: 'Placeholders',
+                     dropdown:{
+                         nome:{title:"Nome",callback: function(buttonName, buttonDOM, buttonObject){this.execCommand('inserthtml', '[[NOME]] ');}},
+                         cognome:{title:"Cognome",callback: function(buttonName, buttonDOM, buttonObject){this.execCommand('inserthtml', '[[COGNOME]] ');}},
+                         email: {title:"Email",callback: function(buttonName, buttonDOM, buttonObject){this.execCommand('inserthtml', '[[EMAIL]] ');}}
+
+                     }
+                 }
+             },
+             removeEmptyTags: false,
+             convertDivs: false,
+             iframe: true,
+             //css: "/static/admin/css/iframe.css",
+             //fullpage: true,
+             imageUpload: '/ajax/photos/upload/',
+             imageGetJson: '/ajax/photos/recent/'
+
+         });
+
+         var start=$("#date" ).datepicker({"language":"it","format":"dd/mm/yyyy"
+         }).on("changeDate",function(dt){
+                     $("#enddate").datepicker('setStartDate', dt.date);
+                 });
+         var end=$("#enddate" ).datepicker({"language":"it","format":"dd/mm/yyyy",
+         });
+
+         var salestart=$("#salestartdate" ).datepicker({"language":"it","format":"dd/mm/yyyy"
+         }).on("changeDate",function(dt){
+             $("#saleenddate").datepicker('setStartDate', dt.date);
+         });
+         var saleend=$("#saleenddate" ).datepicker({"language":"it","format":"dd/mm/yyyy",
+         });
+
+         $(".active").removeClass("active");
+         $("#eventsMenu").addClass("active");
+
+        $("#enddateCheck").on('ifChanged', function(event){
+            if(!$("#enddate").is(":visible")){
+                $("#enddate").show();
+            }else{
+                $("#enddate").hide();
+            }
+         });
+        
+        
+
+         $("#lCheck").on("click",function(e){
+           console.log("t"); 
+           e.preventDefault();
+           if($(".icheckbox_flat-aero").hasClass("checked")){
+               $("#enddate").show();
+           }else{
+               $("#enddate").hide();
+           }
+
+         });
+     });
+   </script>
+
+{% endblock %}
