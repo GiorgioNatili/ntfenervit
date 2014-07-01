@@ -31,6 +31,7 @@
                                     <th><div>Titolo</div></th>
                                     <th><div>Evento</div></th>
                                     <th><div>Newsletter</div></th>
+                                    <th><div>Email</div></th>
                                     <th><div>Campagna</div></th>
                                     <th><div>Data</div></th>
                                     <th>&nbsp;</th>
@@ -43,6 +44,7 @@
                                         <td>{{ survey.title }}</td>
                                         <td>{{ survey.event }}</td>
                                         <td>{{ survey.newsletter }}</td>
+                                        <td>{{ survey.email }}</td>
                                         <td>{{ survey.newsletter.campaign }}</td>
                                         <td>{{ survey.starts_at|date:"d-m-Y" }}{% if survey.end_at %} al {{ surveys.end_at|date:"d-m-Y" }}{% endif %}</td>
 

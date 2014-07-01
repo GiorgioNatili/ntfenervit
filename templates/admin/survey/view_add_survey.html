@@ -45,10 +45,17 @@
                                             {{ form.slug.errors }}
                                             <input id="slug" type="text" name="slug" class="validate[required]" data-prompt-position="topLeft" placeholder="Slug" value="{{ form.instance.slug|default_if_none:"" }}"/>
                                         </li>
+                                        <li class="input">
+                                             {{ form.email.errors }}
+                                            <input id="email" type="text" name="email" class="validate[required]" data-prompt-position="topLeft" placeholder="Email da notificare ad ogni questionario completato" value="{{ form.instance.email|default_if_none:"" }}"/>
+                                            <span class="help-block note"><i class="icon-warning-sign"></i>Email da notificare ad ogni completamento di un questionario</span>
+                                        </li>
                                         <li>
                                             {{ form.tease.errors }}
                                             <textarea form="survey_form" rows="4" cols="50" name="tease" data-prompt-position="topLeft" placeholder="Descrizione breve" >{{ form.instance.tease|default_if_none:"" }}</textarea>
                                         </li>
+
+
 
                                     </ul>
                                 </div>
