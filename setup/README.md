@@ -28,6 +28,7 @@ make devsetup
 
 1. For `MySQL-python`, you must make sure that `libmysqlclient-dev` is installed using `apt-get`
 2. For `PIL` package in Ubuntu, make sure you have `python-imaging` installed using `apt-get`.
+   Then, try `install --allow-external PIL --allow-unverified PIL PIL==1.1.7`
 
 
 ### Database Schema

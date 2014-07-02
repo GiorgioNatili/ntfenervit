@@ -29,11 +29,11 @@ endif
 
 
 $(PYENV)/$(PYLIB_REQ) : $(PYLIB_REQ)
-ifeq ($(shell uname -s),Linux)
-	@$(PIP) install --allow-external PIL --allow-unverified PIL -r $(PYLIB_REQ)
-else
-	@$(PIP) install -r $(PYLIB_REQ)
-endif
+	@for pipdep in `cat $(PYLIB_REQ)`; \
+	do \
+		echo "### Installing $$pipdep"; \
+		$(PIP) install $$pipdep; \
+	done
 	@cp -a $(PYLIB_REQ) $@
 
 
