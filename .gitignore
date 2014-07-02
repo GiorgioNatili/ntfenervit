@@ -44,6 +44,7 @@ coverage.xml
 
 # PyCharm
 .idea/
+*.iml
 
 # Rope
 .ropeproject
@@ -54,4 +55,7 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+
+# Python VirtualEnv
+pyenv/
 
