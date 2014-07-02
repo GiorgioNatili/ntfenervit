@@ -24,11 +24,23 @@ cd ntfenervit
 make devsetup
 ```
 
-*Note*
+#### PIP Failure
+PIP is notorious difficult package to install and it will often fail in Ubuntu.  If `make devsetup`
+report error while installing PIP, try:
 
+```
+cd ntfenervit
+sudo apt-get installl python-imaging
+. pyenv/bin/activate
+pip install --allow-external PIL --allow-unverified PIL PIL==1.1.7
+```
+
+If that does not work, you need to research how to install PIL in your platform.  Once PIP is correctly
+installed, run `make devsetup` again to complete the installation.
+
+#### Other Notes
 1. For `MySQL-python`, you must make sure that `libmysqlclient-dev` is installed using `apt-get`
-2. For `PIL` package in Ubuntu, make sure you have `python-imaging` installed using `apt-get`.
-   Then, try `install --allow-external PIL --allow-unverified PIL PIL==1.1.7`
+
 
 
 ### Database Schema
