@@ -181,14 +181,13 @@ LOGGING = {
 LOGIN_REDIRECT_URL = '/frontend/main'
 
 #EMAIL_BACKEND = 'django_smtp_ssl.SSLEmailBackend'
-EMAIL_BACKEND = 'django_smtp_ssl.SSLEmailBackend'
-
-EMAIL_HOST = "email-smtp.us-east-1.amazonaws.com" #'mailtrap.io'#'email-smtp.us-east-1.amazonaws.com'
-EMAIL_HOST_USER = 'AKIAJZMTMFKG57XDSWUA' #'AKIAJIU544ECRF35H5AA'
-EMAIL_HOST_PASSWORD = 'AgWau87uAAnlK48A52o1QHJX11lo2+a5jtPEutI7KNtY' #'ArzHgFmhQySgou18TKyyXwte4Kq/uqd2uwhnODXvmuB8'
-EMAIL_FROM = 'ENERVIT <no-reply@enervit.it>' #'Christian Ferranti <cferranti@mochunk.com>'
-EMAIL_PORT = 465
 EMAIL_USE_TLS = True
+EMAIL_HOST = "imap.gmail.com" #'mailtrap.io'#'email-smtp.us-east-1.amazonaws.com'
+EMAIL_HOST_USER = 'h0leforfun' #'AKIAJIU544ECRF35H5AA'
+EMAIL_HOST_PASSWORD = 'n3w_blackh0lesun' #'ArzHgFmhQySgou18TKyyXwte4Kq/uqd2uwhnODXvmuB8'
+EMAIL_FROM = 'ENERVIT <h0leforfun@gmail.com>' #'Christian Ferranti <cferranti@mochunk.com>'
+EMAIL_PORT = 465
+
 
 HAYSTACK_CONNECTIONS = {
     'default': {
