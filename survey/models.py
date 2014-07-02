@@ -120,7 +120,7 @@ class Survey(models.Model):
     survey_date = models.DateField(blank=True, null=True, editable=False)
     ends_at = models.DateTimeField(null=True, blank=True,verbose_name="Data di fine")
     is_published = models.BooleanField(default=False,verbose_name="Pubblicato")
-    email = models.TextField(
+    email = models.EmailField(
         blank=True,
         help_text=(
             "Manda email per ogni questionario compilato"))
