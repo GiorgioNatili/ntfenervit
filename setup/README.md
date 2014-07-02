@@ -24,7 +24,10 @@ cd ntfenervit
 make devsetup
 ```
 
-This will also launch a SMTP Logger server that will output any email sent to STDOUT
+*Note*
+
+1. For `MySQL-python`, you must make sure that `libmysqlclient-dev` is installed using `apt-get`
+2. For `PIL` package in Ubuntu, make sure you have `python-imaging` installed using `apt-get`.
 
 
 ### Database Schema
@@ -51,6 +54,9 @@ Dev server uses setting from `yellowPage/settings_dev.py`
 cd ntfenervit
 setup/devserver.sh
 ```
+
+This will also launch a SMTP Logger server that will output any email sent to STDOUT
+
 
 ## Development Cli Environment
 
