@@ -24,8 +24,8 @@ cd ntfenervit
 make devsetup
 ```
 
-#### PIP Failure
-PIP is notorious difficult package to install and it will often fail in Ubuntu.  If `make devsetup`
+#### PIL Failure
+PIL is notorious difficult package to install and it will often fail in Ubuntu.  If `make devsetup`
 report error while installing PIP, try:
 
 ```
@@ -35,7 +35,7 @@ sudo apt-get installl python-imaging
 pip install --allow-external PIL --allow-unverified PIL PIL==1.1.7
 ```
 
-If that does not work, you need to research how to install PIL in your platform.  Once PIP is correctly
+If that does not work, you need to research how to install `PIL==1.1.7` in your platform.  Once PIL is correctly
 installed, run `make devsetup` again to complete the installation.
 
 #### Other Notes
