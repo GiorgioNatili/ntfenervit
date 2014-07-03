@@ -1,0 +1,19 @@
+{
+    "DEBUG": true,
+    "TEMPLATE_DEBUG": true,
+    "ROOT_URL": "http://localhost:8000",
+    "EMAIL_HOST": "127.0.0.1",
+    "DATABASES": {
+        "default": {
+            "ENGINE": "django.db.backends.mysql",
+            "NAME": "yellowpagedb",
+            "USER": "enervit",
+            "PASSWORD": "enervitdev",
+            "HOST": "",
+            "PORT": ""
+        }
+    }
+}
+
+
+

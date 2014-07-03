@@ -61,8 +61,17 @@ This will also launch a SMTP Logger server that will output any email sent to ST
 
 ## Development Cli Environment
 
+### Environment Variable Setup
 To setup your bash to use the dev settings, do:
 ```
 cd ntfenervit
 . setup/devenv.sh
 ```
+
+### Settings Override
+To override the settings in *dev* mode, place a `settings_dev.json` file in the `yellowPage/` directory.
+A sample file can be found at `setup/settings_dev.json`.  Do not add `yellowPage/settings_dev.json`
+to repository as it is meant for developer specific customization.  In fact, this file is ignored in
+`.gitignore`.
+
+The `settings_dev.py` should be coded with default in place so that `settings_dev.json` is not needed.
