@@ -27,7 +27,7 @@ class SurveyHTMLTestCase(TestCase):
         self.assertTrue(self.is_logged_in, "Expected .login to return true")
 
 
-    def test02_emailInput(self):
+    def test02_emailInput_T379(self):
         '''
         Test for email input field in the survey/add page
         http://projects.gnstudio.biz/T379
