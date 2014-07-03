@@ -25,6 +25,7 @@ cleanup ()
     kill $smtp_pid
     if [ $? -eq 0 ]; then
         echo "### SMTP Logger killed."
+        unset smtp_pid
         exit 0
     else
         echo "### FAILED to kill SMTP Logger.  Check you system process"
@@ -36,3 +37,6 @@ trap cleanup SIGINT
 
 # Start the webserver
 manage.py runserver 8000
+if [ -n "$smtp_pid" ]; then
+    cleanup
+fi
