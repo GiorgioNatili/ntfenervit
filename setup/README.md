@@ -29,7 +29,6 @@ PIL is notorious difficult package to install and it will often fail in Ubuntu. 
 report error while installing PIP, try:
 
 ```
-cd ntfenervit
 sudo apt-get installl python-imaging
 . pyenv/bin/activate
 pip install --allow-external PIL --allow-unverified PIL PIL==1.1.7
@@ -47,7 +46,6 @@ installed, run `make devsetup` again to complete the installation.
 Database schema needs to be initialized by doing:
 
 ```
-cd ntfenervit
 setup/initdb.sh
 ```
 
@@ -64,7 +62,6 @@ When prompted for superusers, answer `yes` and use the following:
 Dev server uses setting from `yellowPage/settings_dev.py`
 
 ```
-cd ntfenervit
 setup/devserver.sh
 ```
 
@@ -73,10 +70,11 @@ This will also launch a SMTP Logger server that will output any email sent to ST
 
 ## Development Cli Environment
 
-### Environment Variable Setup
-To setup your bash to use the dev settings, do:
+<a name="devEnvironSetup"></a>
+### Dev Environment Setup
+To setup your bash to use the dev settings and to active the `virtualenv`, do:
+
 ```
-cd ntfenervit
 . setup/devenv.sh
 ```
 
@@ -87,3 +85,13 @@ to repository as it is meant for developer specific customization.  In fact, thi
 `.gitignore`.
 
 The `settings_dev.py` should be coded with default in place so that `settings_dev.json` is not needed.
+
+### Unit Testing
+In order to run unit testing, you need to have your [Dev Environment Setup](#devEnvironSetup) and then:
+
+```
+manage.py test survey
+```
+
+*NOTE*:  Only survey package is currently setup for unit testing.
+
