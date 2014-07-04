@@ -4,25 +4,31 @@ Test for cabinet models
 
 from django.test import TestCase
 from django.contrib.auth.models import User
-from cabinet.models import Cabinet, UploadedFile, UserRefFile, UserCertFile
-
 from django.db import IntegrityError
 from django.core.exceptions import ValidationError
+
+from cabinet.models import Cabinet, UploadedFile, UserFile, UserRefFile, UserCertFile
+from campaigns.models import Event
+
 
 
 class CabinetTestCase(TestCase):
     fixtures = ['initial_data']
     def setUp(self):
         self.user = User.objects.create_user("testuser", "testuser@example.com", "user02pass")
+        self.event = Event.objects.create(
+            date="2014-07-04",
+            title="Teste Event for File"
+        )
         self.cabinet_file = Cabinet.objects.get(pk=1)
         self.cabinet_certificate = Cabinet.objects.get(pk=2)
         self.refile = UploadedFile.objects.create(
-            desc="A Test File",
+            title="A Test File",
             cabinet=self.cabinet_file,
             owner=self.user
         )
         self.certfile = UploadedFile.objects.create(
-            desc="A Test Certificate",
+            title="A Test Certificate",
             cabinet=self.cabinet_certificate,
             owner=self.user
         )
@@ -36,11 +42,13 @@ class CabinetTestCase(TestCase):
 
         user_file = UserRefFile(
             user=self.user,
-            file=self.refile
+            file=self.refile,
+            event=self.event
         )
         user_file.save()
         self.assertIsNotNone(user_file.date_created, "Expected UserRefFile.date_created to be populated.")
         self.assertEqual(user_file.file_id, self.refile.pk, "Expected user_file.file_id to be %s but got %s" % (user_file.file_id, self.refile.pk))
+        self.assertEqual(user_file.event.title, self.event.title, "Expected user_file.event.title to be '%s' but got '%s" % (self.event.title, user_file.event.title))
 
         # Second user/file combination should raise integrity error
         user_file2 = UserRefFile(
@@ -111,17 +119,54 @@ class CabinetTestCase(TestCase):
             file=self.certfile,
             expiry="2013-07-10"
         )
-        self.assertEqual(UserRefFile.objects.count(), 2, "Expected UserRefFile to have 2 entries.")
+
+        self.assertEqual(UserFile.objects.count(), 2, "Expected UserRefFile to have 1 entries.")
+        self.assertEqual(UserRefFile.objects.count(), 1, "Expected UserRefFile to have 1 entries.")
+        self.assertEqual(UserCertFile.objects.count(), 1, "Expected UserCertFile to have 1 entry.")
+
+
+        for file in UploadedFile.objects.all():
+            file.delete()
+
+        self.assertEqual(UserFile.objects.count(), 0, "Expected UserRefFile to have 1 entries.")
+        self.assertEqual(UploadedFile.objects.count(), 0, "Expected UploadedFile to have 0 entries.")
+        self.assertEqual(UserRefFile.objects.count(), 0, "Expected UserRefFile to have 0 entries.")
+        self.assertEqual(UserCertFile.objects.count(), 0, "Expected UserCertFile to have 0 entry.")
+
+    def test06_UserFile_delete(self):
+        '''
+        Cascade delete from UserRefFile and UserCertFile should work
+        '''
+
+        self.assertEqual(UploadedFile.objects.count(), 2, "Expected UploadedFile to have 2 entries.")
+
+        user_file = UserRefFile.objects.create(
+            user=self.user,
+            file=self.refile
+        )
+        user_cert = UserCertFile.objects.create(
+            user=self.user,
+            file=self.certfile,
+            expiry="2013-07-10"
+        )
+
+        self.assertEqual(UserFile.objects.count(), 2, "Expected UserRefFile to have 1 entries.")
+        self.assertEqual(UserRefFile.objects.count(), 1, "Expected UserRefFile to have 1 entries.")
         self.assertEqual(UserCertFile.objects.count(), 1, "Expected UserCertFile to have 1 entry.")
 
         # Testing cascade delete for certificate file
         self.certfile.delete()
+        self.assertEqual(UserFile.objects.count(), 1, "Expected UserRefFile to have 1 entries.")
         self.assertEqual(UploadedFile.objects.count(), 1, "Expected UploadedFile to have 1 entries.")
         self.assertEqual(UserRefFile.objects.count(), 1, "Expected UserRefFile to have 1 entries.")
         self.assertEqual(UserCertFile.objects.count(), 0, "Expected UserCertFile to have 0 entry.")
 
         # Testing cascade delete for reference file
         self.refile.delete()
+        self.assertEqual(UserFile.objects.count(), 0, "Expected UserRefFile to have 1 entries.")
         self.assertEqual(UploadedFile.objects.count(), 0, "Expected UploadedFile to have 0 entries.")
         self.assertEqual(UserRefFile.objects.count(), 0, "Expected UserRefFile to have 0 entries.")
         self.assertEqual(UserCertFile.objects.count(), 0, "Expected UserCertFile to have 0 entry.")
+
+
+
