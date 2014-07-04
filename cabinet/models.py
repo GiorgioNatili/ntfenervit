@@ -32,7 +32,7 @@ class UploadedFile(models.Model):
 
 class UserRefFile(models.Model):
     user = models.ForeignKey(User)
-    file = models.ForeignKey(UploadedFile, limit_choices_to={"cabinet": 1})
+    file = models.ForeignKey(UploadedFile)
     event = models.ForeignKey(Event, blank=True, null=True)
     date_created = models.DateTimeField(auto_now_add=True)
 
@@ -67,9 +67,3 @@ class UserCertFile(UserRefFile):
     def clean(self):
         if self.file.cabinet_id != 2:
             raise ValidationError("Only entries with Cabinet type 'Certificates[2]' allowed.  Got Cabinet '%s'" % self.file.cabinet_id)
-
-'''
-class UserCertificate(models.Model):
-    user_file = models.OneToOneField(UserFile)
-    status = models.IntegerField()
-'''
