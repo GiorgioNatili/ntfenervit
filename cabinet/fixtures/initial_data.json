@@ -1,0 +1,16 @@
+[
+    {
+        "model": "cabinet.Cabinet",
+        "pk": 1,
+        "fields": {
+            "cabinet_name": "References"
+        }
+    },
+    {
+        "model": "cabinet.Cabinet",
+        "pk": 2,
+        "fields": {
+            "cabinet_name": "Certificates"
+        }
+    }
+]
