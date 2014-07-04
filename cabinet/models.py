@@ -39,7 +39,7 @@ class UserFile(models.Model):
         unique_together = (("user", "file"),)
 
     def save(self, *args, **kwargs):
-        ''' 
+        '''
         Overriding the save to call clean.
         '''
         # ToDo: Find a better way to do a model validation.  When used with ModelForm, .full_clean() is gonna be called twice
@@ -54,6 +54,7 @@ class UserFile(models.Model):
 
 
 class UserRefFile(UserFile):
+    CABINET_REFERENCE = 1
     event = models.ForeignKey(Event, blank=True, null=True)
 
     def clean(self):
@@ -64,6 +65,7 @@ class UserRefFile(UserFile):
             raise ValidationError("Only entries with Cabinet type 'References[1]' allowed.  Got Cabinet '%s'" % self.file.cabinet_id)
 
 class UserCertFile(UserFile):
+    CABINET_CERTIFICATE = 2
     expiry = models.DateField()
 
     def clean(self):

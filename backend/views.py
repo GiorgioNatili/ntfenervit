@@ -1,5 +1,6 @@
 # Create your views here.
 
+import datetime
 from django.contrib import messages
 from django.contrib.messages import get_messages
 from django.shortcuts import render_to_response, get_object_or_404
@@ -9,9 +10,11 @@ from django.core.context_processors import csrf
 from django.contrib.admin.views.decorators import staff_member_required
 from django.forms import ModelForm,forms
 from django.contrib.auth.models import User,Group,Permission
-from contacts.models import Contact
 from django.contrib.auth.decorators import user_passes_test
 from django.forms import ModelForm,forms
+
+from contacts.models import Contact
+from cabinet.models import Cabinet, UploadedFile, UserRefFile, UserCertFile
 
 class UserForm(ModelForm):
     class Meta:
@@ -37,6 +40,8 @@ def user_list(request):
 @user_passes_test(lambda u:u.is_superuser)
 def user_details(request,id):
     user = get_object_or_404(User,id=id)
+    refiles = UserRefFile.objects.filter(user_id=id)
+    certfiles = UserCertFile.objects.filter(user_id=id)
     contact = None
     gruppo = None
     print user.groups.all()
@@ -60,7 +65,7 @@ def user_details(request,id):
             messages.success(request, 'Utente \"' + new_user.username + '\" aggiornato correttamente!')
             return HttpResponseRedirect('/admin/backend/utenti')
     return render_to_response('admin/backend/view_user_details.html',
-                              {'usr': user, 'form': form,'contact':contact,'ugruppo':gruppo,"gruppi":gruppi},
+                              {'usr': user, 'form': form,'contact':contact,'ugruppo':gruppo,"gruppi":gruppi, "refiles": refiles, "certfiles": certfiles},
                               context_instance=RequestContext(request))
 
 @user_passes_test(lambda u:u.is_superuser)
@@ -257,3 +262,85 @@ def group_details(request,id):
     return render_to_response('admin/backend/view_group_details.html',
                               {'group': group, 'permissions':permissions_s,'form': form},
                               context_instance=RequestContext(request))
+
+class UploadedFileForm(ModelForm):
+    class Meta:
+        model = UploadedFile
+        fields = ('title', 'cabinet', 'file_ref', 'owner')
+
+class UserRefFileForm(ModelForm):
+    class Meta:
+        model = UserRefFile
+        fields = ('user','file','event')
+
+class UserCertFileForm(ModelForm):
+    class Meta:
+        model = UserCertFile
+
+
+'''
+UploadFile Section
+'''
+def __view_user_file_common(**kwargs):
+    '''
+    Set up the view_user_file.html form status based on `file_type` and `action`
+    '''
+
+    # Setting based on Cabinate type: references or certificates
+    if kwargs["file_type"] == "ref":
+        kwargs["page_title"] = "Files"
+        kwargs["cabinet_id"] = UserRefFile.CABINET_REFERENCE
+        user_file_object = UserRefFile
+        object_name = "file"
+    else:
+        kwargs["page_title"] = "Certificati"
+        kwargs["cabinet_id"] = UserCertFile.CABINET_CERTIFICATE
+        user_file_object = UserCertFile
+        object_name = "certificato"
+
+    # Setting based on action
+    if kwargs["action"] == "add":
+        kwargs["icon_name"] = "icon-plus"
+        kwargs["page_subtitle"] = "Aggiungi un nuovo %s" % object_name
+        kwargs["form"] = user_file_object()
+        kwargs["upload_form"] = UploadedFileForm()
+    else:
+        kwargs["icon_name"] = "icon-file"
+        kwargs["page_subtitle"] = "Visualizza e modifica gli attributi dell'%s selezionato" % object_name
+
+    return kwargs
+
+@user_passes_test(lambda u:u.is_superuser)
+def view_user_file_add(request, user_id, type):
+    params = __view_user_file_common(action="add", file_type=type, user_id=user_id, owner_id=request.user.id)
+
+    if request.method == "POST":
+        form = UploadedFileForm(request.POST, request.FILES)
+
+        if form.is_valid():
+            # ToDo: Need to add db transaction
+            file = form.save()
+
+            if type == "ref":
+                userFile = UserRefFile(user_id=user_id, file=file)
+            else:
+                dt = request.POST.get("expiry")
+                userFile = UserCertFile(user_id=user_id, file=file, expiry=datetime.datetime.strptime(dt, "%d/%m/%Y"))
+
+            userFile.save()
+
+        else:
+            print "form is_valid: %s" % form.errors
+            params["upload_form"] = form;
+
+        #file = UploadedFile(title=data.get("title"), cabinet_id=data.get("cabinet_id"), file_ref = request.FILES['file_ref'], owner=request.user)
+        #file.save()
+
+
+    return render_to_response('admin/backend/view_user_file.html', params,context_instance=RequestContext(request))
+
+
+@user_passes_test(lambda u:u.is_superuser)
+def view_user_file(request, user_id, type, id):
+    params = __view_user_file_common(action="view", user_id=user_id, file_type=type, file_id=id)
+    return render_to_response('admin/backend/view_user_file.html', params)

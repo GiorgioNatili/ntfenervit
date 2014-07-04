@@ -163,6 +163,9 @@ urlpatterns = patterns('',
 
     url(r'^admin/rest/counter','campaigns.views.view_rest_counter'),
 
+    url(r'^admin/backend/cabinet/(\d+)/(ref|cert)/add$','backend.views.view_user_file_add'),
+    url(r'^admin/backend/cabinet/(\d+)/(ref|cert)/(\d+)$','backend.views.view_user_file'),
+
     # Uncomment the admin/doc line below to enable admin documentation:
     #url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 

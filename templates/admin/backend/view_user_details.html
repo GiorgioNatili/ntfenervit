@@ -12,7 +12,6 @@
                 <div class="box">
                     <div class="box-header">
                         <span class="title">Utente: {{ usr.username }}</span>
-
                     </div>
                     <div class="box-content">
                         <form class="fill-up validatable" enctype="multipart/form-data" method="post" id="company_form">
@@ -112,10 +111,148 @@
                         </form>
                     </div>
                 </div> <!-- end box -->
+
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Allegati</span>
+                    </div>
+
+                    <div class="container-fluid padded">
+                        <div class="row-fluid">
+                            <div class="span12">
+                                <div class="box">
+                                    <div class="box-header">
+                                        <span class="title">Files</span>
+                                        <ul class="object-tools form-inline pull-right inline">
+                                            <li>
+                                                <a href="/admin/backend/cabinet/{{ usr.id }}/ref/add" id="addRefFile" class="btn btn-blue">
+                                                    <i class="icon-plus icon-white"></i> Aggiungi
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="box-content">
+                                        <div id="refFileTable">
+                                            <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
+                                                <thead>
+                                                <tr>
+                                                    <th><div>Id</div></th>
+                                                    <th><div>Titolo</div></th>
+                                                    <th><div>Evento</div></th>
+                                                    <th><div>File</div></th>
+                                                    <th><div>Data</div></th>
+                                                    <th>Cancella</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                {% for refile in refiles %}
+                                                    <tr>
+                                                        <td>{{ refile.id }}</td>
+                                                        <td>{{ refile.file.title }}</td>
+                                                        <td>{{ refile.event }}</td>
+                                                        <td>{{ refile.file.file_ref }}</td>
+                                                        <td>{{ refile.date_created|date:"d-m-Y" }}</td>
+
+                                                        <td><a href="{{refile.id }}"><i class="icon-remove"></i></a></td>
+                                                    </tr>
+
+                                                {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="container-fluid padded">
+                        <div class="row-fluid">
+                            <div class="span12">
+                                <div class="box">
+                                    <div class="box-header">
+                                        <span class="title">Certificati</span>
+                                        <ul class="object-tools form-inline pull-right inline">
+                                            <li>
+                                                <a href="/admin/backend/cabinet/{{ usr.id }}/cert/add" id="addCertFile" class="btn btn-blue">
+                                                    <i class="icon-plus icon-white"></i> Aggiungi
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                    <div class="box-content">
+                                        <div id="refFileTable">
+                                            <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
+                                                <thead>
+                                                <tr>
+                                                    <th><div>Id</div></th>
+                                                    <th><div>Titolo</div></th>
+                                                    <th><div>Scadenza</div></th>
+                                                    <th><div>File</div></th>
+                                                    <th><div>Data</div></th>
+                                                    <th>Cancella</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                {% for certfile in certfiles %}
+                                                    <tr>
+                                                        <td>{{ certfile.id }}</td>
+                                                        <td>{{ certfile.file.title }}</td>
+                                                        <td>{{ certfile.expiry }}</td>
+                                                        <td>{{ certfile.file.file_ref }}</td>
+                                                        <td>{{ certfile.date_created|date:"d-m-Y" }}</td>
+
+                                                        <td><a href="{{certfile.id }}"><i class="icon-remove"></i></a></td>
+                                                    </tr>
+
+                                                {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <script>
+                        $(document).ready(function() {
+                            $(".dTable2").dataTable({
+                                bJQueryUI:!1
+                                ,bAutoWidth:!1,
+                                sPaginationType:"full_numbers",
+                                sDom:'<"table-header"fl>t<"table-footer"ip>',
+                                "oLanguage": {
+                                    "sSearch":"Cerca",
+                                    "sLengthMenu": "Mostra _MENU_ righe per pagina",
+                                    "sZeroRecords": "Nessun risultato trovato",
+                                    "sInfo": "Risultati da _START_ a _END_ di _TOTAL_ ",
+                                    "sInfoEmpty": "Mostrati da 0 a 0 di 0 records",
+                                    "sInfoFiltered": "(filtrati da _MAX_ records totali)",
+                                    "oPaginate":{
+                                        "sFirst":"Primo",
+                                        "sLast":"Ultimo",
+                                        "sNext":"Prossimo",
+                                        "sPrevious":"Precedente"
+
+                                    }
+                                }
+                            });
+
+                            $('.dTable2 tbody tr').on('click', function () {
+                                var nTds = $('td', this);
+                                window.location="/admin/survey/survey/"+$(nTds[0]).text();
+                            });
+
+                            $(".active").removeClass("active");
+                            $("#surveyMenu").addClass("active");
+                        });
+                    </script>
+
+                </div> <!-- end box Files-->
             </div> <!-- span 12 -->
         </div><!-- row fluid -->
     </div>
-
-
 
 {% endblock %}
