@@ -2,11 +2,14 @@
 Model for keeping track of uploaded files
 '''
 
-from django.db import models
-from django.contrib.auth.models import User
+import os
 
 from django.db import IntegrityError
 from django.core.exceptions import ValidationError
+from django.template.defaultfilters import slugify
+
+from django.db import models
+from django.contrib.auth.models import User
 
 from campaigns.models import Event
 
@@ -19,6 +22,10 @@ class Cabinet(models.Model):
     '''
     cabinet_name = models.CharField(max_length=200, blank=False)
 
+def upload_filename(instance, filename):
+    fname, dot, extension = filename.rpartition('.')
+    slug = slugify(instance.file_ref)
+    return '%s.%s' % (UPLOAD_TO_DIR + slug, extension)
 
 class UploadedFile(models.Model):
     '''
@@ -26,9 +33,14 @@ class UploadedFile(models.Model):
     '''
     title = models.CharField(max_length=200, blank=False)
     cabinet = models.ForeignKey(Cabinet)
-    file_ref = models.FileField(upload_to=UPLOAD_TO_DIR)
+    file_ref = models.FileField(upload_to=upload_filename)
     owner = models.ForeignKey(User)
     date_created = models.DateTimeField(auto_now_add=True)
+
+    def file_basename(self):
+        if self.file_ref:
+            return os.path.basename(self.file_ref.name)
+
 
 class UserFile(models.Model):
     user = models.ForeignKey(User)

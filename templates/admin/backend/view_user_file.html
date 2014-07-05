@@ -37,10 +37,24 @@
                                 <!-- primo tab -->
                                 <div class="span6">
                                     <ul class="padded separate-sections">
+                                        <li>
+                                            {% if action == "add" %}
+                                                <label>Allegata file</label>
+                                                {{ upload_form.file_ref }}
+                                            {% else %}
+                                                <label>File</label>
+                                                <input type="text"  name="file"  value="{{form.instance.file.file_ref}}" disabled/>
+                                            {% endif %}
+                                        </li>
                                         <li class="input">
                                             <label>Titolo</label>
                                             {{ upload_form.title }}
                                         </li>
+                                    </ul>
+                                </div>
+                                <!-- secondo tab -->
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
                                         <li class="input">
                                             {% if file_type == "ref" %}
                                                 <label>Evento</label>
@@ -52,23 +66,9 @@
                                         </li>
                                     </ul>
                                 </div>
-                                <!-- secondo tab -->
-                                <div class="span6">
-                                    <ul class="padded separate-sections">
-                                        <li>
-                                            {% if action == "add" %}
-                                                <label>Allegata file</label>
-                                                {{ upload_form.file_ref }}
-                                            {% else %}
-                                                <label>File</label>
-                                                <input type="text"  name="file"  value="{{form.instance.file.file_ref}}" disabled/>
-                                            {% endif %}
-                                        </li>
-
-                                    </ul>
-                                </div>
                                 <input type="hidden" id="id_cabinet" name="cabinet" value="{{ cabinet_id }}">
                                 <input type="hidden" id="id_owner" name="owner" value="{{ owner_id }}">
+                                <input type="hidden" name="referer" value="{{ referer }}">
                             </div> <!-- contenitore form -->
 
                             <div class="form-actions">
@@ -86,6 +86,19 @@
 
     <script>
         $("#expiry").datepicker({"language":"it","format":"dd/mm/yyyy"});
+
+        $('#id_file_ref').change(function() {
+            var title = $('#id_title').val(),
+                file_ref = $('#id_file_ref').val();
+            console.log("id_title: ", title);
+            if ( title === "" ) {
+                // Per http://stackoverflow.com/questions/21426232/how-to-remove-c-fakepath-in-webkit-browser-like-chrome-safari-opera
+                var basename = file_ref.replace(/^.*\\/, "");
+                $('#id_title').val(basename);
+            }
+        });
+
+
     </script>
 
 

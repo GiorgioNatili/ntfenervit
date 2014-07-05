@@ -125,7 +125,7 @@
                                         <span class="title">Files</span>
                                         <ul class="object-tools form-inline pull-right inline">
                                             <li>
-                                                <a href="/admin/backend/cabinet/{{ usr.id }}/ref/add" id="addRefFile" class="btn btn-blue">
+                                                <a href="/admin/cabinet/{{ usr.id }}/ref/add" id="addRefFile" class="btn btn-blue">
                                                     <i class="icon-plus icon-white"></i> Aggiungi
                                                 </a>
                                             </li>
@@ -174,7 +174,7 @@
                                         <span class="title">Certificati</span>
                                         <ul class="object-tools form-inline pull-right inline">
                                             <li>
-                                                <a href="/admin/backend/cabinet/{{ usr.id }}/cert/add" id="addCertFile" class="btn btn-blue">
+                                                <a href="/admin/cabinet/{{ usr.id }}/cert/add" id="addCertFile" class="btn btn-blue">
                                                     <i class="icon-plus icon-white"></i> Aggiungi
                                                 </a>
                                             </li>
@@ -199,7 +199,7 @@
                                                         <td>{{ certfile.id }}</td>
                                                         <td>{{ certfile.file.title }}</td>
                                                         <td>{{ certfile.expiry }}</td>
-                                                        <td>{{ certfile.file.file_ref }}</td>
+                                                        <td><a href="{{ MEDIA_URL }}{{ certfile.file.file_ref }}" target="_blank">{{ certfile.file.file_basename }}</a></td>
                                                         <td>{{ certfile.date_created|date:"d-m-Y" }}</td>
 
                                                         <td><a href="{{certfile.id }}"><i class="icon-remove"></i></a></td>
@@ -240,14 +240,11 @@
                                 }
                             });
 
-                            $('.dTable2 tbody tr').on('click', function () {
-                                var nTds = $('td', this);
-                                window.location="/admin/survey/survey/"+$(nTds[0]).text();
-                            });
-
                             $(".active").removeClass("active");
                             $("#surveyMenu").addClass("active");
                         });
+
+
                     </script>
 
                 </div> <!-- end box Files-->

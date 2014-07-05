@@ -2,6 +2,8 @@ from django.conf.urls import patterns, include, url
 from django.conf import settings
 # Uncomment the next two lines to enable the admin:
 from django.contrib import admin
+import cabinet
+
 #from frontend.views import MyRegistrationView
 admin.autodiscover()
 
@@ -163,15 +165,13 @@ urlpatterns = patterns('',
 
     url(r'^admin/rest/counter','campaigns.views.view_rest_counter'),
 
-    url(r'^admin/backend/cabinet/(\d+)/(ref|cert)/add$','backend.views.view_user_file_add'),
-    url(r'^admin/backend/cabinet/(\d+)/(ref|cert)/(\d+)$','backend.views.view_user_file'),
+    url(r'^admin/cabinet/', include('cabinet.urls')),
 
     # Uncomment the admin/doc line below to enable admin documentation:
     #url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     # Uncomment the next line to enable the admin:
-    url(r'^admin/', include(admin.site.urls)),
-
+    url(r'^admin/', include(admin.site.urls))
 
 )
 urlpatterns += patterns('',
