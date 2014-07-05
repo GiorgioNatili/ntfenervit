@@ -1,7 +1,9 @@
 Django==1.5.2
 #GnuPGInterface==0.3.2
 #Landscape-Client==12.05
-flickrapi
+geopy==0.99
+django-positions==0.5.1
+flickrapi==1.4.4
 MySQL-python==1.2.3
 PAM==0.4.2
 PIL==1.1.7

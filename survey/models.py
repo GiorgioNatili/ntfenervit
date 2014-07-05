@@ -1,20 +1,20 @@
 from __future__ import absolute_import
 
-
 import datetime
 import logging
 from math import sin, cos
 from operator import itemgetter
-import re
 from textwrap import fill
+
+import re
 from survey import settings as local_settings
-from campaigns.models import  Newsletter,Event
+
+
 try:
     import simplejson as json
 except ImportError:
     import json
 
-from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from django.core.cache import cache
 from django.core.urlresolvers import reverse
@@ -38,18 +38,15 @@ except ImportError:
                  'Will just use integers for position fields.')
     PositionField = None
 
-
 try:
-    from .survey.flickrsupport import sync_to_flickr, get_group_id
+    from .flickrsupport import sync_to_flickr, get_group_id
 except ImportError:
     logging.warn('no flickr support available')
     sync_to_flickr = None
 
-
 ARCHIVE_POLICY_CHOICES = ChoiceEnum(('immediate',
                                      'post-close',
                                      'never'))
-
 
 OPTION_TYPE_CHOICES = ChoiceEnum(sorted([('choice', 'Scelte esclusive'),
                                          ('char', 'Casella di testo'),
@@ -66,40 +63,41 @@ OPTION_TYPE_CHOICES = ChoiceEnum(sorted([('choice', 'Scelte esclusive'),
                                           'Lista scelte esclusive')],
                                         key=itemgetter(1)))
 
+
 class LiveSurveyManager(models.Manager):
     def get_query_set(self):
-        now = timezone.now() #datetime.datetime.now()
-	return super(LiveSurveyManager, self).get_query_set().filter(
+        now = timezone.now()  # datetime.datetime.now()
+        return super(LiveSurveyManager, self).get_query_set().filter(
             is_published=True,
-            starts_at__lte=now).filter(
-            ~models.Q(archive_policy__exact=ARCHIVE_POLICY_CHOICES.NEVER) |
+            starts_at__lte=now).filter(~models.Q(archive_policy__exact=ARCHIVE_POLICY_CHOICES.NEVER) |
             models.Q(ends_at__isnull=True) |
             models.Q(ends_at__gt=now))
-
 
 FORMAT_CHOICES = ('json', 'csv', 'xml', 'html',)
 
 
 class Survey(models.Model):
-    title = models.CharField(max_length=80,verbose_name="Titolo")
-    slug = models.SlugField(unique=True,verbose_name="Slug",help_text="Campo automatico, non modificare")
-    tease = models.TextField(blank=True,verbose_name="Descrizione breve")
-    description = models.TextField(blank=True,verbose_name="Descrizione")
+    title = models.CharField(max_length=80, verbose_name="Titolo")
+    slug = models.SlugField(unique=True, verbose_name="Slug", help_text="Campo automatico, non modificare")
+    tease = models.TextField(blank=True, verbose_name="Descrizione breve")
+    description = models.TextField(blank=True, verbose_name="Descrizione")
     thanks = models.TextField(
         blank=True,
-        help_text="Messaggio visualizzato quando un utente invia il questionario",verbose_name="Ringraziamento finale")
+        help_text="Messaggio visualizzato quando un utente invia il questionario", verbose_name="Ringraziamento finale")
 
-    newsletter = models.ForeignKey('campaigns.Newsletter',verbose_name="Newsletter collegata",blank=True,null=True,related_name='survey_newsletter')
-    event = models.ForeignKey('campaigns.Event',verbose_name="Evento collegato",blank=True,null=True,related_name='survey_event')
+    newsletter = models.ForeignKey('campaigns.Newsletter', verbose_name="Newsletter collegata", blank=True, null=True,
+                                   related_name='survey_newsletter')
+    event = models.ForeignKey('campaigns.Event', verbose_name="Evento collegato", blank=True, null=True,
+                              related_name='survey_event')
 
-    require_login = models.BooleanField(default=False,verbose_name="Richiede il login?")
-    allow_multiple_submissions = models.BooleanField(default=False,verbose_name="Puo\' essere rifatto?")
+    require_login = models.BooleanField(default=False, verbose_name="Richiede il login?")
+    allow_multiple_submissions = models.BooleanField(default=False, verbose_name="Puo\' essere rifatto?")
     moderate_submissions = models.BooleanField(
         default=local_settings.MODERATE_SUBMISSIONS,
         help_text=_(u"Se selezionata, tutte le richieste saranno  NON pubbliche e "
                     "si dovra\' manualmente renderle pubbliche. "
                     "Se il sondaggio non mostra alcun risultato, e\' possibile che questa opzione sia selezionata.",
-                    ),verbose_name="Moderazione delle risposte?")
+        ), verbose_name="Moderazione delle risposte?")
     allow_comments = models.BooleanField(
         default=False,
         help_text="Permetti il commento all\'invio",
@@ -116,14 +114,15 @@ class Survey(models.Model):
                     "post-close: al termine "
                     "never: mai"),
         verbose_name="Politicha di archiviazione")
-    starts_at = models.DateTimeField(default=datetime.datetime.now,verbose_name="Data di inizio")
+    starts_at = models.DateTimeField(default=datetime.datetime.now, verbose_name="Data di inizio")
     survey_date = models.DateField(blank=True, null=True, editable=False)
-    ends_at = models.DateTimeField(null=True, blank=True,verbose_name="Data di fine")
-    is_published = models.BooleanField(default=False,verbose_name="Pubblicato")
+    ends_at = models.DateTimeField(null=True, blank=True, verbose_name="Data di fine")
+    is_published = models.BooleanField(default=False, verbose_name="Pubblicato")
+
+    # email to notify at each submission
     email = models.EmailField(
         blank=True,
-        help_text=(
-            "Manda email per ogni questionario compilato"))
+        help_text=("Manda email per ogni questionario compilato"))
     site = models.ForeignKey(Site)
     default_report = models.ForeignKey(
         'SurveyReport',
@@ -158,19 +157,19 @@ class Survey(models.Model):
 
     @property
     def is_open(self):
-        now = timezone.now() #datetime.datetime.now()
+        now = timezone.now()  #datetime.datetime.now()
         if self.ends_at:
             return self.starts_at <= now < self.ends_at
         return self.starts_at <= now
 
     @property
     def is_live(self):
-        now = timezone.now() #datetime.datetime.now()
+        now = timezone.now()  #datetime.datetime.now()
         return all([
             self.is_published,
             self.starts_at <= now,
             any([self.archive_policy != ARCHIVE_POLICY_CHOICES.NEVER,
-                not self.ends_at or now < self.ends_at])])
+                 not self.ends_at or now < self.ends_at])])
 
     def get_public_fields(self, fieldnames=None):
         if fieldnames:
@@ -260,10 +259,10 @@ class Survey(models.Model):
 
     objects = models.Manager()
     live = LiveSurveyManager()
+
     class Meta:
         verbose_name = "Questionario"
         verbose_name_plural = "Questionari"
-
 
 
 FILTERABLE_OPTION_TYPES = (OPTION_TYPE_CHOICES.INTEGER,
@@ -273,7 +272,6 @@ FILTERABLE_OPTION_TYPES = (OPTION_TYPE_CHOICES.INTEGER,
                            OPTION_TYPE_CHOICES.CHOICE,
                            OPTION_TYPE_CHOICES.NUMERIC_SELECT,
                            OPTION_TYPE_CHOICES.NUMERIC_CHOICE)
-
 
 POSITION_HELP = ("Posizione nel questionario")
 
@@ -286,7 +284,7 @@ class Question(models.Model):
         verbose_name="Identificativo unico"
     )
     question = models.TextField(help_text=_(
-        "Testo che compare all'utente"),verbose_name="Testo della domanda")
+        "Testo che compare all'utente"), verbose_name="Testo della domanda")
     label = models.TextField(help_text=_("Nome che compare nel report"))
     help_text = models.TextField(
         blank=True, verbose_name="Descrizione di aiuto per l'utente")
@@ -298,7 +296,7 @@ class Question(models.Model):
             collection=('survey',),
             help_text=_(POSITION_HELP + " Use -1 to auto-assign."))
     else:
-        order = models.IntegerField(help_text=POSITION_HELP,verbose_name="Ordine")
+        order = models.IntegerField(help_text=POSITION_HELP, verbose_name="Ordine")
     option_type = models.CharField(
         max_length=max([len(key) for key, v in OPTION_TYPE_CHOICES._choices]),
         choices=OPTION_TYPE_CHOICES,
@@ -310,11 +308,11 @@ class Question(models.Model):
         blank=True,
         default='',
         help_text=_(
-            'Usa una risposta per riga'),verbose_name="Risposte possibili")
-    correct_answer = models.CharField(verbose_name="Risposta Corretta",blank=True,null=True,max_length=100)
-    score = models.IntegerField(verbose_name="Punteggio risposta",blank=True,null=True)
-    answer_is_public = models.BooleanField(default=True,verbose_name="Risposta pubblica")
-    use_as_filter = models.BooleanField(default=True,verbose_name="Usa come filtro")
+            'Usa una risposta per riga'), verbose_name="Risposte possibili")
+    correct_answer = models.CharField(verbose_name="Risposta Corretta", blank=True, null=True, max_length=100)
+    score = models.IntegerField(verbose_name="Punteggio risposta", blank=True, null=True)
+    answer_is_public = models.BooleanField(default=True, verbose_name="Risposta pubblica")
+    use_as_filter = models.BooleanField(default=True, verbose_name="Usa come filtro")
     _aggregate_result = None
 
     @property
@@ -415,6 +413,7 @@ class Question(models.Model):
         verbose_name = "Domanda"
         verbose_name_plural = "Domande"
 
+
 FILTER_TYPE = ChoiceEnum("choice range distance")
 
 
@@ -426,8 +425,10 @@ class Filter:
         self.choices = field.parsed_options
         self.value = self.from_value = self.to_value = ""
         self.within_value = self.location_value = ""
+
         def get_val(suffix):
             return request_data.get(self.key + suffix, "").replace("+", " ")
+
         if field.option_type in (OPTION_TYPE_CHOICES.BOOL,
                                  OPTION_TYPE_CHOICES.CHOICE,
                                  OPTION_TYPE_CHOICES.SELECT,
@@ -519,9 +520,9 @@ def _extra_from_distance(filter, submission_id_column):
         lng,
         _D_TO_R)
     acos_of = (
-        "%f * sin(latitude / %f) + "
-        "%f * cos(latitude / %f) * "
-        "cos((longitude - %f) / %f)") % acos_of_args
+                  "%f * sin(latitude / %f) + "
+                  "%f * cos(latitude / %f) * "
+                  "cos((longitude - %f) / %f)") % acos_of_args
     # if acos_of >= 1 then the address in the database is practically the
     # same address we're searching for and acos(acos_of) is mathematically 
     # impossible so just always include it. If acos_of < 1 then we need to
@@ -553,6 +554,7 @@ def _radians(degrees):
 class AggregateResultCount(object):
     """ This helper class makes it easier to write templates that display
     pie charts. """
+
     def __init__(self,
                  survey,
                  field,
@@ -595,12 +597,12 @@ class AggregateResultCount(object):
 
 class AggregateResult2Axis(object):
     def __init__(
-        self,
-        y_axes,
-        x_axis,
-        request_data,
-        aggregate_function,
-        report):
+            self,
+            y_axes,
+            x_axis,
+            request_data,
+            aggregate_function,
+            report):
         self.answer_values = []
         answer_value_lookup = {}
 
@@ -692,13 +694,17 @@ BALLOT_STUFFING_FIELDS = ('ip_address', 'session_key',)
 
 
 class Submission(models.Model):
+    OPENED = 0
+    COMPLETED = 1
+    STATUS_CHOICES = ((OPENED, 'Opened'), (COMPLETED, 'Completed'),)
+
     survey = models.ForeignKey(Survey)
     contact = models.ForeignKey(Contact, blank=True, null=True)
     ip_address = models.IPAddressField()
-    submitted_at = models.DateTimeField(default=datetime.datetime.now)
+    submitted_at = models.DateTimeField(default=datetime.datetime.now, editable=False)
     session_key = models.CharField(max_length=40, blank=True, editable=False)
     featured = models.BooleanField(default=False)
-
+    status = models.SmallIntegerField(choices=STATUS_CHOICES, default=COMPLETED, blank=True, null=True, editable=False)
     # for moderation
     is_public = models.BooleanField(
         default=True,
@@ -706,14 +712,15 @@ class Submission(models.Model):
                     "'Moderate submissions' checkbox of the survey determines "
                     "the default value of this field."))
 
-    class Meta:
-        ordering = ('-submitted_at',)
+    # class Meta:
+
 
     def to_jsondata(self, answer_lookup=None, include_private_questions=False):
         def to_json(v):
             if isinstance(v, ImageFieldFile):
                 return v.url if v else ''
             return v
+
         if not answer_lookup:
             answer_lookup = get_all_answers([self], include_private_questions)
         data = {}
@@ -758,18 +765,30 @@ class Submission(models.Model):
     def __unicode__(self):
         return u"%s Submission" % self.survey.title
 
+    def save(self, *args, **kwargs):
+        self.submitted_at = datetime.datetime.now()
+        print 'saving submission! '+str(self.status)
+        return super(Submission, self).save(*args, **kwargs)
+
     class Meta:
         verbose_name = "Compilazione"
         verbose_name_plural = "Compilazioni"
+        ordering = ('-submitted_at',)
+
 
 class Answer(models.Model):
+    class Meta:
+        ordering = ('question',)
+        verbose_name = "Risposta"
+        verbose_name_plural = "Risposte"
+
     submission = models.ForeignKey(Submission)
     question = models.ForeignKey(Question)
     text_answer = models.TextField(blank=True)
     integer_answer = models.IntegerField(blank=True, null=True)
     float_answer = models.FloatField(blank=True, null=True)
     boolean_answer = models.NullBooleanField()
-    image_answer_thumbnail_meta = dict(size=(250, 250)) # width, height
+    image_answer_thumbnail_meta = dict(size=(250, 250))  # width, height
     image_answer = ImageWithThumbnailsField(
         max_length=500,
         blank=True,
@@ -785,36 +804,33 @@ class Answer(models.Model):
                                   blank=True,
                                   editable=False)
 
-    def value():
-        def get(self):
-            return getattr(self, self.question.value_column)
+    # def value():
 
-        def set(self, v):
-            ot = self.question.option_type
-            OTC = OPTION_TYPE_CHOICES
-            if ot == OTC.BOOL:
-                self.boolean_answer = bool(v)
-            elif ot in (OTC.FLOAT,
-                        OTC.INTEGER,
-                        OTC.NUMERIC_SELECT,
-                        OTC.NUMERIC_CHOICE):
-                # Keep values in both the integer and float columns just in
-                # case the question switches between integer and float types.
-                if v:
-                    self.float_answer = float(v)
-                    self.integer_answer = int(round(self.float_answer))
-                else:
-                    self.float_answer = self.integer_answer = None
+    def get(self):
+        return getattr(self, self.question.value_column)
+
+    def set(self, v):
+        ot = self.question.option_type
+        OTC = OPTION_TYPE_CHOICES
+        if ot == OTC.BOOL:
+            self.boolean_answer = bool(v)
+        elif ot in (OTC.FLOAT,
+                    OTC.INTEGER,
+                    OTC.NUMERIC_SELECT,
+                    OTC.NUMERIC_CHOICE):
+            # Keep values in both the integer and float columns just in
+            # case the question switches between integer and float types.
+            if v:
+                self.float_answer = float(v)
+                self.integer_answer = int(round(self.float_answer))
             else:
-                self.text_answer = v
+                self.float_answer = self.integer_answer = None
+        else:
+            self.text_answer = v
 
-        return get, set
-    value = property(*value())
+        # return get, set
 
-    class Meta:
-        ordering = ('question',)
-        verbose_name = "Risposta"
-        verbose_name_plural = "Risposte"
+    value = property(get, set)
 
     def save(self, **kwargs):
         # or should this be in a signal?  Or build in an option
@@ -929,13 +945,14 @@ class SurveyReport(models.Model):
 
     def __unicode__(self):
         return self.get_title()
+
     class Meta:
         verbose_name = "Report"
         verbose_name_plural = "Report"
 
+
 SURVEY_DISPLAY_TYPE_CHOICES = ChoiceEnum(
     'text pie map bar line slideshow download')
-
 
 SURVEY_AGGREGATE_TYPE_CHOICES = ChoiceEnum('default sum count average')
 

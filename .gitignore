@@ -1,7 +1,10 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+# settings
 yellowpage/settings.py
+settings.py
+*.*~
 # C extensions
 *.so
 
