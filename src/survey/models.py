@@ -767,7 +767,6 @@ class Submission(models.Model):
 
     def save(self, *args, **kwargs):
         self.submitted_at = datetime.datetime.now()
-        print 'saving submission! '+str(self.status)
         return super(Submission, self).save(*args, **kwargs)
 
     class Meta:
