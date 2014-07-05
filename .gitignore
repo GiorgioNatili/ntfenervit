@@ -1,7 +1,6 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-yellowpage/settings.py
 # C extensions
 *.so
 
@@ -61,4 +60,3 @@ pyenv/
 
 # Ignore the local config file
 yellowPage/settings_dev.json
-
