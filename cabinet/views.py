@@ -88,10 +88,10 @@ def view_user_file_add(request, user_id, type):
         #file.save()
 
 
-    return render_to_response('admin/backend/view_user_file.html', params,context_instance=RequestContext(request))
+    return render_to_response('admin/cabinet/view_user_file.html', params,context_instance=RequestContext(request))
 
 
 @user_passes_test(lambda u:u.is_superuser)
 def view_user_file(request, user_id, type, id):
     params = __view_user_file_common(action="view", user_id=user_id, file_type=type, file_id=id)
-    return render_to_response('admin/backend/view_user_file.html', params)
+    return render_to_response('admin/cabinet/view_user_file.html', params)
