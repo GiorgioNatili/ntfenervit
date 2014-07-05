@@ -39,7 +39,7 @@ except ImportError:
     PositionField = None
 
 try:
-    from .flickrsupport import sync_to_flickr, get_group_id
+    from .survey.flickrsupport import sync_to_flickr, get_group_id
 except ImportError:
     logging.warn('no flickr support available')
     sync_to_flickr = None

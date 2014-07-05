@@ -1,10 +1,9 @@
-from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import itertools
 import smtplib
 
 import re
-from yellowPage import settings as settings_main
+from django.conf import settings
 
 
 def get_function(path):
@@ -53,9 +52,9 @@ def _get_remote_ip(request):
 def send_single_email(email_to_notify, subject, text):
     msg = MIMEText(text)
     msg['Subject'] = subject
-    msg['From'] = settings_main.EMAIL_FROM
-
-    s = smtplib.SMTP_SSL(settings_main.EMAIL_HOST, settings_main.EMAIL_PORT, 'enervit.com')
+    msg['From'] = settings.EMAIL_FROM
+    # print settings.EMAIL_HOST+settings.EMAIL_FROM
+    s = smtplib.SMTP_SSL(settings.EMAIL_HOST, settings.EMAIL_PORT, 'enervit.com')
     s.set_debuglevel(1)
-    s.login(settings_main.EMAIL_HOST_USER, settings_main.EMAIL_HOST_PASSWORD)
-    s.sendmail(settings_main.EMAIL_FROM, email_to_notify, msg.as_string())
+    s.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
+    s.sendmail(settings.EMAIL_FROM, email_to_notify, msg.as_string())
