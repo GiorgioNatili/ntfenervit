@@ -6,80 +6,98 @@
 {% block object-tools %}
 {% endblock %}
 {% block content %}
-    <div class="container-fluid padded">
-        <div class="row-fluid">
-            <div class="span12">
-                <div class="box">
-                    <div class="box-header">
-                        <span class="title">Seleziona un questionario </span>
-                    </div>
-                    <div class="box-content">
-                        <div id="dataTables">
-                            <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
-                                <thead>
-                                <tr>
-                                    <th><div>Id</div></th>
-                                    <th><div>Titolo</div></th>
-                                    <th><div>Newsletter</div></th>
-                                    <th><div>Campagna</div></th>
-                                    <th><div>Destinatari</div></th>
-                                    <th><div>Sottomissioni</div></th>
+<div class="container-fluid padded">
+    <div class="row-fluid">
+        <div class="span12">
+            <div class="box">
+                <div class="box-header">
+                    <span class="title">Seleziona un questionario </span>
+                </div>
+                <div class="box-content">
+                    <div id="dataTables">
+                        <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
+                            <thead>
+                            <tr>
+                                <th>
+                                    <div>Id</div>
+                                </th>
+                                <th>
+                                    <div>Titolo</div>
+                                </th>
+                                <th>
+                                    <div>Newsletter</div>
+                                </th>
+                                <th>
+                                    <div>Campagna</div>
+                                </th>
+                                <th>
+                                    <div>Destinatari</div>
+                                </th>
+                                <th>
+                                    <div>Sottomissioni</div>
+                                </th>
+                                <th>
+                                    <div>In corso</div>
+                                </th>
+                                <th>
+                                    <div>Abbandonati</div>
+                                </th>
+                                <th>&nbsp;</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for survey in surveys %}
+                            <tr>
+                                <td>{{ survey.id }}</td>
+                                <td>{{ survey.title }}</td>
+                                <td>{{ survey.newsletter }}</td>
+                                <td>{{ survey.newsletter.campaign }}</td>
+                                <td>{{ survey.targets }}</td>
+                                <td>{{ survey.submissions }}</td>
+                                <td>{{ survey.active }}</td>
+                                <td>{{ survey.abandoned }}</td>
+                                <td><a href="/admin/survey/report/{{survey.id }}"><i class="icon-tasks"></i></a></td>
+                            </tr>
 
-                                    <th>&nbsp;</th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {% for survey in surveys %}
-                                    <tr>
-                                        <td>{{ survey.id }}</td>
-                                        <td>{{ survey.title }}</td>
-                                        <td>{{ survey.newsletter }}</td>
-                                        <td>{{ survey.newsletter.campaign }}</td>
-                                        <td>{{ survey.targets }}</td>
-                                        <td>{{ survey.submissions }}</td>
-                                        <td><a href="/admin/survey/report/{{survey.id }}"><i class="icon-tasks"></i></a></td>
-                                    </tr>
-
-                                {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
+                            {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <script>
-        $(document).ready(function() {
-            $(".dTable2").dataTable({
-                bJQueryUI:!1
-                ,bAutoWidth:!1,
-                sPaginationType:"full_numbers",
-                sDom:'<"table-header"fl>t<"table-footer"ip>',
-                "oLanguage": {
-                    "sSearch":"Cerca",
-                    "sLengthMenu": "Mostra _MENU_ righe per pagina",
-                    "sZeroRecords": "Nessun risultato trovato",
-                    "sInfo": "Risultati da _START_ a _END_ di _TOTAL_ ",
-                    "sInfoEmpty": "Mostrati da 0 a 0 di 0 records",
-                    "sInfoFiltered": "(filtrati da _MAX_ records totali)",
-                    "oPaginate":{
-                        "sFirst":"Primo",
-                        "sLast":"Ultimo",
-                        "sNext":"Prossimo",
-                        "sPrevious":"Precedente"
+</div>
+<script>
+    $(document).ready(function () {
+        $(".dTable2").dataTable({
+            bJQueryUI: !1, bAutoWidth: !1,
+            sPaginationType: "full_numbers",
+            sDom: '<"table-header"fl>t<"table-footer"ip>',
+            "oLanguage": {
+                "sSearch": "Cerca",
+                "sLengthMenu": "Mostra _MENU_ righe per pagina",
+                "sZeroRecords": "Nessun risultato trovato",
+                "sInfo": "Risultati da _START_ a _END_ di _TOTAL_ ",
+                "sInfoEmpty": "Mostrati da 0 a 0 di 0 records",
+                "sInfoFiltered": "(filtrati da _MAX_ records totali)",
+                "oPaginate": {
+                    "sFirst": "Primo",
+                    "sLast": "Ultimo",
+                    "sNext": "Prossimo",
+                    "sPrevious": "Precedente"
 
-                    }
                 }
-            });
-
-            $('.dTable2 tbody tr').on('click', function () {
-                var nTds = $('td', this);
-                window.location="/admin/survey/survey/"+$(nTds[0]).text();
-            });
-
-            $(".active").removeClass("active");
-            $("#surveyMenu").addClass("active");
+            }
         });
-    </script>
+
+        $('.dTable2 tbody tr').on('click', function () {
+            var nTds = $('td', this);
+            window.location = "/admin/survey/survey/" + $(nTds[0]).text();
+        });
+
+        $(".active").removeClass("active");
+        $("#surveyMenu").addClass("active");
+    });
+</script>
 {% endblock %}

@@ -160,8 +160,9 @@ def report_list(request):
 
     surveys = Survey.objects.all()
     abandoned_threshold = datetime.now() - timedelta(days=7)
-    submissions = Submission.objects.all().filter(status=Submission.COMPLETED)
-    subs_abandoned = Submission.objects.all().filter(status=Submission.OPENED, submitted_at__lt=abandoned_threshold)
+    # submissions = Submission.objects.all().filter(status=Submission.COMPLETED)
+    # subs_abandoned = Submission.objects.all().filter(status=Submission.OPENED, submitted_at__lt=abandoned_threshold)
+    # subs_opened = Submission.objects.all().filter(status=Submission.OPENED)
     surveys2 = []
 
     for sv in surveys:
@@ -169,12 +170,11 @@ def report_list(request):
         targets = NewsletterTarget.objects.all().filter(newsletter=sv.newsletter)  # surveys sent out (inviati)
         sv.submissions = len(subs)
         sv.targets = len(targets)
-        subs_abandoned_sv = Submission.objects.all().filter(survey=sv, status=Submission.OPENED, submitted_at__lt=abandoned_threshold)
-        sv.abandoned = len(subs_abandoned_sv)
+        sv.active = len(Submission.objects.all().filter(survey=sv, status=Submission.OPENED, submitted_at__gte=abandoned_threshold))
+        sv.abandoned = len(Submission.objects.all().filter(survey=sv, status=Submission.OPENED, submitted_at__lt=abandoned_threshold))
         surveys2.append(sv)
     return render_to_response('admin/survey/view_report.html',
-                              {'surveys': surveys2, 'submissions': submissions,
-                               'abandoned_submissions': subs_abandoned},
+                              {'surveys': surveys2},
                               context_instance=RequestContext(request))
 
 
@@ -191,12 +191,16 @@ def report_detail(request, id):
     for sub in submissions_:
         answers = Answer.objects.all().filter(submission=sub)
         sub.answers = answers
-        sub.total_score = 0
-        sub.score = 0
-        for ans in answers:
-            sub.total_score += ans.question.score
-            if ans.value.lower() == ans.question.correct_answer.lower():
-                sub.score += ans.question.score
+        sub.score, sub.total_score = get_score(answers)
+        # for ans in answers:
+        #     sub.total_score += ans.question.score
+        #     val = ans.value
+        #     expected_val = ans.question.correct_answer
+        #     if type(val) not in [str, unicode]:
+        #         val = str(val)
+        #         expected_val = str(expected_val)
+        #     if str(val.encode('utf-8')).lower() == str(expected_val.encode('utf-8')).lower():
+        #         sub.score += ans.question.score
         submissions2.append(sub)
 
     return render_to_response('admin/survey/view_report_details.html',
@@ -206,15 +210,28 @@ def report_detail(request, id):
                               context_instance=RequestContext(request))
 
 
-@staff_member_required
-def single_report_detail(request, id):
-    answers = Answer.objects.all().filter(submission=get_object_or_404(Submission, id=id))
+def get_score(answers):
+    score = 0
     total_score = 0
     for ans in answers:
-        if ans.value.lower() == ans.question.correct_answer.lower():
-            total_score += ans.question.score
+        val = ans.value
+        total_score += ans.question.score
+        expected_val = ans.question.correct_answer
+        if type(val) not in [str, unicode]:
+            val = str(val)
+            expected_val = str(expected_val)
+        if str(val.encode('utf-8')).lower() == str(expected_val.encode('utf-8')).lower():
+            score += ans.question.score
+    return score, total_score
+
+
+
+@staff_member_required
+def single_report_detail(request, id_):
+    answers = Answer.objects.all().filter(submission=get_object_or_404(Submission, id=id_))
+    score, total_score = get_score(answers)
     return render_to_response('admin/survey/view_single_report_details.html',
-                              {'submission': submission, 'answers': answers, 'total_score': total_score},
+                              {'submission': get_object_or_404(Submission, id=id_), 'answers': answers, 'total_score': total_score, 'score': score},
                               context_instance=RequestContext(request))
 
 
@@ -335,7 +352,6 @@ def _survey_submit(request, survey):
         return _survey_show_form(request, survey, forms)
 
 
-#TODO here is a complete form -- to add notification email
 def _submit_valid_forms(forms, request, survey):
     if not all(form.is_valid() for form in forms):
         return False
@@ -457,15 +473,28 @@ def survey_detail(request, slug):
             email = request.GET.get('email')  # contact email is in the querystring
             if email and Contact.objects.filter(email=email):
                 contact = Contact.objects.filter(email=email)[0]
-                pending_sub = Submission.objects.filter(survey=survey, contact=contact, status=Submission.OPENED)
-                if len(pending_sub) > 0:
-                    submission_ = pending_sub[0]
+                already_submitted = Submission.objects.filter(survey=survey, contact=contact,
+                                                              status=Submission.COMPLETED).order_by('submitted_at')
+                if len(already_submitted) > 0:
+                    if survey.allow_multiple_submissions:
+                        #get the latest
+                        submission_ = already_submitted.latest()
+                        submission_.status = Submission.OPENED
+                    else:
+                        #redirect to already submitted
+                        return render_to_response('admin/survey/thanks_already_submitted.html',
+                                                  {'survey': survey},
+                                                  context_instance=RequestContext(request))
                 else:
-                    submission_ = Submission()
-                    submission_.contact = contact
-                    submission_.survey = survey
-                    submission.is_public = not survey.moderate_submissions
-                    submission_.status = Submission.OPENED
+                    pending_sub = Submission.objects.filter(survey=survey, contact=contact, status=Submission.OPENED)
+                    if len(pending_sub) > 0:
+                        submission_ = pending_sub[0]
+                    else:
+                        submission_ = Submission()
+                        submission_.contact = contact
+                        submission_.survey = survey
+                        submission.is_public = not survey.moderate_submissions
+                        submission_.status = Submission.OPENED
                 #it cannot be null. ip_address will be updated at submission completed
                 submission_.ip_address = _get_remote_ip(request)
                 submission_.save()
