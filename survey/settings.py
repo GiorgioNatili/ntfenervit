@@ -125,7 +125,7 @@ EXTRA_THUMBNAILS.update(getattr(_gs, 'CROWDSOURCING_EXTRA_THUMBNAILS', {}))
 SYNCHRONOUS_FLICKR_UPLOAD = getattr(
     _gs,
     'CROWDSOURCING_SYNCHRONOUS_FLICKR_UPLOAD',
-    True)
+    False)
 
 
 # If you turn this to False, you can put arbitrary email addresses in the email

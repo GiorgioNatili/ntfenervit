@@ -1,7 +1,10 @@
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 import itertools
-import re
+import smtplib
 
-from django.utils.importlib import import_module
+import re
+from yellowPage import settings as settings_main
 
 
 def get_function(path):
@@ -13,7 +16,7 @@ def get_function(path):
         exec(to_exec)
     except ImportError, error:
         raise ImportError(error.msg, to_exec)
-    return got
+    # return got
 
 
 class ChoiceEnum(object):
@@ -37,3 +40,22 @@ class ChoiceEnum(object):
 
     def getdisplay(self, key):
         return [v[1] for v in self._choices if v[0] == key][0]
+
+
+
+def _get_remote_ip(request):
+    forwarded=request.META.get('HTTP_X_FORWARDED_FOR')
+    if forwarded:
+        return forwarded.split(',')[-1].strip()
+    return request.META['REMOTE_ADDR']
+
+
+def send_single_email(email_to_notify, subject, text):
+    msg = MIMEText(text)
+    msg['Subject'] = subject
+    msg['From'] = settings_main.EMAIL_FROM
+
+    s = smtplib.SMTP_SSL(settings_main.EMAIL_HOST, settings_main.EMAIL_PORT, 'enervit.com')
+    s.set_debuglevel(1)
+    s.login(settings_main.EMAIL_HOST_USER, settings_main.EMAIL_HOST_PASSWORD)
+    s.sendmail(settings_main.EMAIL_FROM, email_to_notify, msg.as_string())

@@ -1,30 +1,34 @@
 from __future__ import absolute_import
 
 import csv
-from datetime import datetime
+from datetime import datetime, timedelta
 import httplib
 from itertools import count
 import logging
 import smtplib
 from xml.dom.minidom import Document
-
-from django.conf import settings
-from django.contrib.sites.models import Site
 from django.contrib.auth.models import User
+
+from django.contrib.sites.models import Site
 from django.core.mail import EmailMultiAlternatives
 from django.core.paginator import Paginator, EmptyPage
 from django.core.urlresolvers import reverse, NoReverseMatch
 from django.db.models import Q
-from django.http import HttpResponse, HttpResponseRedirect, Http404
-from django.shortcuts import get_object_or_404, render_to_response
+from django.http import Http404
 from django.template import RequestContext as _rc
 from django.template.loader import render_to_string
+from django.conf import settings
+from django.forms import ModelForm
+from django.shortcuts import render_to_response, get_object_or_404
+from django.template import *
+from django.http import HttpResponseRedirect, HttpResponse
+from django.contrib.admin.views.decorators import staff_member_required
+from django.core.context_processors import csrf
+from django.contrib import messages
 from django.utils.html import escape
 
-from django.conf import settings
-
 from survey.forms import forms_for_survey
-from survey import settings as crowdsourcing_settings
+from survey import settings as crowdsourcing_settings  # , settings
 from survey.models import (
     Answer,
     BALLOT_STUFFING_FIELDS,
@@ -40,36 +44,29 @@ from survey.models import (
     get_all_answers,
     get_filters)
 from survey.jsonutils import dump, dumps, datetime_to_string
-
-from survey.util import get_function
-from django.forms import ModelForm,forms
-from campaigns.models import Newsletter,Event, NewsletterTarget
+from survey.util import get_function, _get_remote_ip, send_single_email
+from campaigns.models import Newsletter, Event, NewsletterTarget
 from contacts.models import Contact
 
-from django.shortcuts import render_to_response, get_object_or_404
-from django.template import *
-from django.http import HttpResponseRedirect, HttpResponse
-from django.contrib.admin.views.decorators import staff_member_required
-from django.core.context_processors import csrf
-from django.forms.models import inlineformset_factory
-from django.contrib import messages
-from django.contrib.messages import get_messages
 
 class SurveyFrom(ModelForm):
     class Meta:
         model = Survey
 
+
 class QuestionForm(ModelForm):
     class Meta:
         model = Question
 
-#QuestionsFormSet = inlineformset_factory(Survey,Question,fields=('fieldname',),can_delete=True,max_num=10)
+
+# QuestionsFormSet = inlineformset_factory(Survey,Question,fields=('fieldname',),can_delete=True,max_num=10)
 
 
 def surveys_list(request):
     surveys = Survey.objects.all()
     return render_to_response('admin/survey/view_survey.html', {'surveys': surveys},
                               context_instance=RequestContext(request))
+
 
 @staff_member_required
 def survey_add(request):
@@ -87,18 +84,17 @@ def survey_add(request):
             else:
                 messages.success(request, 'Aggiunto questionario \"' + new_survey.title + '\"')
                 return HttpResponseRedirect('/admin/survey/survey')
-    c = {'form': form,'newsletters':newsletters,'events':events}
+    c = {'form': form, 'newsletters': newsletters, 'events': events}
     return render_to_response('admin/survey/view_add_survey.html', c, context_instance=RequestContext(request))
 
 
-
 @staff_member_required
-def survey_details(request,id):
+def survey_details(request, id):
     survey = get_object_or_404(Survey, id=id)
     questions = Question.objects.all().filter(survey=survey)
     newsletters = Newsletter.objects.all()
     events = Event.objects.all()
-    complete_url = settings.ROOT_URL+"/survey/"+survey.slug
+    complete_url = settings.ROOT_URL + "/survey/" + survey.slug
     form = SurveyFrom()
     if request.method == 'POST':
         form = SurveyFrom(request.POST, instance=survey)
@@ -107,13 +103,15 @@ def survey_details(request,id):
             new_survey.save()
             messages.success(request, 'Questionario \"' + new_survey.title + '\" aggiornato correttamente!')
             return HttpResponseRedirect('/admin/survey/survey')
-    c = {'form': form,'newsletters':newsletters,'events':events,'survey':survey,'questions':questions,'url':complete_url}
+    c = {'form': form, 'newsletters': newsletters, 'events': events, 'survey': survey, 'questions': questions,
+         'url': complete_url}
     return render_to_response('admin/survey/view_survey_details.html',
                               c,
                               context_instance=RequestContext(request))
 
+
 @staff_member_required
-def question_add(request,id):
+def question_add(request, id):
     survey = get_object_or_404(Survey, id=id)
     c = {}
     c.update(csrf(request))
@@ -126,12 +124,13 @@ def question_add(request,id):
                 form = QuestionForm()
             else:
                 messages.success(request, 'Aggiunta domanda \"' + new_question.question + '\"')
-                return HttpResponseRedirect('/admin/survey/survey/'+str(survey.id))
-    c = {'form': form,'survey':survey}
+                return HttpResponseRedirect('/admin/survey/survey/' + str(survey.id))
+    c = {'form': form, 'survey': survey}
     return render_to_response('admin/survey/view_add_question.html', c, context_instance=RequestContext(request))
 
+
 @staff_member_required
-def question_details(request,id):
+def question_details(request, id):
     question = get_object_or_404(Question, id=id)
     form = QuestionForm()
     if request.method == 'POST':
@@ -140,46 +139,56 @@ def question_details(request,id):
             new_question = form.save(commit=False)
             new_question.save()
             messages.success(request, 'Domanda \"' + new_question.question + '\" aggiornata correttamente!')
-            return HttpResponseRedirect('/admin/survey/survey/'+str(question.survey.id))
-    c = {'form': form,'question':question}
+            return HttpResponseRedirect('/admin/survey/survey/' + str(question.survey.id))
+    c = {'form': form, 'question': question}
     return render_to_response('admin/survey/view_question_details.html',
-                              c,
-                              context_instance=RequestContext(request))
+                              c, context_instance=RequestContext(request))
+
+
 @staff_member_required
-def question_delete(request,id):
+def question_delete(request, id):
     question = get_object_or_404(Question, id=id)
     ask = question.question
     survey = question.survey.id
     question.delete()
     messages.success(request, 'Domanda \"' + ask + '\" eliminata correttamente!')
-    return HttpResponseRedirect('/admin/survey/survey/'+str(survey))
+    return HttpResponseRedirect('/admin/survey/survey/' + str(survey))
 
 
 @staff_member_required
 def report_list(request):
+
     surveys = Survey.objects.all()
-    submissions = Submission.objects.all()
+    abandoned_threshold = datetime.now() - timedelta(days=7)
+    submissions = Submission.objects.all().filter(status=Submission.COMPLETED)
+    subs_abandoned = Submission.objects.all().filter(status=Submission.OPENED, submitted_at__lt=abandoned_threshold)
     surveys2 = []
+
     for sv in surveys:
-        subs = Submission.objects.all().filter(survey=sv)
-        targets = NewsletterTarget.objects.all().filter(newsletter=sv.newsletter)
+        subs = Submission.objects.all().filter(survey=sv, status=Submission.COMPLETED)
+        targets = NewsletterTarget.objects.all().filter(newsletter=sv.newsletter)  # surveys sent out (inviati)
         sv.submissions = len(subs)
         sv.targets = len(targets)
+        subs_abandoned_sv = Submission.objects.all().filter(survey=sv, status=Submission.OPENED, submitted_at__lt=abandoned_threshold)
+        sv.abandoned = len(subs_abandoned_sv)
         surveys2.append(sv)
-    return render_to_response('admin/survey/view_report.html', {'surveys': surveys2,'submissions':submissions},
+    return render_to_response('admin/survey/view_report.html',
+                              {'surveys': surveys2, 'submissions': submissions,
+                               'abandoned_submissions': subs_abandoned},
                               context_instance=RequestContext(request))
 
+
 @staff_member_required
-def report_detail(request,id):
+def report_detail(request, id):
     survey = get_object_or_404(Survey, id=id)
-    submissions = Submission.objects.all().filter(survey=survey)
+    submissions_ = Submission.objects.all().filter(survey=survey, status=Submission.COMPLETED)
     targets = NewsletterTarget.objects.all().filter(newsletter=survey.newsletter)
-    submissions_counter = len(submissions)
+    submissions_counter = len(submissions_)
     targets_counter = len(targets)
     contacts = Contact.objects.all()
     contacts_counter = len(contacts)
     submissions2 = []
-    for sub in submissions:
+    for sub in submissions_:
         answers = Answer.objects.all().filter(submission=sub)
         sub.answers = answers
         sub.total_score = 0
@@ -190,18 +199,22 @@ def report_detail(request,id):
                 sub.score += ans.question.score
         submissions2.append(sub)
 
-    return render_to_response('admin/survey/view_report_details.html', {'survey': survey,'submissions':submissions2,'targets':targets,'submissions_counter':submissions_counter,'targets_counter':targets_counter,'contacts_counter':contacts_counter},
+    return render_to_response('admin/survey/view_report_details.html',
+                              {'survey': survey, 'submissions': submissions2, 'targets': targets,
+                               'submissions_counter': submissions_counter, 'targets_counter': targets_counter,
+                               'contacts_counter': contacts_counter},
                               context_instance=RequestContext(request))
 
+
 @staff_member_required
-def single_report_detail(request,id):
-    submission =  get_object_or_404(Submission, id=id)
-    answers = Answer.objects.all().filter(submission = submission)
+def single_report_detail(request, id):
+    answers = Answer.objects.all().filter(submission=get_object_or_404(Submission, id=id))
     total_score = 0
     for ans in answers:
         if ans.value.lower() == ans.question.correct_answer.lower():
             total_score += ans.question.score
-    return render_to_response('admin/survey/view_single_report_details.html', {'submission':submission,'answers':answers,'total_score':total_score},
+    return render_to_response('admin/survey/view_single_report_details.html',
+                              {'submission': submission, 'answers': answers, 'total_score': total_score},
                               context_instance=RequestContext(request))
 
 
@@ -258,13 +271,16 @@ def api_response_decorator(format='json'):
                 return result
             callback = request.GET.get('callback', None)
             return api_response(
-                    request, result, format=format, callback=callback)
+                request, result, format=format, callback=callback)
+
         return _decorated
+
     return _api_response_decorator
 
 
 def _user_entered_survey(request, survey):
-   return False
+    #TODO It could be implemented now, filtering sumbissions on contact, survey and Submission.status=COMPLETED
+    return False
     #if not request.user.is_authenticated():
     #    return False
     #return bool(survey.submissions_for(
@@ -279,13 +295,6 @@ def _entered_no_more_allowed(request, survey):
         _user_entered_survey(request, survey),))
 
 
-def _get_remote_ip(request):
-    forwarded=request.META.get('HTTP_X_FORWARDED_FOR')
-    if forwarded:
-        return forwarded.split(',')[-1].strip()
-    return request.META['REMOTE_ADDR']
-
-
 def _login_url(request):
     if crowdsourcing_settings.LOGIN_VIEW:
         start_with = reverse(crowdsourcing_settings.LOGIN_VIEW) + '?next=%s'
@@ -295,7 +304,7 @@ def _login_url(request):
 
 def _get_survey_or_404(slug, request=None):
     manager = Survey.live
-    if request:# and request.user.is_staff:
+    if request:  # and request.user.is_staff:
         manager = Survey.objects
     return get_object_or_404(manager, slug=slug)
 
@@ -308,7 +317,7 @@ def _survey_submit(request, survey):
     if not hasattr(request, 'session'):
         return HttpResponse("Cookies must be enabled to use this application.",
                             status=httplib.FORBIDDEN)
-    if (_entered_no_more_allowed(request, survey)):
+    if _entered_no_more_allowed(request, survey):
         slug_template = 'admin/survey/%s_already_submitted.html' % survey.slug
         return render_to_response([slug_template,
                                    'admin/survey/already_submitted.html'],
@@ -316,52 +325,74 @@ def _survey_submit(request, survey):
                                   _rc(request))
 
     forms = forms_for_survey(survey, request)
-
     if _submit_valid_forms(forms, request, survey):
+        #it never enters here!!!??
         if survey.can_have_public_submissions():
             return _survey_results_redirect(request, survey, thanks=True)
         return _survey_show_form(request, survey, ())
     else:
+
         return _survey_show_form(request, survey, forms)
 
 
+#TODO here is a complete form -- to add notification email
 def _submit_valid_forms(forms, request, survey):
     if not all(form.is_valid() for form in forms):
         return False
-    submission_form = forms[0]
-    submission = submission_form.save(commit=False)
-    submission.survey = survey
-    submission.ip_address = _get_remote_ip(request)
-    submission.is_public = not survey.moderate_submissions
-    email = request.GET.get('email')
+
+    email = request.GET.get('email')  # contact email is in the querystring
     survey_score = 0
     total_score = 0
+
     if email is not None:
         if Contact.objects.filter(email=email):
             contact = Contact.objects.filter(email=email)[0]
-            if not Submission.objects.filter(contact=contact, survey=survey):
-                submission.contact = contact
-                submission.save()
+            submissions_ = Submission.objects.filter(contact=contact, survey=survey, status=Submission.OPENED)
+
+            if len(submissions_) > 0:
+                submission_ = submissions_[0]  # there is only one!
+                submission_.ip_address = _get_remote_ip(request)
+                submission_.contact = contact
+
                 for form in forms[1:]:
                     answer = form.save(commit=False)
                     if isinstance(answer, (list, tuple)):
                         for a in answer:
-                            a.submission = submission
+                            a.submission = submission_
                             a.save()
                     elif answer:
-                            answer.submission = submission
-                            answer.save()
-                answs = Answer.objects.filter(submission=submission)
+                        answer.submission = submission_
+                        answer.save()
+                answs = Answer.objects.filter(submission=submission_)
                 for ans in answs:
                     survey_score += ans.question.score
-                    if ans.value.lower() == ans.question.correct_answer.lower():
+                    if str(ans.value).lower() == str(ans.question.correct_answer).lower():
                         contact.participation_ranking = contact.participation_ranking + ans.question.score
                         total_score += ans.question.score
                         contact.save()
+                submission_.status = Submission.COMPLETED
+                submission_.save()
+
+                email_to_notify = survey.email
+                subject = "{} {} ha completato il questionario {}".format(contact.surname,
+                                                                          contact.name,
+                                                                          survey.title)
+                text = """
+                Il contatto {} {} <{}> ha completato il questionario {}
+                in data {}.
+                Newsletter: {}
+                Campagna: {}""".format(contact.surname, contact.name, email,
+                                       survey.title, submission_.submitted_at,
+                                       survey.newsletter.name, survey.newsletter.campaign.name)
+
+                send_single_email(email_to_notify, subject, text)
     return _thanks(request, survey, total_score, survey_score)
 
-def _thanks(request,survey,total_score=0,survey_score=0):
-    return render_to_response('admin/survey/thanks.html', {"survey":survey,"total_score":total_score,"survey_score":survey_score}, context_instance=RequestContext(request))
+
+def _thanks(request, survey, total_score=0, survey_score=0):
+    return render_to_response('admin/survey/thanks.html',
+                              {"survey": survey, "total_score": total_score, "survey_score": survey_score},
+                              context_instance=RequestContext(request))
 
 
 def _url_for_edit(request, obj):
@@ -380,88 +411,32 @@ def _url_for_edit(request, obj):
     return admin_url + edit_url
 
 
-def _send_survey_email(request, survey, submission):
-    recipients = [a.strip() for a in survey.email.split(",")]
-    if crowdsourcing_settings.ALL_STAFF_EMAIL_NOTIFICATION:
-        staff = recipients
-        public = []
-    else:
-        staff_users = User.objects.filter(email__in=recipients, is_staff=True)
-        staff = list(set([u.email for u in staff_users]))
-        public = [e for e in recipients if not e in staff]
-
-    def _send_msg(subject, parts, emails):
-        html_email = "<br/>\n".join(parts)
-        sender = crowdsourcing_settings.SURVEY_EMAIL_FROM
-        email_msg = EmailMultiAlternatives(subject, html_email, sender, emails)
-        email_msg.attach_alternative(html_email, 'text/html')
-        try:
-            email_msg.send()
-        except smtplib.SMTPException as ex:
-            logging.exception("SMTP error sending email: %s" % str(ex))
-        except Exception as ex:
-            logging.exception("Unexpected error sending email: %s" % str(ex))
-
-    answs = Answer.objects.filter(submission=submission)
-    host = "http://" + request.META["HTTP_HOST"]
-    report_url = host + _survey_report_url(survey)
-    if staff:
-        links = [(_url_for_edit(request, submission), "Edit Submission"),
-                 (_url_for_edit(request, survey), "Edit Survey"),]
-        if survey.can_have_public_submissions():
-            u = report_url
-            links.append((u, "View Survey",))
-        parts = ["<a href=\"%s\">%s</a>" % link for link in links]
-        lines = ["%s: %s" % (a.question.label, escape(a.value),) for a in answs]
-        parts.extend(lines)
-        _send_msg(survey.title, parts, staff)
-    if public:
-        subject = []
-        body = []
-        OTC = OPTION_TYPE_CHOICES
-        for ans in answs:
-            if ans.value:
-                opt_type = ans.question.option_type
-                if any([opt_type in (OTC.SELECT, OTC.LOCATION),
-                        ans.question.question.lower().find("title") >= 0]):
-                    subject.append(ans.value)
-                elif opt_type in (OTC.PHOTO):
-                    image_src = host + ans.image_answer.thumbnail.absolute_url
-                    body.append("<img src='%s' />" % (image_src))
-                else:
-                    body.append(ans.value)
-        body.append("<a href='%s'>See the survey</a>" % report_url)
-        subject = ". ".join(subject) or survey.title
-        html_email = "<br/>\n".join(body)
-        _send_msg(subject, body, public)
-
-
 def _survey_show_form(request, survey, forms):
     contact = None
     if request.GET.get('email'):
-        contact = Contact.objects.all().filter(email=request.GET.get('email'))[0]
+        contacts = Contact.objects.all().filter(email=request.GET.get('email'))
+        if len(contacts) > 0:
+            contact = contacts[0]
     specific_template = 'admin/survey/%s_survey_detail.html' % survey.slug
-    entered = False #_user_entered_survey(request, survey)
+    entered = False  #_user_entered_survey(request, survey)
     return render_to_response([specific_template,
                                'admin/survey/survey_detail.html'],
-                                  dict(survey=survey,
+                              dict(survey=survey,
                                    forms=forms,
                                    entered=entered,
                                    login_url=_login_url(request),
-                                   contact = contact,
+                                   contact=contact,
                                    request=request),
                               _rc(request))
 
 
 def _can_show_form(request, survey):
     #return True
-    authenticated = True#request.user.is_authenticated()
+    authenticated = True  #request.user.is_authenticated()
     return all((
         survey.is_open,
         authenticated or not survey.require_login,
         not _entered_no_more_allowed(request, survey)))
-
-
 
 
 def survey_detail(request, slug):
@@ -477,12 +452,29 @@ def survey_detail(request, slug):
     if _can_show_form(request, survey):
         if request.method == 'POST':
             return _survey_submit(request, survey)
+        else:
+            #create submission with status opened, it will be filtered out in reports
+            email = request.GET.get('email')  # contact email is in the querystring
+            if email and Contact.objects.filter(email=email):
+                contact = Contact.objects.filter(email=email)[0]
+                pending_sub = Submission.objects.filter(survey=survey, contact=contact, status=Submission.OPENED)
+                if len(pending_sub) > 0:
+                    submission_ = pending_sub[0]
+                else:
+                    submission_ = Submission()
+                    submission_.contact = contact
+                    submission_.survey = survey
+                    submission.is_public = not survey.moderate_submissions
+                    submission_.status = Submission.OPENED
+                #it cannot be null. ip_address will be updated at submission completed
+                submission_.ip_address = _get_remote_ip(request)
+                submission_.save()
         forms = forms_for_survey(survey, request)
     elif need_login:
         forms = ()
     elif survey.can_have_public_submissions():
         return _survey_results_redirect(request, survey)
-    else: # Survey is closed with private results.
+    else:  # Survey is closed with private results.
         forms = ()
     return _survey_show_form(request, survey, forms)
 
@@ -507,12 +499,7 @@ def embeded_survey_questions(request, slug):
 
 
 def _survey_results_redirect(request, survey, thanks=False):
-    #response = HttpResponseRedirect(_thanks(request,survey))
-    #if thanks:
-    #    request.session['survey_thanks_%s' % survey.slug] = '1'
-    #return response
-    return _thanks(request,survey)
-
+    return _thanks(request, survey)
 
 
 def _survey_report_url(survey):
@@ -565,11 +552,11 @@ def submissions(request, format):
         return HttpResponse(msg)
     is_staff = request.user.is_authenticated() and request.user.is_staff
     if is_staff:
-        results = Submission.objects.all()
+        results = Submission.objects.all(status=Submission.COMPLETED)
     else:
         # survey.can_have_public_submissions is complicated enough that
         # we'll check it in Python, not the database.
-        results = Submission.objects.filter(is_public=True)
+        results = Submission.objects.filter(is_public=True, status=Submission.COMPLETED)
     results = results.select_related("survey", "user")
     get = request.GET.copy()
     limit = int(get.pop("limit", [0])[0])
@@ -607,7 +594,7 @@ def submissions(request, format):
                 search_field = 'submitted_at__gte'
             else:
                 search_field = 'submitted_at__lte'
-        elif field in('featured', 'is_public',):
+        elif field in ('featured', 'is_public',):
             falses = ('f', 'false', 'no', 'n', '0',)
             value = len(value) and not value.lower() in falses
         # search_field is unicode but needs to be ascii.
@@ -696,7 +683,7 @@ def submissions(request, format):
                     submission.appendChild(cell)
                     cell.appendChild(doc.createTextNode(u"%s" % value))
         response = HttpResponse(doc.toxml(), mimetype='text/xml')
-    elif format == 'html': # mostly for debugging.
+    elif format == 'html':  # mostly for debugging.
         keys = get_keys()
         results = [
             "<html><body><table>",
@@ -809,8 +796,6 @@ def _survey_report(request, slug, report, page, templates):
         fields = list(survey.get_public_fields())
     filters = get_filters(survey, request.GET)
 
-
-
     id_field = "survey_submission.id"
     if not report_obj.display_individual_results:
         submissions = submissions.none()
@@ -832,7 +817,6 @@ def _survey_report(request, slug, report, page, templates):
             submissions = submissions.filter(featured=True)
         if report_obj.limit_results_to:
             submissions = submissions[:report_obj.limit_results_to]
-
 
     paginator, page_obj = paginate_or_404(submissions, page)
 
@@ -904,10 +888,10 @@ def paginate_or_404(queryset, page, num_per_page=20):
 
 
 def location_question_results(
-    request,
-    question_id,
-    limit_map_answers,
-    survey_report_slug=""):
+        request,
+        question_id,
+        limit_map_answers,
+        survey_report_slug=""):
     question = get_object_or_404(Question.objects.select_related("survey"),
                                  pk=question_id,
                                  answer_is_public=True)
@@ -949,7 +933,7 @@ def location_question_results(
     limit_map_answers = int(limit_map_answers) if limit_map_answers else 0
     if limit_map_answers or limit_results_to:
         answers = answers[:min(filter(None, [limit_map_answers,
-                                             limit_results_to,]))]
+                                             limit_results_to, ]))]
     entries = []
     view = "survey.views.submission_for_map"
     for answer in answers:
@@ -965,12 +949,12 @@ def location_question_results(
     dump({"entries": entries}, response)
     return response
 
-def location_question_map(
-    request,
-    question_id,
-    display_id,
-    survey_report_slug=""):
 
+def location_question_map(
+        request,
+        question_id,
+        display_id,
+        survey_report_slug=""):
     question = Question.objects.get(pk=question_id)
     if not question.answer_is_public and not request.user.is_staff:
         raise Http404
@@ -1000,6 +984,7 @@ def location_question_map(
         question=question,
         report=report))
 
+
 def submission_for_map(request, id):
     template = 'admin/survey/submission_for_map.html'
     if request.user.is_staff:
@@ -1009,3 +994,57 @@ def submission_for_map(request, id):
     return render_to_response(template, dict(submission=sub), _rc(request))
 
 
+def _send_survey_email(request, survey, submission):
+    recipients = [a.strip() for a in survey.email.split(",")]
+    if crowdsourcing_settings.ALL_STAFF_EMAIL_NOTIFICATION:
+        staff = recipients
+        public = []
+    else:
+        staff_users = User.objects.filter(email__in=recipients, is_staff=True)
+        staff = list(set([u.email for u in staff_users]))
+        public = [e for e in recipients if not e in staff]
+
+    def _send_msg(subject, parts, emails):
+        html_email = "<br/>\n".join(parts)
+        sender = crowdsourcing_settings.SURVEY_EMAIL_FROM
+        email_msg = EmailMultiAlternatives(subject, html_email, sender, emails)
+        email_msg.attach_alternative(html_email, 'text/html')
+        try:
+            email_msg.send()
+        except smtplib.SMTPException as ex:
+            logging.exception("SMTP error sending email: %s" % str(ex))
+        except Exception as ex:
+            logging.exception("Unexpected error sending email: %s" % str(ex))
+
+    answs = Answer.objects.filter(submission=submission)
+    host = "http://" + request.META["HTTP_HOST"]
+    report_url = host + _survey_report_url(survey)
+    if staff:
+        links = [(_url_for_edit(request, submission), "Edit Submission"),
+                 (_url_for_edit(request, survey), "Edit Survey"), ]
+        if survey.can_have_public_submissions():
+            u = report_url
+            links.append((u, "View Survey",))
+        parts = ["<a href=\"%s\">%s</a>" % link for link in links]
+        lines = ["%s: %s" % (a.question.label, escape(a.value),) for a in answs]
+        parts.extend(lines)
+        _send_msg(survey.title, parts, staff)
+    if public:
+        subject = []
+        body = []
+        OTC = OPTION_TYPE_CHOICES
+        for ans in answs:
+            if ans.value:
+                opt_type = ans.question.option_type
+                if any([opt_type in (OTC.SELECT, OTC.LOCATION),
+                        ans.question.question.lower().find("title") >= 0]):
+                    subject.append(ans.value)
+                elif opt_type in (OTC.PHOTO):
+                    image_src = host + ans.image_answer.thumbnail.absolute_url
+                    body.append("<img src='%s' />" % (image_src))
+                else:
+                    body.append(ans.value)
+        body.append("<a href='%s'>See the survey</a>" % report_url)
+        subject = ". ".join(subject) or survey.title
+        html_email = "<br/>\n".join(body)
+        _send_msg(subject, body, public)
