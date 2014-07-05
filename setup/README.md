@@ -37,7 +37,7 @@ pip install --allow-external PIL --allow-unverified PIL PIL==1.1.7
 If that does not work, you need to research how to install `PIL==1.1.7` in your platform.  Once PIL is correctly
 installed, run `make devsetup` again to complete the installation.
 
-#### Other Notes
+#### Linux Notes
 1. For `MySQL-python`, you must install `libmysqlclient-dev` using `apt-get`
 2. For `lxml`, you must install `libxml2-dev libxslt1-dev` using `apt-get`
 
