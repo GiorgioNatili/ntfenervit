@@ -155,6 +155,15 @@ def question_delete(request, id):
     return HttpResponseRedirect('/admin/survey/survey/' + str(survey))
 
 
+def add_counters_to_survey(abandoned_threshold, subs, sv):
+    sv.submissions = subs.count()
+    sv.targets = NewsletterTarget.objects.all().filter(newsletter=sv.newsletter).count()
+    sv.active = Submission.objects.all().filter(survey=sv, status=Submission.OPENED,
+                                                submitted_at__gte=abandoned_threshold).count()
+    sv.abandoned = Submission.objects.all().filter(survey=sv, status=Submission.OPENED,
+                                                   submitted_at__lt=abandoned_threshold).count()
+
+
 @staff_member_required
 def report_list(request):
 
@@ -167,11 +176,8 @@ def report_list(request):
 
     for sv in surveys:
         subs = Submission.objects.all().filter(survey=sv, status=Submission.COMPLETED)
-        targets = NewsletterTarget.objects.all().filter(newsletter=sv.newsletter)  # surveys sent out (inviati)
-        sv.submissions = len(subs)
-        sv.targets = len(targets)
-        sv.active = len(Submission.objects.all().filter(survey=sv, status=Submission.OPENED, submitted_at__gte=abandoned_threshold))
-        sv.abandoned = len(Submission.objects.all().filter(survey=sv, status=Submission.OPENED, submitted_at__lt=abandoned_threshold))
+
+        add_counters_to_survey(abandoned_threshold, subs, sv)
         surveys2.append(sv)
     return render_to_response('admin/survey/view_report.html',
                               {'surveys': surveys2},
@@ -180,33 +186,24 @@ def report_list(request):
 
 @staff_member_required
 def report_detail(request, id):
+    abandoned_threshold = datetime.now() - timedelta(days=7)
     survey = get_object_or_404(Survey, id=id)
     submissions_ = Submission.objects.all().filter(survey=survey, status=Submission.COMPLETED)
-    targets = NewsletterTarget.objects.all().filter(newsletter=survey.newsletter)
-    submissions_counter = len(submissions_)
-    targets_counter = len(targets)
-    contacts = Contact.objects.all()
-    contacts_counter = len(contacts)
+    abandoned = Submission.objects.all().filter(survey=survey, status=Submission.OPENED,
+                                                submitted_at__lt=abandoned_threshold)
+    add_counters_to_survey(abandoned_threshold, submissions_, survey)
+    counters = {'targets': survey.targets, 'submissions': survey.submissions,
+                'active': survey.active, 'abandoned': survey.abandoned, 'contacts': Contact.objects.all().count()}
     submissions2 = []
     for sub in submissions_:
         answers = Answer.objects.all().filter(submission=sub)
         sub.answers = answers
         sub.score, sub.total_score = get_score(answers)
-        # for ans in answers:
-        #     sub.total_score += ans.question.score
-        #     val = ans.value
-        #     expected_val = ans.question.correct_answer
-        #     if type(val) not in [str, unicode]:
-        #         val = str(val)
-        #         expected_val = str(expected_val)
-        #     if str(val.encode('utf-8')).lower() == str(expected_val.encode('utf-8')).lower():
-        #         sub.score += ans.question.score
         submissions2.append(sub)
 
     return render_to_response('admin/survey/view_report_details.html',
-                              {'survey': survey, 'submissions': submissions2, 'targets': targets,
-                               'submissions_counter': submissions_counter, 'targets_counter': targets_counter,
-                               'contacts_counter': contacts_counter},
+                              {'survey': survey, 'submissions': submissions2, 'abandoned': abandoned,
+                               'counters': counters},
                               context_instance=RequestContext(request))
 
 
