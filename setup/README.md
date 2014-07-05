@@ -30,7 +30,7 @@ report error while installing PIP, try:
 
 ```
 sudo apt-get installl python-imaging
-. pyenv/bin/activate
+. venv/bin/activate
 pip install --allow-external PIL --allow-unverified PIL PIL==1.1.7
 ```
 
