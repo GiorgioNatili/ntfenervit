@@ -36,7 +36,7 @@ cleanup ()
 trap cleanup SIGINT
 
 # Start the webserver
-manage.py runserver 8000
+./manage.py runserver 8000
 if [ -n "$smtp_pid" ]; then
     cleanup
 fi
