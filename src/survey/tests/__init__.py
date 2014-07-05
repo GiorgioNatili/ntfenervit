@@ -1,2 +1,2 @@
-from .models import *
-from .html import *
+from .models_tests import *
+from .html_tests import *

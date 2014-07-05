@@ -72,7 +72,7 @@ This will also launch a SMTP Logger server that will output any email sent to ST
 
 <a name="devEnvironSetup"></a>
 ### Dev Environment Setup
-To setup your bash to use the dev settings and to active the `virtualenv`, do:
+DO NOT use the usual `venv/bin/activate` to activate the `virtualenv`.  Instead, do:
 
 ```
 . setup/devenv.sh
@@ -93,5 +93,11 @@ In order to run unit testing, you need to have your [Dev Environment Setup](#dev
 manage.py test survey
 ```
 
-*NOTE*:  Only survey package is currently setup for unit testing.
+All test file should follow the following pattern:
+
+* `<<package>>/tests.py` or in `<<package>>/tests/__init__.py`
+* All test script should end with `*_tests.py`
+* All test fixtures should be coded in JSON and ends with `*_tests.json`
+* All test sql should end with `*_tests.sql`
+
 

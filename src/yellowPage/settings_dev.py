@@ -203,7 +203,7 @@ LOGGING = {
 
 LOGIN_REDIRECT_URL = getConfig("LOGIN_REDIRECT_URL", '/frontend/main')
 
-EMAIL_BACKEND = getConfig("EMAIL_BACKEND", "")
+EMAIL_BACKEND = getConfig("EMAIL_BACKEND", None)
 EMAIL_HOST = getConfig("EMAIL_HOST", "localhost")
 EMAIL_HOST_USER = getConfig("EMAIL_HOST_USER", 'testuser')
 EMAIL_HOST_PASSWORD = getConfig("EMAIL_HOST_PASSWORD", 'testpassword')
