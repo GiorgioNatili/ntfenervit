@@ -6,7 +6,7 @@
 #
 # ===========================================================
 
-PYENV         = pyenv
+PYENV         = venv
 PIP           = $(PYENV)/bin/pip
 PYLIB_REQ     = requirements.txt
 SETUP         = setup

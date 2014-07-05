@@ -10,7 +10,7 @@
 proj_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
 # Activate Python VirtualEnv
-source $proj_dir/pyenv/bin/activate
+source $proj_dir/venv/bin/activate
 
 # Set dev setting
 export DJANGO_SETTINGS_MODULE="yellowPage.settings_dev"

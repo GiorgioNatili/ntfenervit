@@ -56,7 +56,7 @@ coverage.xml
 docs/_build/
 
 # Python VirtualEnv
-pyenv/
+venv/
 
 # Ignore the local config file
 yellowPage/settings_dev.json
