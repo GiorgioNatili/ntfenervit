@@ -10,7 +10,7 @@ from django.core.exceptions import ValidationError
 from cabinet.models import Cabinet, UploadedFile, UserFile, UserRefFile, UserCertFile
 from campaigns.models import Event
 
-class CabinetTestCase(TestCase):
+class CabinetModelTestCase(TestCase):
     fixtures = ['initial_data', 'users_tests.json']
     def setUp(self):
         # Get the normal user

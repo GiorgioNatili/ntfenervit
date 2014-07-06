@@ -1,0 +1,80 @@
+[
+    {
+        "pk": "NRVDL096A01H501Y",
+        "model": "contacts.contact",
+        "fields": {
+            "phone_number": "06 555 1212",
+            "city": "Roma",
+            "surname": "devel02",
+            "name": "EnervitDev",
+            "zip": "00118",
+            "civic": "1",
+            "province": 96,
+            "company": null,
+            "work": 54,
+            "privacy_consensus": true,
+            "birthdate": "1996-01-01",
+            "sex": "n",
+            "street": "Via",
+            "status": "I",
+            "anagrafic_subdivision": [],
+            "participation_ranking": 0,
+            "owner": 1,
+            "company_ranking": 0,
+            "email": "enervitdev@example.com",
+            "action_subdivision": []
+        }
+    },
+    {
+        "pk": "STFSRU92B21L736F",
+        "model": "contacts.contact",
+        "fields": {
+            "phone_number": "06 555 1213",
+            "city": "Venezia",
+            "surname": "User",
+            "name": "Staff",
+            "zip": "00876",
+            "civic": "1",
+            "province": 16,
+            "company": null,
+            "work": 54,
+            "privacy_consensus": true,
+            "birthdate": "1992-02-21",
+            "sex": "m",
+            "street": "Via Lontano",
+            "status": "I",
+            "anagrafic_subdivision": [],
+            "participation_ranking": 0,
+            "owner": 2,
+            "company_ranking": 0,
+            "email": "staff.user@example.com",
+            "action_subdivision": []
+        }
+    },
+    {
+        "pk": "NOESRU86E31F839S",
+        "model": "contacts.contact",
+        "fields": {
+            "phone_number": "06 555 1214",
+            "city": "Napoli",
+            "surname": "One",
+            "name": "User",
+            "zip": "00611",
+            "civic": "1",
+            "province": 16,
+            "company": null,
+            "work": 54,
+            "privacy_consensus": true,
+            "birthdate": "1986-05-31",
+            "sex": "m",
+            "street": "Via Vicino",
+            "status": "I",
+            "anagrafic_subdivision": [],
+            "participation_ranking": 0,
+            "owner": 3,
+            "company_ranking": 0,
+            "email": "user.one@example.com",
+            "action_subdivision": []
+        }
+    }
+]

@@ -226,3 +226,5 @@ HAYSTACK_CONNECTIONS = {
 #
 
 FIXTURE_DIRS = getConfig("FIXTURE_DIRS", ("fixtures_tests",))
+SOUTH_TESTS_MIGRATE = False
+
