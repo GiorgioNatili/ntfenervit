@@ -20,15 +20,14 @@
                     <div class="box-content">
                         <form class="fill-up validatable" enctype="multipart/form-data" method="post" id="file_form">
                             {% csrf_token %}
-                            {% if upload_form.errors %}
+                            {% if form.errors %}
                                 <div class="alert alert-error">
                                     Correggi i seguenti errori:
                                     <ul>
-                                        {% for field, errors in form.errors.items %}
-                                            {% for error in errors %}
-                                                <li>{{ field }}{{ error }}</li>
-                                            {% endfor %}
-
+                                        {% for field in form %}
+                                            {% if field.errors %}
+                                                <li>{{ field.errors|first }}: {{ field.label }}</li>
+                                            {% endif %}
                                         {% endfor %}
                                     </ul>
                                 </div>
@@ -37,19 +36,22 @@
                                 <!-- primo tab -->
                                 <div class="span6">
                                     <ul class="padded separate-sections">
-                                        <li>
-                                            {% if action == "add" %}
-                                                <label>Allegata file</label>
-                                                {{ upload_form.file_ref }}
-                                            {% else %}
-                                                <label>File</label>
-                                                <input type="text"  name="file"  value="{{form.instance.file.file_ref}}" disabled/>
-                                            {% endif %}
-                                        </li>
+                                        {% if action == "add" %}
+                                            <li>
+                                                <label>{{ form.file_ref.label }}</label>
+                                                {{ form.file_ref }}
+                                            </li>
+                                        {% endif %}
                                         <li class="input">
-                                            <label>Titolo</label>
-                                            {{ upload_form.title }}
+                                            <label>{{ form.title.label }}</label>
+                                            {{ form.title }}
                                         </li>
+                                        {% if action == "edit" %}
+                                            <li>
+                                                <label>File</label>
+                                                {{ form.file_ref }}
+                                            </li>
+                                        {% endif %}
                                     </ul>
                                 </div>
                                 <!-- secondo tab -->
@@ -57,25 +59,27 @@
                                     <ul class="padded separate-sections">
                                         <li class="input">
                                             {% if file_type == "ref" %}
-                                                <label>Evento</label>
-                                                <input type="text" name="event" class="validate[required]" data-prompt-position="topLeft" placeholder="Evento" value="{{ form.instance.event.title }}"/>
+                                                <label>{{ form.event_title.label }}</label>
+                                                <input type="text" name="event" data-prompt-position="topLeft" value="{{ form.event_title.value }}" disabled/>
                                             {% else %}
-                                                <label>Scadenza</label>
-                                                <input type="text" id="expiry" name="expiry" class="validate[required]" data-prompt-position="topLeft" placeholder="__/__/____" value="{{ form.instance.expiry }}"/>
+                                                <label>{{ form.expiry.label }}</label>
+                                                {{ form.expiry }}
                                             {% endif %}
                                         </li>
                                     </ul>
                                 </div>
-                                <input type="hidden" id="id_cabinet" name="cabinet" value="{{ cabinet_id }}">
-                                <input type="hidden" id="id_owner" name="owner" value="{{ owner_id }}">
-                                <input type="hidden" name="referer" value="{{ referer }}">
+
                             </div> <!-- contenitore form -->
 
                             <div class="form-actions">
-                                <input type="hidden" name="last_login" value="{% now "d/m/Y 00:00" %}" />
-                                <input type="hidden" name="date_joined" value="{% now "d/m/Y 00:00" %}" />
-                                <button type="submit" name="_save" class="btn btn-blue">Salva</button>
+                                <input type="hidden" id="id_action" name="action" value="{{ action }}">
+                                <input type="hidden" id="id_cabinet" name="cabinet" value="{{ cabinet_id }}">
+                                <input type="hidden" id="id_user_id" name="user_id" value="{{ user_id }}">
+                                <input type="hidden" id="id_owner" name="owner" value="{{ owner_id }}">
+                                <input type="hidden" name="referer" value="{{ referer }}">
 
+                                <button type="submit" class="btn btn-blue" name="action" value="save">Salva</button>
+                                <button type="submit" class="btn btn-red pull-right" name="action" value="delete">Cancella</button>
                             </div>
                         </form>
                     </div>
@@ -85,7 +89,7 @@
     </div>
 
     <script>
-        $("#expiry").datepicker({"language":"it","format":"dd/mm/yyyy"});
+        $("#id_expiry").datepicker({"language":"it","format":"dd/mm/yyyy"});
 
         $('#id_file_ref').change(function() {
             var title = $('#id_title').val(),

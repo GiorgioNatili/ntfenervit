@@ -69,7 +69,6 @@ class CabinetTestCase(TestCase):
             user=self.user,
             file=self.certfile
         )
-        self.assertRaises(ValidationError, user_file.clean)
         self.assertRaises(IntegrityError, user_file.save)
 
 
@@ -100,7 +99,6 @@ class CabinetTestCase(TestCase):
             file=self.refile,
             expiry="2013-07-10"
         )
-        self.assertRaises(ValidationError, user_cert.clean)
         self.assertRaises(IntegrityError, user_cert.save)
 
     def test05_UploadedFile_delete(self):
