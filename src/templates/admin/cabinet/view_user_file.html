@@ -60,7 +60,7 @@
                                         <li class="input">
                                             {% if file_type == "ref" %}
                                                 <label>{{ form.event_title.label }}</label>
-                                                <input type="text" name="event" data-prompt-position="topLeft" value="{{ form.event_title.value }}" disabled/>
+                                                <input type="text" id="id_event_title" name="event_title" data-prompt-position="topLeft" value="{{ form.event_title.value }}" disabled/>
                                             {% else %}
                                                 <label>{{ form.expiry.label }}</label>
                                                 {{ form.expiry }}
