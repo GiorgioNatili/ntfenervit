@@ -220,3 +220,9 @@ HAYSTACK_CONNECTIONS = {
         'PATH': os.path.join(os.path.dirname(__file__), getConfig("HAYSTACK_INDEX_SUBDIR", 'whoosh_index')),
     },
 }
+
+#
+# DEV SPECIFIC SETTINGS
+#
+
+FIXTURE_DIRS = getConfig("FIXTURE_DIRS", ("fixtures_tests",))
