@@ -2,13 +2,25 @@
 run client tests
 """
 
+import os
+import lxml.html
+import tempfile
+import re
+import datetime
+
 from django.contrib.auth.models import User
+from django.http import HttpResponseRedirect
+
 from django.test import TestCase
 from django.test.client import Client
+from django.test.utils import override_settings
 
-import lxml.html
+from cabinet.models import UserRefFile, UserCertFile
 
 # ToDo: add a another test to make sure user does not have access to the admin urls
+
+SCRIPT_DIR=os.path.dirname(os.path.realpath(__file__))
+TEST_MEDIA_ROOT=os.path.join(tempfile.mkdtemp(prefix="ntfenervit_utest_"), "media")
 
 class CabinetHTMLTestCase(TestCase):
     fixtures = ['initial_data', 'users_tests', 'contacts_tests']
@@ -28,7 +40,6 @@ class CabinetHTMLTestCase(TestCase):
         :param url: URL to retrieve HTML from
         :return: a parsed element
         """
-        url = "/admin/backend/utenti/details/%d/" % self.user.id
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200, "Expected '%s' to return 200 but got %s" % (url, resp.status_code))
         doc = lxml.html.fromstring(resp.content)
@@ -42,7 +53,6 @@ class CabinetHTMLTestCase(TestCase):
         :param selector: Optional selector to apply on element
         :return: list of parsed elements
         """
-
         result = []
         if isinstance(element, list):
             for elem in element:
@@ -72,6 +82,12 @@ class CabinetHTMLTestCase(TestCase):
 
         return result
 
+
+
+
+    '''
+    User Detail Page Testing
+    '''
     def test01_login(self):
         """
         Make sure admin user is logged in
@@ -83,13 +99,12 @@ class CabinetHTMLTestCase(TestCase):
         """
         Make sure that user detail page exists and getting the right user
         """
-
         doc = self._get_elem_from_url("/admin/backend/utenti/details/%d/" % self.user.id)
 
         # Make sure the user is as expected by checking email
         selector = "form#company_form > div > div > ul > li > input[name='email']"
         email = self._get_list_from_element(doc, selector, "value")
-        self.assertTrue(email, "Selector '%s' should not to be empty" % selector)
+        self.assertGreater(len(email), 0, "Selector '%s' should not to be empty" % selector)
         self.assertEqual(email[0], "user.one@example.com", "Expect email field to be 'user.one@example.com' but got '%s'" % email[0])
 
 
@@ -143,29 +158,89 @@ class CabinetHTMLTestCase(TestCase):
 
 
 
+    '''
+    Files testing
+    '''
+    @override_settings(MEDIA_ROOT=TEST_MEDIA_ROOT)
     def test10_addFilePage(self):
         """
         Make sure to add page exists
         """
         url = "/admin/cabinet/%d/ref/add" % self.user.id
-        resp = self.client.get(url)
-
-        self.assertEqual(resp.status_code, 200, "Expected '%s' to return 200 but got %s" % (url, resp.status_code))
-        doc = lxml.html.fromstring(resp.content)
+        doc = self._get_elem_from_url(url)
 
         # Make sure needed fields exists
         for field_selector in ('#id_file_ref', '#id_event_title', '#id_title'):
             elem = doc.cssselect(field_selector)
             self.assertTrue(elem, "Selector '%s' should not to be empty" % field_selector)
 
+        # Post a file
+        test_file = os.path.join(SCRIPT_DIR, "res/presentation.pdf")
+        test_data = {
+            "title": "Presentation File BQWy4ukoFq",
+            "event_title": "",
+            "action": "add",
+            "cabinet": UserRefFile.CABINET_ID,
+            "user_id": self.user.id,
+            "owner": self.admin.id,
+            "referer": "/admin/"
+        }
+        with open(test_file, "r") as fh:
+            test_data["file_ref"] = fh
+            test_data["file_ref"] = fh
+            resp = self.client.post(url, test_data)
+            self.assertEqual(resp.status_code, 302, "Expected '%s' to return 302 but got %s" % (url, resp.status_code))
+            self.assertRegexpMatches(resp.get("location"), r'\/admin\/$', "Expect to redirect to url ending '/admin/' but got '%s'" % resp.get("location"))
+
+        # Make sure that db is updated correctly
+        user_file = UserRefFile.objects.get(file__title=test_data["title"])
+        self.assertEqual(user_file.user_id, test_data["user_id"])
+
+        # Make sure that file has been uploaded
+        uploaded_file = user_file.file.file_fullpath()
+
+        self.assertTrue(os.path.isfile(uploaded_file), "Expected local file to exists at: %s" % uploaded_file)
+        self.assertTrue(uploaded_file.startswith(TEST_MEDIA_ROOT), "Expected file to start with '%s'.  Local file: %s" % (TEST_MEDIA_ROOT, uploaded_file))
+
+
+    '''
+    User Detail Page Testing
+    '''
+    @override_settings(MEDIA_ROOT=TEST_MEDIA_ROOT)
     def test20_addCertificatePage(self):
         url = "/admin/cabinet/%d/cert/add" % self.user.id
-        resp = self.client.get(url)
-
-        self.assertEqual(resp.status_code, 200, "Expected '%s' to return 200 but got %s" % (url, resp.status_code))
-        doc = lxml.html.fromstring(resp.content)
+        doc = self._get_elem_from_url(url)
 
         # Make sure needed fields exists
         for field_selector in ('#id_file_ref', '#id_expiry', '#id_title'):
             elem = doc.cssselect(field_selector)
             self.assertTrue(elem, "Selector '%s' should not to be empty" % field_selector)
+
+        # Post a file
+        test_file = os.path.join(SCRIPT_DIR, "res/presentation.pptx")
+        test_data = {
+            "title": "Powerpoint File Q0KrTVGuD9",
+            "expiry": "07/12/2018",
+            "action": "add",
+            "cabinet": UserCertFile.CABINET_ID,
+            "user_id": self.user.id,
+            "owner": self.admin.id,
+            "referer": "/admin/"
+        }
+        with open(test_file, "r") as fh:
+            test_data["file_ref"] = fh
+            test_data["file_ref"] = fh
+            resp = self.client.post(url, test_data)
+            self.assertEqual(resp.status_code, 302, "Expected '%s' to return 302 but got %s" % (url, resp.status_code))
+            self.assertRegexpMatches(resp.get("location"), r'\/admin\/$', "Expect to redirect to url ending '/admin/' but got '%s'" % resp.get("location"))
+
+        # Make sure that db is updated correctly
+        user_file = UserCertFile.objects.get(file__title=test_data["title"])
+        self.assertEqual(user_file.user_id, test_data["user_id"])
+        self.assertEqual(user_file.expiry, datetime.datetime.strptime(test_data["expiry"], "%d/%m/%Y").date())
+
+        # Make sure that file has been uploaded
+        uploaded_file = user_file.file.file_fullpath()
+
+        self.assertTrue(os.path.isfile(uploaded_file), "Expected local file to exists at: %s" % uploaded_file)
+        self.assertTrue(uploaded_file.startswith(TEST_MEDIA_ROOT), "Expected file to start with '%s'.  Local file: %s" % (TEST_MEDIA_ROOT, uploaded_file))
