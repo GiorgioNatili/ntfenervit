@@ -10,6 +10,7 @@ import datetime
 
 from django.contrib.auth.models import User
 from django.http import HttpResponseRedirect
+from django.core.exceptions import ObjectDoesNotExist
 
 from django.test import TestCase
 from django.test.client import Client
@@ -162,7 +163,7 @@ class CabinetHTMLTestCase(TestCase):
     Files testing
     '''
     @override_settings(MEDIA_ROOT=TEST_MEDIA_ROOT)
-    def test10_addFilePage(self):
+    def test10_addDelete_FilePage(self):
         """
         Make sure to add page exists
         """
@@ -187,20 +188,45 @@ class CabinetHTMLTestCase(TestCase):
         }
         with open(test_file, "r") as fh:
             test_data["file_ref"] = fh
-            test_data["file_ref"] = fh
             resp = self.client.post(url, test_data)
             self.assertEqual(resp.status_code, 302, "Expected '%s' to return 302 but got %s" % (url, resp.status_code))
             self.assertRegexpMatches(resp.get("location"), r'\/admin\/$', "Expect to redirect to url ending '/admin/' but got '%s'" % resp.get("location"))
 
         # Make sure that db is updated correctly
         user_file = UserRefFile.objects.get(file__title=test_data["title"])
+        user_file_id = user_file.id
         self.assertEqual(user_file.user_id, test_data["user_id"])
 
         # Make sure that file has been uploaded
         uploaded_file = user_file.file.file_fullpath()
-
         self.assertTrue(os.path.isfile(uploaded_file), "Expected local file to exists at: %s" % uploaded_file)
         self.assertTrue(uploaded_file.startswith(TEST_MEDIA_ROOT), "Expected file to start with '%s'.  Local file: %s" % (TEST_MEDIA_ROOT, uploaded_file))
+
+        # Make sure that file can be read back
+        url = "/admin/cabinet/%d/ref/%d" % (self.user.id, user_file_id)
+        doc = self._get_elem_from_url(url)
+
+        title = self._get_list_from_element(doc,selector="#id_title", attr="value")
+        self.assertTrue(title, "Expect title to exists.")
+        self.assertEqual(title[0], test_data["title"])
+
+        file_path = self._get_list_from_element(doc,"form#file_form > div > div > ul > li > a",attr="href")
+        self.assertTrue(file_path, "Expect file path to exists.")
+        self.assertRegexpMatches(file_path[0], "presentation.pdf$", "Expect file path to end with 'presentation.pdf' but got '%s'" % file_path)
+
+        # Make sure that delete works
+        test_data["action"] = "delete"
+        del test_data["file_ref"]
+
+        resp = self.client.post(url, test_data)
+        self.assertEqual(resp.status_code, 302, "Expected '%s' to return 302 but got %s" % (url, resp.status_code))
+        self.assertRegexpMatches(resp.get("location"), r'\/admin\/$', "Expect to redirect to url ending '/admin/' but got '%s'" % resp.get("location"))
+        self.assertRaises(ObjectDoesNotExist, UserRefFile.objects.get, pk=user_file_id)
+
+        # File should have been deleted
+        self.assertFalse(os.path.isfile(uploaded_file), "Expected local file to have been deleted: %s" % uploaded_file)
+
+
 
 
     '''
@@ -236,6 +262,7 @@ class CabinetHTMLTestCase(TestCase):
 
         # Make sure that db is updated correctly
         user_file = UserCertFile.objects.get(file__title=test_data["title"])
+        user_file_id = user_file.id
         self.assertEqual(user_file.user_id, test_data["user_id"])
         self.assertEqual(user_file.expiry, datetime.datetime.strptime(test_data["expiry"], "%d/%m/%Y").date())
 
@@ -244,3 +271,27 @@ class CabinetHTMLTestCase(TestCase):
 
         self.assertTrue(os.path.isfile(uploaded_file), "Expected local file to exists at: %s" % uploaded_file)
         self.assertTrue(uploaded_file.startswith(TEST_MEDIA_ROOT), "Expected file to start with '%s'.  Local file: %s" % (TEST_MEDIA_ROOT, uploaded_file))
+
+        # Make sure that file can be read back
+        url = "/admin/cabinet/%d/cert/%d" % (self.user.id, user_file_id)
+        doc = self._get_elem_from_url(url)
+
+        title = self._get_list_from_element(doc,selector="#id_title", attr="value")
+        self.assertTrue(title, "Expect title to exists.")
+        self.assertEqual(title[0], test_data["title"])
+
+        file_path = self._get_list_from_element(doc,"form#file_form > div > div > ul > li > a",attr="href")
+        self.assertTrue(file_path, "Expect file path to exists.")
+        self.assertRegexpMatches(file_path[0], "presentation.pptx$", "Expect file path to end with 'presentation.pdf' but got '%s'" % file_path)
+
+        # Make sure that delete works
+        test_data["action"] = "delete"
+        del test_data["file_ref"]
+
+        resp = self.client.post(url, test_data)
+        self.assertEqual(resp.status_code, 302, "Expected '%s' to return 302 but got %s" % (url, resp.status_code))
+        self.assertRegexpMatches(resp.get("location"), r'\/admin\/$', "Expect to redirect to url ending '/admin/' but got '%s'" % resp.get("location"))
+        self.assertRaises(ObjectDoesNotExist, UserRefFile.objects.get, pk=user_file_id)
+
+        # File should have been deleted
+        self.assertFalse(os.path.isfile(uploaded_file), "Expected local file to have been deleted: %s" % uploaded_file)
