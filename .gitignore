@@ -19,5 +19,7 @@ src/*.pot
 # Ignore the local config file
 yellowPage/settings_dev.json
 
-# Ignore cabinet files
+# Ignore project level files
+temp/
 src/media/cabinet/
+
