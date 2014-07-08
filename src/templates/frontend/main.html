@@ -65,7 +65,6 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label for="cro">Numero di CRO</label>
-                                                <small>(11 cifre)</small>
                                                 <input type="text" class="form-control" id="cro-{{ev.id}}" name="cro" placeholder="Numero di CRO">
                                             </div>
                         					<div class="form-group">
@@ -672,6 +671,9 @@
 
           {% for ev in events %}
            $("#submitSignup-{{ev.id}}").on("click",function(e){
+                $("#cro-{{ev.id}}").val(function () {
+                    return this.value.toUpperCase()
+                });
                 var cro=$("#cro-{{ev.id}}").val();
                 var note=$("#note-{{ev.id}}").val();
                 var ragionesociale=$("#ragionesociale-{{ev.id}}").val();
@@ -683,16 +685,16 @@
                 var codefiscale=$("#codefiscale-{{ev.id}}").val();
 
                 var valid=false;
-                if(cro.length==0){
+                if (cro.length==0) {
                     valid=true;
-                }else if(cro.length>0 && cro.length<11){
-                    alert("Inserire Cro valido: 11 cifre");
-                }else if( cro.length == 11 && cro.match(/^[0-9]+$/)!=null){
+                } else if (cro.length<11) {
+                    alert("Il CRO deve essere di minimo 11 caratteri alfanumerici.");
+                } else if (cro.length>30) {
+                    alert("Il  CRO non deve superare 30 caratteri alfanumerici.");
+                }else if( cro.match(/^\w+$/) ){
                     valid=true;
-                }else if(cro.match(/^[0-9]+$/)==null){
-                    alert("Il CRO contiene caratteri non validi. Inserire un CRO valido di 11 cifre");
-                }else if(cro.length>11 && cro!="00000000000000"){
-	                alert("Inserito CRO non valido (11 cifre) o codice Omaggio non valido");
+                }else{
+                    alert("Il CRO contiene caratteri non validi. Inserire un CRO valido di almeno  11 caratteri fino ad un massimo di 30 caratteri alfanumerici.");
 		        }
                 if(cro=="00000000000000"){
                     if(note.length==0){
