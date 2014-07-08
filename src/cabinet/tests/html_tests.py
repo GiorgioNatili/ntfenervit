@@ -211,10 +211,8 @@ class CabinetHTMLTestCase(TestCase):
 
         # Only send file for upload if not delete action and that file_path is provided
         if kwargs["action"] == "delete" or file_path is None:
-            print "### File not uploaded."
             resp = self.client.post(url, kwargs)
         else: # assume action == add or edit
-            print "### Uploading %s." % file_path
             source_file = os.path.join(SCRIPT_DIR, file_path)
             with open(source_file, "r") as fh:
                 kwargs["file_ref"] = fh
@@ -285,7 +283,7 @@ class CabinetHTMLTestCase(TestCase):
         url_edit = self._edit_url("ref", user_file_id)
 
         # Make sure that edit only title works
-        user_file, test_data_edited = self._upload_file("ref", action="save", user_file_id=user_file_id, title="A file edited HCffL9jl9U")
+        user_file, test_data_edited = self._upload_file("ref", action="edit", user_file_id=user_file_id, title="A file edited HCffL9jl9U")
         self.assertEqual(user_file.id, user_file_id)
         self.assertTrue(os.path.isfile(uploaded_file), "Expected local file exists: %s" % uploaded_file)
 
@@ -296,7 +294,7 @@ class CabinetHTMLTestCase(TestCase):
         self.assertEqual(title[0], test_data_edited["title"])
 
         # Make sure that edit title and file works
-        user_file, test_data_edited2 = self._upload_file("ref", action="save", user_file_id=user_file_id, title="File changed dhVRNCsJJL", file_path="res/presentation.pdf")
+        user_file, test_data_edited2 = self._upload_file("ref", action="edit", user_file_id=user_file_id, title="File changed dhVRNCsJJL", file_path="res/presentation.pdf")
         uploaded_file = user_file.file.file_fullpath()
         self.assertEqual(user_file.id, user_file_id)
 
@@ -365,7 +363,7 @@ class CabinetHTMLTestCase(TestCase):
         url_edit = self._edit_url("cert", user_file_id)
 
         # Make sure that edit only title works
-        user_file, test_data_edited = self._upload_file("cert", action="save", user_file_id=user_file_id, expiry="02/05/2020", title="Certificate edited DNjWOYzjTy")
+        user_file, test_data_edited = self._upload_file("cert", action="edit", user_file_id=user_file_id, expiry="02/05/2020", title="Certificate edited DNjWOYzjTy")
         self.assertEqual(user_file.id, user_file_id)
         self.assertTrue(os.path.isfile(uploaded_file), "Expected local file exists: %s" % uploaded_file)
         self.assertEqual(user_file.expiry, datetime.datetime.strptime(test_data_edited["expiry"], "%d/%m/%Y").date())
@@ -383,7 +381,7 @@ class CabinetHTMLTestCase(TestCase):
 
 
         # Make sure that edit title and file works
-        user_file, test_data_edited2 = self._upload_file("cert", action="save", user_file_id=user_file_id, expiry="30/06/2017", title="Certificate changed XDEZvMXhDE", file_path="res/certificate.png")
+        user_file, test_data_edited2 = self._upload_file("cert", action="edit", user_file_id=user_file_id, expiry="30/06/2017", title="Certificate changed XDEZvMXhDE", file_path="res/certificate.png")
         uploaded_file = user_file.file.file_fullpath()
         self.assertEqual(user_file.id, user_file_id)
 
