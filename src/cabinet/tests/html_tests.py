@@ -160,138 +160,245 @@ class CabinetHTMLTestCase(TestCase):
 
 
     '''
-    Files testing
+    User File Testing Common Methods
+    '''
+    def _upload_url(self, type):
+        return "/admin/cabinet/%d/%s/add" % (self.user.id, type)
+
+    def _edit_url(self, type, user_file_id):
+        return "/admin/cabinet/%d/%s/%d" % (self.user.id, type, user_file_id)
+
+    def _upload_file(self, type, **kwargs):
+        """
+        Private method to perform and check file upload.
+        :param type: `ref` or `cert`
+        :param kwargs: Initial dictionary that serve as data to post
+        :return: Dictionary that was used in the post request
+        """
+
+        # Read the params that is meant for this method only
+        if "user_file_id" in kwargs:
+            user_file_id = kwargs["user_file_id"]
+            del kwargs["user_file_id"]
+        else:
+            user_file_id = None
+
+        if "file_path" in kwargs:
+            file_path = kwargs["file_path"]
+            del kwargs["file_path"]
+        else:
+            file_path = None
+
+        # Customize the user_file object based on type
+        if type == "ref":
+            user_file_class = UserRefFile
+        else:
+            user_file_class = UserCertFile
+        kwargs["cabinet"] = user_file_class.CABINET_ID
+
+        # Get the url based on action
+        if kwargs["action"] == "add":
+            url = self._upload_url(type)
+        else:
+            url = self._edit_url(type, user_file_id)
+
+        # Add the other needed info
+        kwargs.update({
+            "user_id": self.user.id,
+            "owner": self.admin.id,
+            "referer": "/admin/"
+        })
+
+        # Only send file for upload if not delete action and that file_path is provided
+        if kwargs["action"] == "delete" or file_path is None:
+            print "### File not uploaded."
+            resp = self.client.post(url, kwargs)
+        else: # assume action == add or edit
+            print "### Uploading %s." % file_path
+            source_file = os.path.join(SCRIPT_DIR, file_path)
+            with open(source_file, "r") as fh:
+                kwargs["file_ref"] = fh
+                resp = self.client.post(url, kwargs)
+        self.assertEqual(resp.status_code, 302, "Expected '%s' to return 302 but got %s" % (url, resp.status_code))
+        self.assertRegexpMatches(resp.get("location"), r'\/admin\/$', "Expect to redirect to url ending '/admin/' but got '%s'" % resp.get("location"))
+
+        # Make sure delete works
+        if kwargs["action"] == "delete":
+            self.assertRaises(ObjectDoesNotExist, UserRefFile.objects.get, pk=user_file_id)
+            user_file = None
+        else:
+            # Make sure that database entry is created
+            user_file = user_file_class.objects.get(file__title=kwargs["title"])
+            self.assertEqual(user_file.user_id, kwargs["user_id"])
+
+        return (user_file, kwargs)
+
+
+    '''
+    File Testing
     '''
     @override_settings(MEDIA_ROOT=TEST_MEDIA_ROOT)
-    def test10_addDelete_FilePage(self):
+    def test10_addUserRefFile(self):
         """
-        Make sure to add page exists
+        Make sure that file upload works
         """
-        url = "/admin/cabinet/%d/ref/add" % self.user.id
-        doc = self._get_elem_from_url(url)
 
-        # Make sure needed fields exists
+        # Make sure needed fields exists on the add page
+        url_upload = self._upload_url("ref")
+        doc = self._get_elem_from_url(url_upload)
         for field_selector in ('#id_file_ref', '#id_event_title', '#id_title'):
             elem = doc.cssselect(field_selector)
             self.assertTrue(elem, "Selector '%s' should not to be empty" % field_selector)
 
-        # Post a file
-        test_file = os.path.join(SCRIPT_DIR, "res/presentation.pdf")
-        test_data = {
-            "title": "Presentation File BQWy4ukoFq",
-            "event_title": "",
-            "action": "add",
-            "cabinet": UserRefFile.CABINET_ID,
-            "user_id": self.user.id,
-            "owner": self.admin.id,
-            "referer": "/admin/"
-        }
-        with open(test_file, "r") as fh:
-            test_data["file_ref"] = fh
-            resp = self.client.post(url, test_data)
-            self.assertEqual(resp.status_code, 302, "Expected '%s' to return 302 but got %s" % (url, resp.status_code))
-            self.assertRegexpMatches(resp.get("location"), r'\/admin\/$', "Expect to redirect to url ending '/admin/' but got '%s'" % resp.get("location"))
-
-        # Make sure that db is updated correctly
-        user_file = UserRefFile.objects.get(file__title=test_data["title"])
+        # Upload an file
+        user_file, test_data = self._upload_file("ref", action="add", title="Presentation File BQWy4ukoFq", file_path="res/presentation.pdf")
         user_file_id = user_file.id
-        self.assertEqual(user_file.user_id, test_data["user_id"])
 
         # Make sure that file has been uploaded
         uploaded_file = user_file.file.file_fullpath()
         self.assertTrue(os.path.isfile(uploaded_file), "Expected local file to exists at: %s" % uploaded_file)
         self.assertTrue(uploaded_file.startswith(TEST_MEDIA_ROOT), "Expected file to start with '%s'.  Local file: %s" % (TEST_MEDIA_ROOT, uploaded_file))
 
-        # Make sure that file can be read back
-        url = "/admin/cabinet/%d/ref/%d" % (self.user.id, user_file_id)
+        # Make sure that file can be viewed and that title matches
+        url = self._edit_url("ref", user_file_id)
         doc = self._get_elem_from_url(url)
 
         title = self._get_list_from_element(doc,selector="#id_title", attr="value")
         self.assertTrue(title, "Expect title to exists.")
         self.assertEqual(title[0], test_data["title"])
 
+        # Make sure that path shown on the page point to the same file
         file_path = self._get_list_from_element(doc,"form#file_form > div > div > ul > li > a",attr="href")
-        self.assertTrue(file_path, "Expect file path to exists.")
+        self.assertTrue(file_path, "Expect path to the file to exists in the form.")
         self.assertRegexpMatches(file_path[0], "presentation.pdf$", "Expect file path to end with 'presentation.pdf' but got '%s'" % file_path)
 
+    @override_settings(MEDIA_ROOT=TEST_MEDIA_ROOT)
+    def test11_editUserRefFile(self):
+        """
+        Make sure that file edit works
+        """
+
+        # Upload an file
+        user_file, test_data = self._upload_file("ref", action="add", title="Editing a file s81a4oju1p", file_path="res/presentation.pptx")
+        user_file_id = user_file.id
+        uploaded_file = user_file.file.file_fullpath()
+        url_edit = self._edit_url("ref", user_file_id)
+
+        # Make sure that edit only title works
+        user_file, test_data_edited = self._upload_file("ref", action="save", user_file_id=user_file_id, title="A file edited HCffL9jl9U")
+        self.assertEqual(user_file.id, user_file_id)
+        self.assertTrue(os.path.isfile(uploaded_file), "Expected local file exists: %s" % uploaded_file)
+
+        # Check GUI
+        doc = self._get_elem_from_url(url_edit)
+        title = self._get_list_from_element(doc,selector="#id_title", attr="value")
+        self.assertTrue(title, "Expect title to exists.")
+        self.assertEqual(title[0], test_data_edited["title"])
+
+        # Make sure that edit title and file works
+        user_file, test_data_edited2 = self._upload_file("ref", action="save", user_file_id=user_file_id, title="File changed dhVRNCsJJL", file_path="res/presentation.pdf")
+        uploaded_file = user_file.file.file_fullpath()
+        self.assertEqual(user_file.id, user_file_id)
+
+        # Check GUI
+        doc = self._get_elem_from_url(url_edit)
+        title = self._get_list_from_element(doc,selector="#id_title", attr="value")
+        self.assertTrue(title, "Expect title to exists.")
+        self.assertEqual(title[0], test_data_edited2["title"])
+
         # Make sure that delete works
-        test_data["action"] = "delete"
-        del test_data["file_ref"]
-
-        resp = self.client.post(url, test_data)
-        self.assertEqual(resp.status_code, 302, "Expected '%s' to return 302 but got %s" % (url, resp.status_code))
-        self.assertRegexpMatches(resp.get("location"), r'\/admin\/$', "Expect to redirect to url ending '/admin/' but got '%s'" % resp.get("location"))
-        self.assertRaises(ObjectDoesNotExist, UserRefFile.objects.get, pk=user_file_id)
-
-        # File should have been deleted
+        user_file, test_data_deleted = self._upload_file("ref", action="delete", user_file_id=user_file_id)
         self.assertFalse(os.path.isfile(uploaded_file), "Expected local file to have been deleted: %s" % uploaded_file)
 
 
 
 
     '''
-    User Detail Page Testing
+    Certificate Testing
     '''
     @override_settings(MEDIA_ROOT=TEST_MEDIA_ROOT)
-    def test20_addCertificatePage(self):
-        url = "/admin/cabinet/%d/cert/add" % self.user.id
-        doc = self._get_elem_from_url(url)
+    def test20_addUserCertFile(self):
+        """
+        Make sure that file upload works
+        """
 
-        # Make sure needed fields exists
+        # Make sure needed fields exists on the add page
+        url_upload = self._upload_url("cert")
+        doc = self._get_elem_from_url(url_upload)
         for field_selector in ('#id_file_ref', '#id_expiry', '#id_title'):
             elem = doc.cssselect(field_selector)
             self.assertTrue(elem, "Selector '%s' should not to be empty" % field_selector)
 
-        # Post a file
-        test_file = os.path.join(SCRIPT_DIR, "res/presentation.pptx")
-        test_data = {
-            "title": "Powerpoint File Q0KrTVGuD9",
-            "expiry": "07/12/2018",
-            "action": "add",
-            "cabinet": UserCertFile.CABINET_ID,
-            "user_id": self.user.id,
-            "owner": self.admin.id,
-            "referer": "/admin/"
-        }
-        with open(test_file, "r") as fh:
-            test_data["file_ref"] = fh
-            test_data["file_ref"] = fh
-            resp = self.client.post(url, test_data)
-            self.assertEqual(resp.status_code, 302, "Expected '%s' to return 302 but got %s" % (url, resp.status_code))
-            self.assertRegexpMatches(resp.get("location"), r'\/admin\/$', "Expect to redirect to url ending '/admin/' but got '%s'" % resp.get("location"))
-
-        # Make sure that db is updated correctly
-        user_file = UserCertFile.objects.get(file__title=test_data["title"])
+        # Upload an file
+        user_file, test_data = self._upload_file("cert", action="add", title="Certification File qwa1g31SgT", expiry="07/12/2018", file_path="res/certificate.png")
         user_file_id = user_file.id
-        self.assertEqual(user_file.user_id, test_data["user_id"])
         self.assertEqual(user_file.expiry, datetime.datetime.strptime(test_data["expiry"], "%d/%m/%Y").date())
 
         # Make sure that file has been uploaded
         uploaded_file = user_file.file.file_fullpath()
-
         self.assertTrue(os.path.isfile(uploaded_file), "Expected local file to exists at: %s" % uploaded_file)
         self.assertTrue(uploaded_file.startswith(TEST_MEDIA_ROOT), "Expected file to start with '%s'.  Local file: %s" % (TEST_MEDIA_ROOT, uploaded_file))
 
-        # Make sure that file can be read back
-        url = "/admin/cabinet/%d/cert/%d" % (self.user.id, user_file_id)
+        # Make sure that file can be viewed and that title matches
+        url = self._edit_url("cert", user_file_id)
         doc = self._get_elem_from_url(url)
 
         title = self._get_list_from_element(doc,selector="#id_title", attr="value")
         self.assertTrue(title, "Expect title to exists.")
         self.assertEqual(title[0], test_data["title"])
 
+        # Make sure that path shown on the page point to the same file
         file_path = self._get_list_from_element(doc,"form#file_form > div > div > ul > li > a",attr="href")
-        self.assertTrue(file_path, "Expect file path to exists.")
-        self.assertRegexpMatches(file_path[0], "presentation.pptx$", "Expect file path to end with 'presentation.pdf' but got '%s'" % file_path)
+        self.assertTrue(file_path, "Expect path to the file to exists in the form.")
+        self.assertRegexpMatches(file_path[0], "certificate.png$", "Expect file path to end with 'certificate.png' but got '%s'" % file_path)
+
+    @override_settings(MEDIA_ROOT=TEST_MEDIA_ROOT)
+    def test21_editUserCertFile(self):
+        """
+        Make sure that file edit works
+        """
+
+        # Upload an file
+        user_file, test_data = self._upload_file("cert", action="add", title="Editing a certificate XrLDoOQl8H", expiry="07/12/2018", file_path="res/certificate.ppt")
+        user_file_id = user_file.id
+        uploaded_file = user_file.file.file_fullpath()
+        url_edit = self._edit_url("cert", user_file_id)
+
+        # Make sure that edit only title works
+        user_file, test_data_edited = self._upload_file("cert", action="save", user_file_id=user_file_id, expiry="02/05/2020", title="Certificate edited DNjWOYzjTy")
+        self.assertEqual(user_file.id, user_file_id)
+        self.assertTrue(os.path.isfile(uploaded_file), "Expected local file exists: %s" % uploaded_file)
+        self.assertEqual(user_file.expiry, datetime.datetime.strptime(test_data_edited["expiry"], "%d/%m/%Y").date())
+
+        # Check GUI
+        doc = self._get_elem_from_url(url_edit)
+
+        title = self._get_list_from_element(doc,selector="#id_title", attr="value")
+        self.assertTrue(title, "Expect title to exists.")
+        self.assertEqual(title[0], test_data_edited["title"])
+
+        expiry = self._get_list_from_element(doc,selector="#id_expiry", attr="value")
+        self.assertTrue(expiry, "Expect expiry to exists.")
+        self.assertEqual(expiry[0], test_data_edited["expiry"])
+
+
+        # Make sure that edit title and file works
+        user_file, test_data_edited2 = self._upload_file("cert", action="save", user_file_id=user_file_id, expiry="30/06/2017", title="Certificate changed XDEZvMXhDE", file_path="res/certificate.png")
+        uploaded_file = user_file.file.file_fullpath()
+        self.assertEqual(user_file.id, user_file_id)
+
+        # Check GUI
+        doc = self._get_elem_from_url(url_edit)
+
+        title = self._get_list_from_element(doc,selector="#id_title", attr="value")
+        self.assertTrue(title, "Expect title to exists.")
+        self.assertEqual(title[0], test_data_edited2["title"])
+
+        expiry = self._get_list_from_element(doc,selector="#id_expiry", attr="value")
+        self.assertTrue(expiry, "Expect expiry to exists.")
+        self.assertEqual(expiry[0], test_data_edited2["expiry"])
+
 
         # Make sure that delete works
-        test_data["action"] = "delete"
-        del test_data["file_ref"]
-
-        resp = self.client.post(url, test_data)
-        self.assertEqual(resp.status_code, 302, "Expected '%s' to return 302 but got %s" % (url, resp.status_code))
-        self.assertRegexpMatches(resp.get("location"), r'\/admin\/$', "Expect to redirect to url ending '/admin/' but got '%s'" % resp.get("location"))
-        self.assertRaises(ObjectDoesNotExist, UserRefFile.objects.get, pk=user_file_id)
-
-        # File should have been deleted
+        user_file, test_data_deleted = self._upload_file("cert", action="delete", user_file_id=user_file_id)
         self.assertFalse(os.path.isfile(uploaded_file), "Expected local file to have been deleted: %s" % uploaded_file)

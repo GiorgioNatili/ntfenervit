@@ -247,7 +247,7 @@ def view_user_file(request, user_id, type, id):
 
             user_file.delete()
             if upload_delete:
-                print "### File deleted!!!"
+                print "### Deleting file: %s" % file_fullpath
                 upload_file.delete()
                 os.remove(file_fullpath)
 
