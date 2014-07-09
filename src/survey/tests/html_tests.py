@@ -39,11 +39,11 @@ class SurveyHTMLTestCase(TestCase):
 
         doc = lxml.html.fromstring(resp.content)
 
-        selector = "input#slug"
+        selector = "input#email"
         elem = doc.cssselect(selector)
         self.assertTrue(isinstance(elem, list), "Expect '%s' to return a list" % selector)
 
         # Test for:
-        # <input id="slug" type="text" name="slug" class="validate[required]" data-prompt-position="topLeft" placeholder="Slug" value="">
+        # <input id="email" type="text" name="email" class="validate[required]" data-prompt-position="topLeft" placeholder="Email" value="">
         self.assertEqual(elem[0].get("data-prompt-position"), "topLeft", "Expected .data-prompt-position to be 'topLeft' but got '%s'" % elem[0].get("data-prompt-position"))
         self.assertEqual(elem[0].get("class"), "validate[required]", "Expected .data-prompt-position to be 'validate[required]' but got '%s'" % elem[0].get("class"))
