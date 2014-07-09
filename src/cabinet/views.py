@@ -3,6 +3,7 @@ import os
 import datetime
 
 from django.core.exceptions import SuspiciousOperation
+from django.core.exceptions import ValidationError
 from django.template import RequestContext
 from django.shortcuts import render_to_response, get_object_or_404
 from django.http import HttpResponseRedirect
@@ -17,13 +18,26 @@ class UploadedFileForm(ModelForm):
         model = UploadedFile
         fields = ('title', 'cabinet', 'file_ref', 'owner')
 
+    def clean(self):
+        if self.cleaned_data:
+            file_ref = self.cleaned_data.get("file_ref")
+            if file_ref:
+                name, ext = os.path.splitext(file_ref.name)
+                if ext.lower() not in self.ALLOWED_EXTS:
+                    raise ValidationError("File con estensione '%s' non supportato." % ext)
+
+        return self.cleaned_data
+
+
 class UserRefFileForm(UploadedFileForm):
+    ALLOWED_EXTS = frozenset(['.ppt', '.pptx', '.pps', '.ppsx', '.doc', '.docx', '.pdf', '.tif', '.tiff', '.png'])
     user_id = forms.IntegerField()
     event_title = forms.CharField(required=False, label="Evento")
     class Meta(UploadedFileForm.Meta):
         pass
 
-class UserCertFileForm(ModelForm):
+class UserCertFileForm(UploadedFileForm):
+    ALLOWED_EXTS = frozenset(['.pdf', '.tif', '.tiff', '.png'])
     user_id = forms.IntegerField()
     expiry = forms.DateField(required=True, label="Scadenza", widget=forms.DateInput(format="%d/%m/%Y", attrs={'placeholder':'__/__/____'}))
     class Meta(UploadedFileForm.Meta):
