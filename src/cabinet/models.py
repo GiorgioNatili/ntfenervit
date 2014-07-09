@@ -6,7 +6,6 @@ import os
 import datetime
 
 from django.db import IntegrityError
-from django.core.exceptions import ValidationError
 from django.template.defaultfilters import slugify
 
 from django.db import models
@@ -77,4 +76,3 @@ class UserRefFile(UserFile):
 class UserCertFile(UserFile):
     CABINET_ID = 2
     expiry = models.DateField()
-

@@ -24,6 +24,7 @@
                                 <div class="alert alert-error">
                                     Correggi i seguenti errori:
                                     <ul>
+                                        <li>{{ form.non_field_errors|first }}</li>
                                         {% for field in form %}
                                             {% if field.errors %}
                                                 <li>{{ field.errors|first }}: {{ field.label }}</li>
