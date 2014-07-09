@@ -31,6 +31,9 @@
                     <a href="#profile">Profilo</a>
                 </li>
                 <li>
+                    <a href="#files">Files</a>
+                </li>
+                <li>
                     <a href="#about">Contattaci</a>
                 </li>
             </ul>
@@ -134,6 +137,48 @@
                         </div>
                      {% endfor %}
                  </div>
+                </div>
+                <div class="tab-pane" id="files">
+                    <div class="row" style="padding: 15px;">
+                        <div class="col-md-6">
+                            <table class="table">
+                                <caption class="text-muted text-left"><strong>Files</strong></caption>
+                                <thead>
+                                    <tr>
+                                        <th>Descrizioni</th>
+                                        <th>Evento</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {% for ref_file in ref_files %}
+                                    <tr>
+                                        <td><a href="{{ ref_file.file.file_ref.url }}" target="_blank">{{ ref_file.file.title }}</a></td>
+                                        <td>{{ ref_file.event.title }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table">
+                                <caption class="text-muted text-left"><strong>Certificati</strong></caption>
+                                <thead>
+                                    <tr>
+                                        <th>Descrizioni</th>
+                                        <th>Scadenza</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {% for cert_file in cert_files %}
+                                    <tr>
+                                        <td><a href="{{ cert_file.file.file_ref.url }}" target="_blank">{{ cert_file.file.title }}</a></td>
+                                        <td>{{ cert_file.expiry }}</td>
+                                    </tr>
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
                 <div class="tab-pane" id="profile">
                         <div class="row">
