@@ -5,120 +5,185 @@
 {% block content_subtitle %}<h5>visualizza il report del questionario selezionato</h5>{% endblock %}
 {% block content %}
 
-    <div class="container-fluid padded">
-        <div class="row-fluid">
-            <div class="span12">
+<div class="container-fluid padded">
+    <div class="row-fluid">
+        <div class="span12">
 
-                <div class="box">
-                    <div class="box-header">
-                        <span class="title">Questionario: {{ survey.title }}</span>
+            <div class="box">
+                <div class="box-header">
+                    <span class="title">Questionario: {{ survey.title }}</span>
+
+                </div>
+                <div class="box-content">
+                    <div class="box-content padded" style="text-align: center">
+                        <div id="target" style="width:200px;height: 160px;display: inline-block;"
+                             data-title="Destinatari"></div>
+                        <div id="submissions" style="width:200px;height: 160px;display: inline-block;"
+                             data-title="Sottomissioni"></div>
+                        <div id="active" style="width:200px;height: 160px;display: inline-block;"
+                             data-title="Attivi"></div>
+                        <div id="abandoned" style="width:200px;height: 160px;display: inline-block;"
+                             data-title="Abbandonati"></div>
 
                     </div>
+                </div>
+            </div>
+            <div class="row-fluid">
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Sottomissioni</span>
+                    </div>
                     <div class="box-content">
-                        <div class="box-content padded" style="text-align: center">
-                            <div id="target" style="width:200px;height: 160px;display: inline-block;" data-title="Destinatari"></div>
-                            <div id="submissions" style="width:200px;height: 160px;display: inline-block;" data-title="Sottomissioni"></div>
+                        <div id="submissionsionsDatatable">
+                            <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
+                                <thead>
+                                <tr>
+                                    <th>
+                                        <div>Id</div>
+                                    </th>
+                                    <th>
+                                        <div>Contatto</div>
+                                    </th>
+                                    <th>
+                                        <div>Data</div>
+                                    </th>
+                                    <th>
+                                        <div>Punteggio</div>
+                                    </th>
 
+                                    <th>&nbsp;</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for sb in submissions %}
+                                <tr>
+                                    <td>{{ sb.id }}</td>
+                                    <td>{{ sb.contact.name}} {{sb.contact.surname}} ({{ sb.contact.email }})</td>
+                                    <td>{{ sb.submitted_at }}</td>
+                                    <td> {{ sb.score }} / {{ sb.total_score }}</td>
+                                    <td><a href="/admin/survey/report/details/{{ sb.id }}"><i
+                                            class="icon-tasks"></i></a></td>
+                                </tr>
+
+                                {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>
-                    <div class="row-fluid">
-                        <div class="box">
-                            <div class="box-header">
-                                <span class="title">Sottomissioni</span>
-                            </div>
-                            <div class="box-content">
-                                <div id="submissionsionsDatatable">
-                                    <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
-                                        <thead>
-                                        <tr>
-                                            <th>
-                                                <div>Id</div>
-                                            </th>
-                                            <th>
-                                                <div>Contatto</div>
-                                            </th>
-                                            <th>
-                                                <div>Data</div>
-                                            </th>
-                                            <th>
-                                                <div>Punteggio</div>
-                                            </th>
+            </div>
 
-                                            <th>&nbsp;</th>
-                                        </tr>
-                                        </thead>
-                                        <tbody>
-                                        {% for sb in submissions %}
-                                            <tr>
-                                                <td>{{ sb.id }}</td>
-                                                <td>{{ sb.contact.name}} {{sb.contact.surname}} ({{ sb.contact.email }})</td>
-                                                <td>{{ sb.submitted_at }}</td>
-                                                <td> {{ sb.score }} / {{ sb.total_score }} </td>
-                                                <td><a href="/admin/survey/report/details/{{ sb.id }}"><i
-                                                        class="icon-tasks"></i></a></td>
-                                            </tr>
+            <div class="row-fluid">
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Questionari non completati</span>
+                    </div>
+                    <div class="box-content">
+                        <div id="abandonedDatatable">
+                            <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
+                                <thead>
+                                <tr>
+                                    <th>
+                                        <div>Id</div>
+                                    </th>
+                                    <th>
+                                        <div>Contatto</div>
+                                    </th>
+                                    <th>
+                                        <div>Questionario aparto in data</div>
+                                    </th>
 
-                                        {% endfor %}
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
+
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for sb in abandoned %}
+                                <tr>
+                                    <td>{{ sb.id }}</td>
+                                    <td>{{ sb.contact.name}} {{sb.contact.surname}} ({{ sb.contact.email }})</td>
+                                    <td>{{ sb.submitted_at }}</td>
+
+                                </tr>
+
+                                {% endfor %}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
-            </div> <!-- span 12 -->
-        </div><!-- row fluid -->
+                </div>
+            </div>
+
+
+        </div>
+        <!-- span 12 -->
     </div>
+    <!-- row fluid -->
+</div>
 
-    <script>
-
-
-        $(document).ready(function(){
-
-            var target= new JustGage({
-                id: "target",
-                value: {{ targets_counter }},
-                min: 0,
-                max: {{ contacts_counter }},
-                title: "Destinatari"
-            });
-            var submissions= new JustGage({
-                id: "submissions",
-                value: {{ submissions_counter }},
-                min: 0,
-                max: {{ targets_counter }},
-                title: "Sottomissioni"
-            });
-            $(".dTable2").dataTable({
-                bJQueryUI: !1, bAutoWidth: !1,
-                sPaginationType: "full_numbers",
-                sDom: '<"table-header"fl>t<"table-footer"ip>',
-                "oLanguage": {
-                    "sSearch": "Cerca",
-                    "sLengthMenu": "Mostra _MENU_ righe per pagina",
-                    "sZeroRecords": "Nessun risultato trovato",
-                    "sInfo": "Risultati da _START_ a _END_ di _TOTAL_ ",
-                    "sInfoEmpty": "Mostrati da 0 a 0 di 0 records",
-                    "sInfoFiltered": "(filtrati da _MAX_ records totali)",
-                    "oPaginate": {
-                        "sFirst": "Primo",
-                        "sLast": "Ultimo",
-                        "sNext": "Prossimo",
-                        "sPrevious": "Precedente"
-
-                    }
-                }
-            });
-
-            $(".active").removeClass("active");
-            $("#surveyMenu").addClass("active");
+<script>
 
 
-        });
+    $(document).ready(function () {
+
+                var target = new JustGage({
+                    id: "target",
+                    value: {{counters.targets}},
+                    min: 0,
+                    max: {{counters.contacts}},
+                    title: "Destinatari"
+                });
+                var submissions = new JustGage({
+                    id: "submissions",
+                    value: {{counters.submissions}},
+                    min: 0,
+                    max: {{counters.targets}},
+                    title: "Sottomissioni"
+                });
+                var active = new JustGage({
+                    id: "active",
+                    value: {{counters.active}},
+                    min: 0,
+                    max:{{counters.targets}},
+                    title: "Aperti"
+                });
+                var abandoned = new JustGage({
+                    id: "abandoned",
+                    value: {{counters.abandoned}},
+                    min: 0,
+                    max:{{counters.targets}},
+                    title: "Abbandonati"
+                });
 
 
-    </script>
+    $(".dTable2").dataTable({
+        bJQueryUI: !1, bAutoWidth: !1,
+        sPaginationType: "full_numbers",
+        sDom: '<"table-header"fl>t<"table-footer"ip>',
+        "oLanguage": {
+            "sSearch": "Cerca",
+            "sLengthMenu": "Mostra _MENU_ righe per pagina",
+            "sZeroRecords": "Nessun risultato trovato",
+            "sInfo": "Risultati da _START_ a _END_ di _TOTAL_ ",
+            "sInfoEmpty": "Mostrati da 0 a 0 di 0 records",
+            "sInfoFiltered": "(filtrati da _MAX_ records totali)",
+            "oPaginate": {
+                "sFirst": "Primo",
+                "sLast": "Ultimo",
+                "sNext": "Prossimo",
+                "sPrevious": "Precedente"
 
+            }
+        }
+    });
+
+    $(".active").removeClass("active");
+    $("#surveyMenu").addClass("active");
+
+
+    })
+    ;
+
+</script>
 
 
 {% endblock %}
