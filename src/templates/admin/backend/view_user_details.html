@@ -141,7 +141,7 @@
                                                     <th><div>Evento</div></th>
                                                     <th><div>File</div></th>
                                                     <th><div>Data</div></th>
-                                                    <th>Cancella</th>
+                                                    <th>&nbsp;</th>
                                                 </tr>
                                                 </thead>
                                                 <tbody>
@@ -150,10 +150,10 @@
                                                         <td>{{ refile.id }}</td>
                                                         <td>{{ refile.file.title }}</td>
                                                         <td>{{ refile.event }}</td>
-                                                        <td>{{ refile.file.file_ref }}</td>
+                                                        <td><a href="{{ MEDIA_URL }}{{ refile.file.file_ref }}" target="_blank">{{ refile.file.file_basename }}</a></td>
                                                         <td>{{ refile.date_created|date:"d-m-Y" }}</td>
 
-                                                        <td><a href="{{refile.id }}"><i class="icon-remove"></i></a></td>
+                                                        <td><a href="/admin/cabinet/{{ usr.id }}/ref/{{ refile.id }}"><i class="icon-tasks"></i></a></td>
                                                     </tr>
 
                                                 {% endfor %}
@@ -181,7 +181,7 @@
                                         </ul>
                                     </div>
                                     <div class="box-content">
-                                        <div id="refFileTable">
+                                        <div id="certFileTable">
                                             <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
                                                 <thead>
                                                 <tr>
@@ -190,7 +190,7 @@
                                                     <th><div>Scadenza</div></th>
                                                     <th><div>File</div></th>
                                                     <th><div>Data</div></th>
-                                                    <th>Cancella</th>
+                                                    <th>&nbsp;</th>
                                                 </tr>
                                                 </thead>
                                                 <tbody>
@@ -202,7 +202,7 @@
                                                         <td><a href="{{ MEDIA_URL }}{{ certfile.file.file_ref }}" target="_blank">{{ certfile.file.file_basename }}</a></td>
                                                         <td>{{ certfile.date_created|date:"d-m-Y" }}</td>
 
-                                                        <td><a href="{{certfile.id }}"><i class="icon-remove"></i></a></td>
+                                                        <td><a href="/admin/cabinet/{{ usr.id }}/cert/{{ certfile.id }}"><i class="icon-tasks"></i></a></td>
                                                     </tr>
 
                                                 {% endfor %}
@@ -243,8 +243,6 @@
                             $(".active").removeClass("active");
                             $("#surveyMenu").addClass("active");
                         });
-
-
                     </script>
 
                 </div> <!-- end box Files-->
