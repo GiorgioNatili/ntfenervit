@@ -21,6 +21,7 @@ src/yellowPage/settings_dev.json
 
 # Ignore project level files
 temp/
+dist_test/
 src/media/cabinet/
 src/yellowPage/whoosh_index/
 
