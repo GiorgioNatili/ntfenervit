@@ -188,6 +188,7 @@ EMAIL_HOST = "email-smtp.us-east-1.amazonaws.com" #'mailtrap.io'#'email-smtp.us-
 EMAIL_HOST_USER = 'AKIAJZMTMFKG57XDSWUA' #'AKIAJIU544ECRF35H5AA'
 EMAIL_HOST_PASSWORD = 'AgWau87uAAnlK48A52o1QHJX11lo2+a5jtPEutI7KNtY' #'ArzHgFmhQySgou18TKyyXwte4Kq/uqd2uwhnODXvmuB8'
 EMAIL_FROM = 'ENERVIT <no-reply@enervit.it>' #'Christian Ferranti <cferranti@mochunk.com>'
+DEFAULT_FROM_EMAIL = EMAIL_FROM
 EMAIL_PORT = 465
 EMAIL_USE_TLS = True
 
