@@ -37,6 +37,20 @@ cd /var/www/test
 manage.py ...
 ```
 
+After code and db deployment is completed, you must update Whoosh index and restart webserver by doing:
+
+```
+cd /var/www/test
+manage.py update_index
+sudo service apache2 restart
+```
+
+*Note*:
+1. There is only one webserver for both prod and test.  As result, it is alway better to restart the server
+only after business hours.  If you must do it doing the day, make sure to communicate with the user.  Normally,
+the server restart takes only a few seconds.
+
+
 *Note*:
 1. NEVER change any source code directly in `/var/www/test` as any change will be overwritten by `deploy_test.sh`
 2. You will see that `settings.py` is missing and replaced by `settings_test.py`.  This is intentional and any changes
