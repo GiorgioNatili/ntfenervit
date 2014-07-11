@@ -45,15 +45,13 @@ manage.py update_index
 sudo service apache2 restart
 ```
 
-*Note*:
+**Notes**:
+
 1. There is only one webserver for both prod and test.  As result, it is alway better to restart the server
 only after business hours.  If you must do it doing the day, make sure to communicate with the user.  Normally,
 the server restart takes only a few seconds.
-
-
-*Note*:
-1. NEVER change any source code directly in `/var/www/test` as any change will be overwritten by `deploy_test.sh`
-2. You will see that `settings.py` is missing and replaced by `settings_test.py`.  This is intentional and any changes
+2. NEVER change any source code directly in `/var/www/test` as any change will be overwritten by `deploy_test.sh`
+3. You will see that `settings.py` is missing and replaced by `settings_test.py`.  This is intentional and any changes
 to `settings_test.py` should be made in the project file `conf/dist_test/settings_test.py`.
 
 ## Reference
