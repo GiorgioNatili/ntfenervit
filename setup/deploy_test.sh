@@ -44,5 +44,4 @@ fi
 
 # Done
 echo "### COMPLETED"
-echo "### Make sure to run:"
-echo "export export DJANGO_SETTINGS_MODULE='yellowPage.settings_test'"
+

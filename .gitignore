@@ -17,6 +17,7 @@ src/*.log
 src/*.pot
 
 # Ignore the local config file
+.source
 src/yellowPage/settings_dev.json
 
 # Ignore project level files
