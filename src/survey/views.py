@@ -218,9 +218,10 @@ def get_scores(answers, contact=None):
             val = str(val)
             expected_val = str(expected_val)
         if str(val.encode('utf-8')).lower() == str(expected_val.encode('utf-8')).lower():
-            contact.participation_ranking = contact.participation_ranking + ans.question.score
             score += ans.question.score
-            contact.save()
+            if contact:
+                contact.participation_ranking = contact.participation_ranking + ans.question.score
+                contact.save()
     return score, total_score
 
 
