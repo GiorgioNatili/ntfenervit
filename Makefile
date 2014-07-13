@@ -8,7 +8,6 @@
 
 PYENV         = venv
 PIP           = $(PYENV)/bin/pip
-PYLIB_REQ     = requirements.txt
 SETUP         = setup
 
 # ------------------
@@ -28,23 +27,31 @@ endif
 	@virtualenv $(PYENV)
 
 
-$(PYENV)/$(PYLIB_REQ) : $(PYLIB_REQ)
-	@for pipdep in `cat $(PYLIB_REQ)`; \
+$(PYENV)/requirements.txt : requirements.txt
+	@for pipdep in `cat $^`; \
 	do \
 		echo "### Installing $$pipdep"; \
 		$(PIP) install $$pipdep; \
 	done
-	@cp -a $(PYLIB_REQ) $@
+	@cp -a $^ $@
+
+
+$(PYENV)/dev_requirements.txt : setup/dev_requirements.txt
+	@for pipdep in `cat $^`; \
+	do \
+		echo "### Installing $$pipdep"; \
+		$(PIP) install $$pipdep; \
+	done
+	@cp -a $^ $@
 
 
 # ------------------
 # MAIN TARGETS	
-virtualenv : $(PIP) $(PYENV)/$(PYLIB_REQ)
+virtualenv : $(PIP) $(PYENV)/requirements.txt
 
 setup : virtualenv
 
-devsetup : setup
-	@$(PIP) install -r $(SETUP)/dev_requirements.txt
+devsetup : setup $(PYENV)/dev_requirements.txt
 
 # ------------------
 # DEFINE PHONY TARGET: Basically all targets

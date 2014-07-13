@@ -30,6 +30,7 @@ from email.mime.text import MIMEText
 import mimetypes
 from django.conf import settings
 from django.utils.encoding import smart_str, smart_unicode
+from cabinet.models import UserRefFile, UserCertFile
 
 class ContactForm(forms.Form):
     name = forms.CharField(error_messages={'required': 'Inserire il proprio nome'})
@@ -78,7 +79,7 @@ def view_signup(request):
         print request.user.email
         print request.POST.get("note")
         print request.POST.get("event")
-	print request.POST.get("money")
+        print request.POST.get("money")
         event = Event.objects.filter(id=request.POST.get("event"))[0]
         contact = Contact.objects.all().filter(owner=request.user)[0]
         if EventSignup.objects.all().filter(event=event,contact=contact):
@@ -158,6 +159,8 @@ def view_main(request):
     contact = Contact.objects.all().filter(owner=request.user)
     provinces = Province.objects.all()
     sectors = Sector.objects.all()
+    ref_files = UserRefFile.objects.filter(user=request.user)
+    cert_files = UserCertFile.objects.filter(user=request.user)
     form = ContactForm()
     today = datetime.datetime.now()
     events = Event.objects.all().filter(date__gte=today,is_public=True)
@@ -200,8 +203,21 @@ def view_main(request):
     work_str = "0"
     if contact:
         work_str = str(contact[0].work.id)
-    return render_to_response('frontend/main.html', {"contact":contact,"form":form,"provinces":provinces,"sectors":sectors,"events":events,"signups":signups,"work_str":work_str},
-                              context_instance=RequestContext(request))
+    return render_to_response(
+        'frontend/main.html',
+        {
+            "contact": contact,
+            "form": form,
+            "provinces": provinces,
+            "sectors": sectors,
+            "events": events,
+            "signups": signups,
+            "work_str": work_str,
+            "ref_files": ref_files,
+            "cert_files": cert_files
+        },
+        context_instance=RequestContext(request)
+    )
 
 
 

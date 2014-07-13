@@ -3,17 +3,18 @@ Model for keeping track of uploaded files
 '''
 
 import os
+import datetime
 
 from django.db import IntegrityError
-from django.core.exceptions import ValidationError
 from django.template.defaultfilters import slugify
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.conf import settings
 
 from campaigns.models import Event
 
-UPLOAD_TO_DIR = "cabinet/%Y/%m/%d/"
+UPLOAD_TO_DIR = "cabinet"
 
 
 class Cabinet(models.Model):
@@ -23,17 +24,18 @@ class Cabinet(models.Model):
     cabinet_name = models.CharField(max_length=200, blank=False)
 
 def upload_filename(instance, filename):
+    date_subpath = datetime.date.today().strftime("%Y/%m/%d")
     fname, dot, extension = filename.rpartition('.')
-    slug = slugify(instance.file_ref)
-    return '%s.%s' % (UPLOAD_TO_DIR + slug, extension)
+    slug_filename = "%s.%s" % (slugify(fname), extension)
+    return os.path.join(UPLOAD_TO_DIR, date_subpath, slug_filename)
 
 class UploadedFile(models.Model):
     '''
     UploadedFile is repository of files. There is one entry per file
     '''
-    title = models.CharField(max_length=200, blank=False)
+    title = models.CharField(max_length=200, blank=False, verbose_name="Titolo")
     cabinet = models.ForeignKey(Cabinet)
-    file_ref = models.FileField(upload_to=upload_filename)
+    file_ref = models.FileField(upload_to=upload_filename, verbose_name="Allegata file")
     owner = models.ForeignKey(User)
     date_created = models.DateTimeField(auto_now_add=True)
 
@@ -41,8 +43,13 @@ class UploadedFile(models.Model):
         if self.file_ref:
             return os.path.basename(self.file_ref.name)
 
+    def file_fullpath(self):
+        if self.file_ref:
+            return os.path.join(settings.MEDIA_ROOT, self.file_ref.name)
+
 
 class UserFile(models.Model):
+    CABINET_ID = 0
     user = models.ForeignKey(User)
     file = models.ForeignKey(UploadedFile)
     date_created = models.DateTimeField(auto_now_add=True)
@@ -52,34 +59,20 @@ class UserFile(models.Model):
 
     def save(self, *args, **kwargs):
         '''
-        Overriding the save to call clean.
+        Overriding the save perform file cabinet validation.
         '''
-        # ToDo: Find a better way to do a model validation.  When used with ModelForm, .full_clean() is gonna be called twice
 
-        # Translate ValidationError to IntegrityError
-        try:
-            self.clean()
-        except ValidationError as e:
-            raise IntegrityError(e)
+        if self.file.cabinet_id == self.CABINET_ID:
+            super(UserFile, self).save(*args, **kwargs)
+        else:
+            raise IntegrityError("Only cabinet_id '%d' allowed but got '%d'" % (self.CABINET_ID, self.file.cabinet_id))
 
-        super(UserFile, self).save(*args, **kwargs)
 
 
 class UserRefFile(UserFile):
-    CABINET_REFERENCE = 1
+    CABINET_ID = 1
     event = models.ForeignKey(Event, blank=True, null=True)
 
-    def clean(self):
-        '''
-        Validate Model so that only files from References Cabinet allowed.
-        '''
-        if self.file.cabinet_id != 1:
-            raise ValidationError("Only entries with Cabinet type 'References[1]' allowed.  Got Cabinet '%s'" % self.file.cabinet_id)
-
 class UserCertFile(UserFile):
-    CABINET_CERTIFICATE = 2
+    CABINET_ID = 2
     expiry = models.DateField()
-
-    def clean(self):
-        if self.file.cabinet_id != 2:
-            raise ValidationError("Only entries with Cabinet type 'Certificates[2]' allowed.  Got Cabinet '%s'" % self.file.cabinet_id)

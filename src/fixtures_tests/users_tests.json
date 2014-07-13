@@ -1,0 +1,56 @@
+[
+    {
+        "pk": 1,
+        "model": "auth.user",
+        "fields": {
+            "username": "enervitdev",
+            "first_name": "EnervitDev",
+            "last_name": "devel02",
+            "is_active": true,
+            "is_superuser": true,
+            "is_staff": true,
+            "last_login": "2014-07-05T16:05:46Z",
+            "groups": [],
+            "user_permissions": [],
+            "password": "pbkdf2_sha256$10000$YobV9PVVjMBq$VAqLO4vNHckoIGsQMmwMexkfUBFee7bXeiK9vDU+RaQ=",
+            "email": "enervitdev@example.com",
+            "date_joined": "2014-07-02T13:11:43Z"
+        }
+    },
+    {
+        "pk": 2,
+        "model": "auth.user",
+        "fields": {
+            "username": "staffuser",
+            "first_name": "Staff",
+            "last_name": "User",
+            "is_active": true,
+            "is_superuser": false,
+            "is_staff": true,
+            "last_login": "2014-07-03T16:46:52Z",
+            "groups": [],
+            "user_permissions": [],
+            "password": "pbkdf2_sha256$10000$YobV9PVVjMBq$VAqLO4vNHckoIGsQMmwMexkfUBFee7bXeiK9vDU+RaQ=",
+            "email": "staff.user@example.com",
+            "date_joined": "2014-07-02T13:13:51Z"
+        }
+    },
+    {
+        "pk": 3,
+        "model": "auth.user",
+        "fields": {
+            "username": "userone",
+            "first_name": "User",
+            "last_name": "One",
+            "is_active": false,
+            "is_superuser": false,
+            "is_staff": false,
+            "last_login": "2014-07-02T14:59:27Z",
+            "groups": [],
+            "user_permissions": [],
+            "password": "pbkdf2_sha256$10000$YobV9PVVjMBq$VAqLO4vNHckoIGsQMmwMexkfUBFee7bXeiK9vDU+RaQ=",
+            "email": "user.one@example.com",
+            "date_joined": "2014-07-02T14:59:27Z"
+        }
+    }
+]
