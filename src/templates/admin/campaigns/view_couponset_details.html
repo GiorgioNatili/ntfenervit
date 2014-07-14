@@ -7,12 +7,12 @@
 {% block object-tools %}
     <ul class="object-tools form-inline pull-right inline">
         <li>
-            <a href="/admin/coupons/eventcoupon/generate/{{ event.id }}" class="btn btn-blue">
-                <i class="icon-plus icon-white"></i> Genera Coupon
+            <a href="{% url 'delete_couponset' coupon_set.id event.id%}" class="btn btn-red">
+                <i class="icon-minus-sign"></i> Cancella l'intera serie di coupon
             </a>
         </li>
         <li>
-            <a href="{% url 'export_event_allcoupons' event.id  %}" class="btn btn-green">
+            <a href="{% url 'export_couponset' coupon_set.id%}" class="btn btn-green">
                 <i class="icon-download icon-white"></i> Esporta
             </a>
         </li>
@@ -23,9 +23,6 @@
     <div class="container-fluid padded">
         <div class="row-fluid">
             <div class="span12">
-{#                {% for message in messages %}#}
-{#                <div class="alert alert-{{ message.tags }}">{{ message }}</div>#}
-{#                {% endfor %}#}
                 <div class="box">
                     <div class="box-header">
                         <span class="title">Coupon</span>
@@ -35,33 +32,30 @@
                                 <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
                                     <thead>
                                     <tr>
-
                                         <th>
                                             <div>
-                                                Serie coupon
+                                                Id
                                             </div>
                                         </th>
                                         <th>
-                                            <div>Quantità</div>
+                                            <div>
+                                                Usato
+                                            </div>
                                         </th>
                                         <th>
-                                            <div>ITS</div>
-                                        </th>
-                                        <th>
-                                            <div>Usati</div>
+                                            <div>Codice</div>
                                         </th>
                                         <th>&nbsp;</th>
 
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    {% for coupon_set in coupon_sets %}
+                                    {% for coupon in coupons %}
                                         <tr>
-                                            <td>{{ coupon_set.id }}</td>
-                                            <td>{{ coupon_set.size }}</td>
-                                            <td>{{ coupon_set.its_area }}</td>
-                                            <td>{{ coupon_set.used }}/{{ coupon_set.size }}</td>
-                                            <td><a href="{% url 'view_couponset' coupon_set.id event.id%}"><i class="icon-tasks"></i></a></td>
+                                            <td>{{ coupon.id }}</td>
+                                            <td>{{ coupon.used }} {% if coupon.assigned_to %}{{ coupon.assigned_to }} {% endif %}</td>
+                                            <td>{{ coupon }}</td>
+                                            <td><a title="cancella singolo coupon" href="{% url 'delete_single_coupon' coupon.id %}"><i class="icon-minus-sign"></i></a></td>
                                         </tr>
                                     {% endfor %}
                                     </tbody>

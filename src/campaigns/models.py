@@ -172,11 +172,12 @@ class PointOfSaleType(models.Model):
 
 class EventCoupon(models.Model):
     event = models.ForeignKey('campaigns.Event',blank=False,null=False,verbose_name="Evento")
-    coupon =  models.CharField(max_length=14,blank=False, null=False,verbose_name="Omaggio")
+    coupon = models.CharField(max_length=14,blank=False, null=False,verbose_name="Omaggio")
     used = models.BooleanField(verbose_name="Consumato",default=False)
 
     def __unicode__(self):
         return '(%s) %s',(self.event,self.coupon)
+
     class Meta:
         verbose_name = "Omaggio Evento"
         verbose_name_plural = "Omaggi Evento"
@@ -209,7 +210,6 @@ class Event(models.Model):
     salevalue = models.CharField(max_length=250,blank=True,null=True,verbose_name="Quota di Iscrizione Scontata")
     areamanager = models.ForeignKey('campaigns.AreaManager',blank=True,null=True,verbose_name="Area Manager",on_delete=models.SET_NULL)
     districtmanager = models.ForeignKey('campaigns.AreaIts',blank=True,null=True,verbose_name="District ITS Manager",on_delete=models.SET_NULL)
-    areamanager = models.ForeignKey('campaigns.AreaManager',blank=True,null=True,verbose_name="Area Manager",on_delete=models.SET_NULL)
     pointofsale = models.CharField(max_length=6,blank=True,null=True,verbose_name="Codice Punto Vendita")
     pointofsaledescription = models.CharField(max_length=250,blank=True,null=True,verbose_name="Nominativo Punto Vendita")
     typepointofsale = models.ForeignKey('campaigns.PointOfSaleType',blank=True,null=True,verbose_name="Tipologia Punto Vendita",on_delete=models.SET_NULL)
@@ -221,6 +221,7 @@ class Event(models.Model):
     feedback_note = models.CharField(max_length=500,blank=True,null=True,verbose_name="Feedback Evento")
     population = models.IntegerField(blank=True,null=True,verbose_name="Numero di partecipanti")
     signups_enabled = models.BooleanField(verbose_name="Iscrizioni permesse lato frontend",blank=True,default=False)
+
     def __unicode__(self):
         return '%s' % (self.date.strftime("%d-%m-%Y"))
 
@@ -228,6 +229,7 @@ class Event(models.Model):
         verbose_name = 'Evento'
         verbose_name_plural = 'Eventi'
 
+#TODO Coupon usage here T387
 class EventSignup(models.Model):
     event = models.ForeignKey('campaigns.Event',blank=False,null=False,verbose_name="Evento")
     contact = models.ForeignKey('contacts.Contact',blank=False,null=False,verbose_name="Contatto")
@@ -245,6 +247,7 @@ class EventSignup(models.Model):
         verbose_name = "Iscrizione evento"
         verbose_name_plural = "Iscrizioni eventi"
 
+#TODO Coupon usage here T387
 class EventPayment(models.Model):
     type = models.CharField(max_length=20,blank=True,null=True,verbose_name="Pagamento")
     way = models.CharField(max_length=30,blank=True,null=True,verbose_name="Modalita\'")
@@ -256,8 +259,7 @@ class EventPayment(models.Model):
     province = models.ForeignKey('contacts.Province', blank=False, null=True)
     code = models.CharField(max_length=16, blank=False, null=False,
                             verbose_name='Codice Fiscale')
-    vat = models.CharField(max_length=16, blank=False, null=False,
-                           verbose_name='P.Iva')
+    vat = models.CharField(max_length=16, blank=False, null=False, verbose_name='P.Iva')
     contact = models.ForeignKey('contacts.Contact',blank=False,null=True)
     event = models.ForeignKey('campaigns.Event',blank=False,null=True)
 

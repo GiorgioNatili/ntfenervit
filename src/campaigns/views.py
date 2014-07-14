@@ -1560,43 +1560,9 @@ def view_eventtype_details(request, id):
 ##### EVENTCOUPON  ############
 ###############################
 
-@staff_member_required
-def view_eventcoupon(request):
-    events = Event.objects.all()
-    return render_to_response('admin/campaigns/view_coupon.html', {'events': events},
-                              context_instance=RequestContext(request))
 
-@staff_member_required
-def view_couponbyevent(request,id):
-    event = get_object_or_404(Event,id=id)
-    coupons = EventCoupon.objects.all().filter(event=event)
-    return render_to_response('admin/campaigns/view_couponbyevent.html',{'event':event,'coupons':coupons},context_instance=RequestContext(request))
 
-@staff_member_required
-def view_eventcoupon_generate(request,id):
-    event = get_object_or_404(Event,id=id)
-    return render_to_response('admin/campaigns/view_coupongenerate.html',{'event':event,'limit':xrange(100)},context_instance=RequestContext(request))
 
-@staff_member_required
-def view_eventcoupon_export(request,id):
-    event = get_object_or_404(Event,id=id)
-    response = HttpResponse(mimetype="application/ms-excel")
-    response['Content-Disposition'] = 'attachment; filename=esportazione_omaggi-evento-' + event.__unicode__() + '.xls'
-
-    wb = xlwt.Workbook()
-    ws = wb.add_sheet('Foglio 1')
-    ws.write(0, 0, 'Omaggio')
-    ws.write(0, 1, 'Usato')
-
-    coupons = EventCoupon.objects.all().filter(event=event,used=False)
-    print len(coupons)
-    row = 1
-    for coupon in coupons:
-        ws.write(row,0,coupon.coupon)
-        ws.write(row,1,coupon.used)
-        row +=1
-    wb.save(response)
-    return response
 
 
 from django.views.decorators.csrf import csrf_exempt
