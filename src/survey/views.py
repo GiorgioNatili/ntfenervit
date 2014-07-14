@@ -198,7 +198,7 @@ def report_detail(request, id):
     for sub in submissions_:
         answers = Answer.objects.all().filter(submission=sub)
         sub.answers = answers
-        sub.score, sub.total_score = get_score(answers)
+        sub.score, sub.total_score = get_scores(answers)
         submissions2.append(sub)
 
     return render_to_response('admin/survey/view_report_details.html',
@@ -207,7 +207,7 @@ def report_detail(request, id):
                               context_instance=RequestContext(request))
 
 
-def get_score(answers):
+def get_scores(answers, contact=None):
     score = 0
     total_score = 0
     for ans in answers:
@@ -219,6 +219,9 @@ def get_score(answers):
             expected_val = str(expected_val)
         if str(val.encode('utf-8')).lower() == str(expected_val.encode('utf-8')).lower():
             score += ans.question.score
+            if contact:
+                contact.participation_ranking = contact.participation_ranking + ans.question.score
+                contact.save()
     return score, total_score
 
 
@@ -226,7 +229,7 @@ def get_score(answers):
 @staff_member_required
 def single_report_detail(request, id_):
     answers = Answer.objects.all().filter(submission=get_object_or_404(Submission, id=id_))
-    score, total_score = get_score(answers)
+    score, total_score = get_scores(answers)
     return render_to_response('admin/survey/view_single_report_details.html',
                               {'submission': get_object_or_404(Submission, id=id_), 'answers': answers, 'total_score': total_score, 'score': score},
                               context_instance=RequestContext(request))
@@ -377,12 +380,13 @@ def _submit_valid_forms(forms, request, survey):
                         answer.submission = submission_
                         answer.save()
                 answs = Answer.objects.filter(submission=submission_)
-                for ans in answs:
-                    survey_score += ans.question.score
-                    if str(ans.value).lower() == str(ans.question.correct_answer).lower():
-                        contact.participation_ranking = contact.participation_ranking + ans.question.score
-                        total_score += ans.question.score
-                        contact.save()
+                total_score, survey_score = get_scores(answs, contact)
+                # for ans in answs:
+                #     survey_score += ans.question.score
+                #     if str(ans.value).lower() == str(ans.question.correct_answer).lower():
+                #         contact.participation_ranking = contact.participation_ranking + ans.question.score
+                #         total_score += ans.question.score
+                #         contact.save()
                 submission_.status = Submission.COMPLETED
                 submission_.save()
 
