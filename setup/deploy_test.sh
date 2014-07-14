@@ -15,7 +15,7 @@ do
 	cp "./src/$file" "./$dest_dir/"
 done
 
-for dir in backend cabinet campaigns contacts frontend staticfiles survey templates yellowPage
+for dir in backend cabinet campaigns contacts coupon frontend staticfiles survey templates yellowPage
 do
 	echo "### Copying $dir"
 	if [ ! -d "./$dest_dir/$dir/" ]; then
