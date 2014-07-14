@@ -140,7 +140,7 @@
                 <div class="tab-pane" id="files">
                     <div class="row" style="padding: 15px;">
                         <div class="col-md-6">
-                            <table class="table">
+                            <table class="table" id="ref_table">
                                 <caption class="text-muted text-left"><strong>Files</strong></caption>
                                 <thead>
                                     <tr>
@@ -159,7 +159,7 @@
                             </table>
                         </div>
                         <div class="col-md-6">
-                            <table class="table">
+                            <table class="table" id="cert_table">
                                 <caption class="text-muted text-left"><strong>Certificati</strong></caption>
                                 <thead>
                                     <tr>
@@ -169,9 +169,19 @@
                                 </thead>
                                 <tbody>
                                 {% for cert_file in cert_files %}
+                                    {% if cert_file.is_valid %}
                                     <tr>
+                                    {% else %}
+                                    <tr class="danger">
+                                    {% endif %}
                                         <td><a href="{{ cert_file.file.file_ref.url }}" target="_blank">{{ cert_file.file.title }}</a></td>
-                                        <td>{{ cert_file.expiry }}</td>
+                                        {% if cert_file.is_valid %}
+                                            <td>{{ cert_file.expiry }}</td>
+                                        {% else %}
+                                            <td>{{ cert_file.expiry }} <span class="label label-danger">scaduto</span></td>
+                                        {% endif %}
+
+
                                     </tr>
                                 {% endfor %}
                                 </tbody>
@@ -358,27 +368,27 @@
                         <div class="row">
                             <h3 class="text-muted text-center" style="margin-bottom:20px;margin-top: 10px!important;">Se desideri contattarci, compila il form sottostante</h3>
                             <div class="col-md-6">
-                                        <form class="form-horizontal" role="form" enctype="multipart/form-data" method="post" id="email_form">
-                                            {% csrf_token %}
-                                            <div class="form-group">
-                                                <label for="name" class="text-muted">Motivo del contatto:</label>
-                                                <select class="form-control" name="reason">
-                                                    <option value="Informazioni sugli Eventi" selected="selected">Informazioni sugli Eventi</option>
-                                                    <option value="Informazioni sui prodotti" >Informazioni sui prodotti</option>
-                                                    <option value="Richiesta di assistenza" >Richiesta di assistenza</option>
-                                                    <option value="Problemi" >Problemi</option>
-                                                    <option value="Suggerimenti" >Suggerimenti</option>
-                                                    <option value="Altro" >Altro</option>
-                                                </select>
-                                            </div>
-                                            <div class="form-group">
-                                                <label for="name" class="text-muted">Il tuo messaggio:</label>
-                                                    <textarea id="message" style="width:100%!important;" name="message" class="form-control row-fluid" rows="6"></textarea>
-                                            </div>
-                                            <div class="form-group">
-                                                <button id="sendMessage" type="button" name="_send" class="btn btn-primary">Invia</button>
-                                            </div>
-                                        </form>
+                                <form class="form-horizontal" role="form" enctype="multipart/form-data" method="post" id="email_form">
+                                    {% csrf_token %}
+                                    <div class="form-group">
+                                        <label for="name" class="text-muted">Motivo del contatto:</label>
+                                        <select class="form-control" name="reason">
+                                            <option value="Informazioni sugli Eventi" selected="selected">Informazioni sugli Eventi</option>
+                                            <option value="Informazioni sui prodotti" >Informazioni sui prodotti</option>
+                                            <option value="Richiesta di assistenza" >Richiesta di assistenza</option>
+                                            <option value="Problemi" >Problemi</option>
+                                            <option value="Suggerimenti" >Suggerimenti</option>
+                                            <option value="Altro" >Altro</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="name" class="text-muted">Il tuo messaggio:</label>
+                                            <textarea id="message" style="width:100%!important;" name="message" class="form-control row-fluid" rows="6"></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <button id="sendMessage" type="button" name="_send" class="btn btn-primary">Invia</button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -497,15 +507,15 @@
                                             <div class="form-group  {% if form.work.errors %}has-error{% endif %}">
                                                 <label for="name">Professione</label>
                                                 <select id="work" class="form-control chzn-select" name="work" >
-					            <option value="54">Altro</option>
-						    <option value="24">Biologo</option>
-						    <option value="8">Farmacista</option>
-						    <option value="17">Dietista</option>
-						    <option value="25">Medico</option>
-						    <option value="49">Naturopata</option>
-						    <option value="81">Tecnologo Alimentare</option>
-						    <option value="50">Fisioterapista</option>
-						    <option value="38">Laureato in Scienze Motorie</option>			
+                                                    <option value="54">Altro</option>
+                                                    <option value="24">Biologo</option>
+                                                    <option value="8">Farmacista</option>
+                                                    <option value="17">Dietista</option>
+                                                    <option value="25">Medico</option>
+                                                    <option value="49">Naturopata</option>
+                                                    <option value="81">Tecnologo Alimentare</option>
+                                                    <option value="50">Fisioterapista</option>
+                                                    <option value="38">Laureato in Scienze Motorie</option>
                                                 </select>
                                                 <span class="help-block">{{form.work.errors}}</span>
                                             </div>

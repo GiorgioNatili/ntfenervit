@@ -42,15 +42,15 @@
             "username": "userone",
             "first_name": "User",
             "last_name": "One",
-            "is_active": false,
+            "is_active": true,
             "is_superuser": false,
             "is_staff": false,
-            "last_login": "2014-07-02T14:59:27Z",
+            "last_login": "2014-07-13T22:00:00Z",
             "groups": [],
             "user_permissions": [],
-            "password": "pbkdf2_sha256$10000$YobV9PVVjMBq$VAqLO4vNHckoIGsQMmwMexkfUBFee7bXeiK9vDU+RaQ=",
+            "password": "pbkdf2_sha256$10000$dgZWzYdUVXJj$Dd4jOCMvz8q35j/Ai2ChrTjyjNkejf1agYoYNBC2a/Q=",
             "email": "user.one@example.com",
-            "date_joined": "2014-07-02T14:59:27Z"
+            "date_joined": "2014-07-13T22:00:00Z"
         }
     }
 ]

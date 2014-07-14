@@ -18,7 +18,7 @@
 
                     </div>
                     <div class="box-content">
-                        <form class="fill-up validatable" enctype="multipart/form-data" method="post" id="file_form">
+                        <form class="fill-up validatable" enctype="multipart/form-data" method="post" id="file_form" onsubmit="return confirmDelete()">
                             {% csrf_token %}
                             {% if form.errors %}
                                 <div class="alert alert-error">
@@ -103,6 +103,9 @@
             }
         });
 
+        function confirmDelete() {
+            return confirm("Cancella questo file?");
+        }
 
     </script>
 

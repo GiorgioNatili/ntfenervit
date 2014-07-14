@@ -2,10 +2,12 @@
 Test for cabinet models
 '''
 
+import datetime
+
 from django.test import TestCase
 from django.contrib.auth.models import User
 from django.db import IntegrityError
-from django.core.exceptions import ValidationError
+from django.core.files.uploadedfile import SimpleUploadedFile
 
 from cabinet.models import Cabinet, UploadedFile, UserFile, UserRefFile, UserCertFile
 from campaigns.models import Event
@@ -19,18 +21,20 @@ class CabinetModelTestCase(TestCase):
         self.staff = User.objects.get(pk=2)
 
         self.event = Event.objects.create(
-            date="2014-07-04",
+            date=datetime.date(2014,7,4),
             title="Teste Event for File"
         )
-        self.cabinet_file = Cabinet.objects.get(pk=1)
-        self.cabinet_certificate = Cabinet.objects.get(pk=2)
+        self.cabinet_file = Cabinet.objects.get(pk=UserRefFile.CABINET_ID)
+        self.cabinet_certificate = Cabinet.objects.get(pk=UserCertFile.CABINET_ID)
         self.refile = UploadedFile.objects.create(
             title="A Test File",
+            file_ref=SimpleUploadedFile('reference.pdf', 'This is the reference file'),
             cabinet=self.cabinet_file,
             owner=self.staff
         )
         self.certfile = UploadedFile.objects.create(
             title="A Test Certificate",
+            file_ref=SimpleUploadedFile('certificate.pdf', 'This is the certificate file'),
             cabinet=self.cabinet_certificate,
             owner=self.staff
         )
@@ -74,7 +78,7 @@ class CabinetModelTestCase(TestCase):
         self.assertRaises(IntegrityError, user_file.save)
 
 
-    def test03_UserCertFile(self):
+    def test10_UserCertFile(self):
         '''
         Adding a certificate
         '''
@@ -84,14 +88,15 @@ class CabinetModelTestCase(TestCase):
         user_cert = UserCertFile(
             user=self.user,
             file=self.certfile,
-            expiry="2013-07-10"
+            expiry=datetime.date(2012,7,10)
         )
         user_cert.save()
         self.assertEqual(user_cert.user_id, self.user.pk, "Expected user_id to be %s but got %s" % (self.user.pk, user_cert.user_id))
+        self.assertFalse(user_cert.is_valid, "Expected certificate not to be valid.")
 
-    def test04_UserCertFile_error(self):
+    def test11_UserCertFile_error(self):
         '''
-        Adding a certificate
+        Adding an invalid certificate
         '''
         self.assertIsNotNone(self.refile.date_created, "Expected UploadedFile.date_created to be populated.")
         self.assertEqual(self.refile.cabinet_id, self.cabinet_file.pk, "Expected cabinet to be %s but got %s" % (self.refile.cabinet, self.cabinet_file.pk))
@@ -99,11 +104,39 @@ class CabinetModelTestCase(TestCase):
         user_cert = UserCertFile(
             user=self.user,
             file=self.refile,
-            expiry="2013-07-10"
+            expiry=datetime.date(2012,7,10)
         )
         self.assertRaises(IntegrityError, user_cert.save)
 
-    def test05_UploadedFile_delete(self):
+    def test12_userCertFile_is_valid(self):
+        '''
+        Check certificate is valid logic
+        '''
+        today = datetime.date.today()
+
+        # Set certificate to expire in 20 days, and should be valid
+        expiry = today + datetime.timedelta(20)
+        user_cert = UserCertFile(
+            user=self.user,
+            file=self.certfile,
+            expiry=expiry
+        )
+        user_cert.save()
+        self.assertTrue(user_cert.is_valid, "Expected certificate with '%s' expiry to be valid." % expiry)
+
+        # Set certificate to expire today, and should be valid
+        user_cert.expiry = today
+        user_cert.save()
+        self.assertTrue(user_cert.is_valid, "Expected certificate to be valid on the expiry day.")
+
+        # Set the expiry to 10 days from ago, and should be invalid
+        expiry = today - datetime.timedelta(10)
+        user_cert.expiry = expiry
+        user_cert.save()
+        self.assertFalse(user_cert.is_valid, "Expected certificate with '%s' expiry NOT to be valid." % expiry)
+
+
+    def test20_UploadedFile_delete(self):
         '''
         Cascade delete from UploadedFile should work
         '''
@@ -121,7 +154,7 @@ class CabinetModelTestCase(TestCase):
         user_cert = UserCertFile.objects.create(
             user=self.user,
             file=self.certfile,
-            expiry="2013-07-10"
+            expiry=datetime.date(2012,7,10)
         )
 
         self.assertEqual(UserFile.objects.count(), 3, "Expected UserRefFile to have 3 entries but got '%d'." % UserFile.objects.count())
@@ -136,7 +169,7 @@ class CabinetModelTestCase(TestCase):
         self.assertEqual(UserRefFile.objects.count(), 0, "Expected UserRefFile to have 0 entries but got '%d'." % UserRefFile.objects.count())
         self.assertEqual(UserCertFile.objects.count(), 0, "Expected UserCertFile to have 0 entry but got '%d'." % UserCertFile.objects.count())
 
-    def test06_UserFile_delete(self):
+    def test21_UserFile_delete(self):
         '''
         Cascade delete from UserRefFile and UserCertFile should work upto UserFile but not UploadedFile
         '''
@@ -154,7 +187,7 @@ class CabinetModelTestCase(TestCase):
         user_cert = UserCertFile.objects.create(
             user=self.user,
             file=self.certfile,
-            expiry="2013-07-10"
+            expiry=datetime.date(2012,7,10)
         )
 
         self.assertEqual(UserFile.objects.count(), 3, "Expected UserRefFile to have 3 entries but got '%d'." % UserFile.objects.count())

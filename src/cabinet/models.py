@@ -35,7 +35,7 @@ class UploadedFile(models.Model):
     '''
     title = models.CharField(max_length=200, blank=False, verbose_name="Titolo")
     cabinet = models.ForeignKey(Cabinet)
-    file_ref = models.FileField(upload_to=upload_filename, verbose_name="Allegata file")
+    file_ref = models.FileField(upload_to=upload_filename, blank=False, verbose_name="Allegata file")
     owner = models.ForeignKey(User)
     date_created = models.DateTimeField(auto_now_add=True)
 
@@ -75,4 +75,12 @@ class UserRefFile(UserFile):
 
 class UserCertFile(UserFile):
     CABINET_ID = 2
-    expiry = models.DateField()
+    expiry = models.DateField(blank=False)
+
+    @property
+    def is_valid(self):
+        if self.expiry:
+            return self.expiry >= datetime.date.today()
+        else:
+            return False
+
