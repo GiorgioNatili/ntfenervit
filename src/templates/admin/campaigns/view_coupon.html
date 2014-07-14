@@ -28,7 +28,7 @@
                                 {% for event in events %}
                                     <tr>
                                         <td>{% if event.title %}{{ event.title }}{% else %}{{ event.description }}{% endif %}</td>
-                                        <td><a href="/admin/campaigns/couponbyevent/{{event.id }}"><i class="icon-tasks"></i></a></td>
+                                        <td><a href="/admin/coupons/couponbyevent/{{event.id }}"><i class="icon-tasks"></i></a></td>
                                     </tr>
                                 {% endfor %}
                                 </tbody>

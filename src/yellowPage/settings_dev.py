@@ -161,6 +161,7 @@ INSTALLED_APPS = (
     'campaigns',
     'registration',
     'cabinet',
+    'coupon',
 
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',

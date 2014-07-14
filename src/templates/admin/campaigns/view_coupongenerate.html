@@ -1,7 +1,8 @@
 {% extends "admin/base_site.html" %}
 {% load i18n admin_static bootstrapped_goodies_tags %}
 {% block icon-detail %}<i class="icon-barcode"></i>{% endblock %}
-{% block content_title %}Genera Omaggi per l'evento: {% if event.title %}{{event.title }}{% else %} {{ event.description }}{% endif %}{% endblock %}
+{% block content_title %}Genera Omaggi per l'evento:
+    {% if event.title %}{{ event.title }}{% else %} {{ event.description }}{% endif %}{% endblock %}
 {% block content_subtitle %}<h5>Crea gli omaggi compilando il form sottostante</h5>{% endblock %}
 {% block content %}
     <div class="container-fluid padded">
@@ -14,7 +15,7 @@
 
                     </div>
                     <div class="box-content">
-                        <form class="fill-up validatable" enctype="multipart/form-data" method="post" id="coupon_form">
+                        <form method="post" class="fill-up validatable" enctype="multipart/form-data" id="coupon_form">
                             {% csrf_token %}
                             {% if form.errors %}
                                 <div class="alert alert-error">
@@ -34,28 +35,44 @@
                                 <div class="span6">
                                     <ul class="padded separate-sections">
                                         <li class="input">
-                                            <label>Evento: {% if event.title %}{{event.title }}{% else %} {{ event.description }}{% endif %} </label>
+                                            <label>Evento: {% if event.title %}{{ event.title }}{% else %}
+                                                {{ event.description }}{% endif %} </label>
                                         </li>
+                                        <li><label for="its_sel">ITS</label>
+                                            <select id="its_sel" class="chzn-select" name="its">
+                                                {% for pos in its %}
+                                                    <option value="{{ pos.id }}"
+                                                            {% if pos.id == event.districtmanager.id %}
+                                                            selected="selected"{% endif %}>{{ pos }}</option>
+                                                {% endfor %}
+                                            </select></li>
                                         <li class="input">
-                                            <label>Quantità:</label>
-                                            <input id="qt" type="number" min="1" max="150" placeholder="da 1 a 150" value="100"/>
+                                            <label>Quantità: <i>(max 150)</i></label>
+                                            <input id="qt" name="qt" type="number" min="1" max="150" placeholder="da 1 a 150"
+                                                   value="100"/>
                                         </li>
-
 
 
                                     </ul>
                                 </div>
-                            </div> <!-- contenitore form -->
+                            </div>
+                            <!-- contenitore form -->
 
                             <div class="form-actions">
-                                <button type="button" id="genera" name="genera" class="btn btn-green ">Genera</button>
-
+                                <button type="submit" id="genera" class="btn btn-green ">Genera</button>
                             </div>
                         </form>
                     </div>
-                </div> <!-- end box -->
-            </div> <!-- span 12 -->
-        </div><!-- row fluid -->
+                </div>
+                <!-- end box -->
+            </div>
+            <!-- span 12 -->
+        </div>
+        <!-- row fluid -->
+
+
+
+{#        #NOT USED ANYMORE#}
         <div class="row-fluid" id="codeList">
             <div class="row-fluid">
                 <div class="span12">
@@ -86,68 +103,45 @@
                         </div>
                     </div>
                 </div>
+            </div>
         </div>
     </div>
 
     <script>
-        function makeid(lenght)
-        {
+        function makeid(lenght) {
             var text = "";
             var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 
-            for( var i=0; i < lenght; i++ )
+            for (var i = 0; i < lenght; i++)
                 text += possible.charAt(Math.floor(Math.random() * possible.length));
 
             return text.toLowerCase();
         }
 
-        $(document).ready(function() {
-            var event="{{ event.id }}";
+        $(document).ready(function () {
+            var event = "{{ event.id }}";
             var codes = [];
             $("#codeList").hide();
-            $("#genera").on("click",function(e){
-               $("#tbody").empty();
-               codes = [];
-               var limit=$("#qt").val();
-                for(var i=0;i<limit;i++){
-                   codes.push(makeid(14));
-                   $("#tbody").append("<tr><td>"+codes[i]+"</td></tr>");
-                }
-                $("#codeList").show();
-            });
-
-            $("#saveAndExport").on("click",function(e){
-                $.post("/admin/campaigns/restcoupon/generate",{"event_id":event,"codes[]":codes}).done(function(data){
-                   if(data.value=="OK"){
-                       alert("Omaggi inseriti");
-                       window.location.href='/admin/campaigns/couponbyevent/'+event;
-                   }
-                }).error(function(data){
-                    console.log("ERROR: ",data);
-                });
-
-            });
 
             $(".active").removeClass("active");
             $("#eventsMenu").addClass("active");
 
             $(".dTable2").dataTable({
-                bJQueryUI:!1
-                ,bAutoWidth:!1,
-                sPaginationType:"full_numbers",
-                sDom:'<"table-header"fl>t<"table-footer"ip>',
+                bJQueryUI: !1, bAutoWidth: !1,
+                sPaginationType: "full_numbers",
+                sDom: '<"table-header"fl>t<"table-footer"ip>',
                 "oLanguage": {
-                    "sSearch":"Cerca",
+                    "sSearch": "Cerca",
                     "sLengthMenu": "Mostra _MENU_ righe per pagina",
                     "sZeroRecords": "Nessun risultato trovato",
                     "sInfo": "Risultati da _START_ a _END_ di _TOTAL_ ",
                     "sInfoEmpty": "Mostrati da 0 a 0 di 0 records",
                     "sInfoFiltered": "(filtrati da _MAX_ records totali)",
-                    "oPaginate":{
-                        "sFirst":"Primo",
-                        "sLast":"Ultimo",
-                        "sNext":"Prossimo",
-                        "sPrevious":"Precedente"
+                    "oPaginate": {
+                        "sFirst": "Primo",
+                        "sLast": "Ultimo",
+                        "sNext": "Prossimo",
+                        "sPrevious": "Precedente"
 
                     }
                 }

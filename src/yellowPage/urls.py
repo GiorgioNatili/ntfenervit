@@ -90,11 +90,9 @@ urlpatterns = patterns('',
     url(r'^admin/campaigns/eventtype/add/$', 'campaigns.views.view_add_eventtype'),
     url(r'^admin/campaigns/eventtype/(\d+)$', 'campaigns.views.view_eventtype_details'),
 
-    url(r'^admin/campaigns/eventcoupon/$', 'campaigns.views.view_eventcoupon'),
-    url(r'^admin/campaigns/eventcoupon/export/(\d+)$', 'campaigns.views.view_eventcoupon_export'),
-    url(r'^admin/campaigns/restcoupon/generate', 'campaigns.views.view_eventcoupon_restgenerate'),
-    url(r'^admin/campaigns/eventcoupon/generate/(\d+)$', 'campaigns.views.view_eventcoupon_generate'),
-    url(r'^admin/campaigns/couponbyevent/(\d+)$','campaigns.views.view_couponbyevent'),
+
+    url(r'^admin/coupons/', include('coupon.urls')),
+
 
     url(r'^admin/campaigns/newsletter/$', 'campaigns.views.view_newsletter'),
     url(r'^admin/campaigns/newsletter/add/$', 'campaigns.views.view_add_newsletter'),
