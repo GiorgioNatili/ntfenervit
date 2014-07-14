@@ -18,7 +18,7 @@
 
                     </div>
                     <div class="box-content">
-                        <form class="fill-up validatable" enctype="multipart/form-data" method="post" id="file_form" onsubmit="return confirmDelete()">
+                        <form class="fill-up validatable" enctype="multipart/form-data" method="post" id="file_form">
                             {% csrf_token %}
                             {% if form.errors %}
                                 <div class="alert alert-error">
@@ -80,7 +80,7 @@
                                 <input type="hidden" name="referer" value="{{ referer }}">
 
                                 <button type="submit" class="btn btn-blue" name="action" value="edit">Salva</button>
-                                <button type="submit" class="btn btn-red pull-right" name="action" value="delete">Cancella</button>
+                                <button type="submit" class="btn btn-red pull-right" name="action" value="delete" onclick="return confirmDelete()">Cancella</button>
                             </div>
                         </form>
                     </div>
