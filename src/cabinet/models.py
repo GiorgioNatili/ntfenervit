@@ -47,6 +47,25 @@ class UploadedFile(models.Model):
         if self.file_ref:
             return os.path.join(settings.MEDIA_ROOT, self.file_ref.name)
 
+class EventFile(models.Model):
+    CABINET_ID = 1
+    event = models.ForeignKey(Event, blank=True, null=True)
+    file = models.ForeignKey(UploadedFile)
+    date_created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = (("event", "file"),)
+
+    def save(self, *args, **kwargs):
+        '''
+        Overriding the save perform file cabinet validation.
+        '''
+
+        if self.file.cabinet_id == self.CABINET_ID:
+            super(EventFile, self).save(*args, **kwargs)
+        else:
+            raise IntegrityError("Only cabinet_id '%d' allowed but got '%d'" % (self.CABINET_ID, self.file.cabinet_id))
+
 
 class UserFile(models.Model):
     CABINET_ID = 0
@@ -83,4 +102,6 @@ class UserCertFile(UserFile):
             return self.expiry >= datetime.date.today()
         else:
             return False
+
+
 

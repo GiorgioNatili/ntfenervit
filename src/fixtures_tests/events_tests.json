@@ -1,0 +1,78 @@
+[
+    {
+        "pk": 5,
+        "model": "campaigns.campaign",
+        "fields": {
+            "status": "A",
+            "startdate": "2014-05-09",
+            "enddate": "2014-05-11",
+            "name": "COSMOFARMA",
+            "description": "FIERA COSMOFARMA. PRESENTAZIONE PROGETTO NTF"
+        }
+    },
+    {
+        "pk": 1,
+        "model": "campaigns.event",
+        "fields": {
+            "trainer": "",
+            "salevalue": "",
+            "feedback": null,
+            "campaign": 5,
+            "money": "0",
+            "signups_enabled": true,
+            "salestartdate": "2014-04-24",
+            "feedback_note": "",
+            "emailcontent": "<p>Gentile [[NOME]]</p><p>Siamo lieti di confermarLe l'iscrizione alla presentazione specificata. La attenderemo al padiglione 22, stand A3/B4 per accoglierla <strong>alle ore 16.30</strong></p><p>Cordiali saluti,</p><p>Enervit S.p.A. - Segreteria organizzativa eventi formativi ed informativi</p><p><a href=\"http://www.enervit.com/it/home\"><img src=\"http://ntf.enervit.it/media/uploads/2014/02/26/LogoScience.jpg\" alt=\"Enervit\" style=\"width: 190px; float: left; margin: 0px 10px 10px 0px;\"></a></p>",
+            "title": "Teste Event for File Cabinet",
+            "emailattachment": "",
+            "eventtype": 1,
+            "areamanager": null,
+            "theme": 1,
+            "pointofsaledescription": "",
+            "districtmanager": null,
+            "population": null,
+            "channel": null,
+            "province": 39,
+            "description": "Enervit, azienda leader in Italia e in Europa nel settore dell\u2019integrazione sportiva e della nutrizione funzionale, sar\u00e0 lieta di incontrarla alla 18\u00b0 edizione del Cosmofarma Exhibition per presentarle I NUOVI ESCLUSIVI SERVIZI ENERVIT DEDICATI ALLA FARMACIA.\r\n\r\nAppuntamento per VENERD\u00ec 9 MAGGIO  allo stand ENERVIT presso COSMOFARMA (Bologna Fiere). \r\nPadiglione 22 STAND A3/B4",
+            "pointofsale": "",
+            "typepointofsale": 1,
+            "date": "2014-05-09",
+            "is_public": true,
+            "payment": "ingresso gratuito",
+            "saleenddate": "2014-05-10",
+            "enddate": null,
+            "money_description": "iscrizione gratuita",
+            "place": "Bologna\r\nQuartiere fieristico Bologna Fiere \u2013 padiglioni 21, 22, 25 e 26"
+        }
+    },
+    {
+        "pk": 1,
+        "model": "campaigns.eventsignup",
+        "fields": {
+            "note": "",
+            "relatore_payment": "",
+            "presence": true,
+            "omaggio": false,
+            "contact": "NOESRU86E31F839S",
+            "relatore": false,
+            "pagante": false,
+            "event": 1,
+            "staff": false
+        }
+    },
+    {
+        "pk": 1,
+        "model": "campaigns.eventsignup",
+        "fields": {
+            "note": "",
+            "relatore_payment": "",
+            "presence": true,
+            "omaggio": false,
+            "contact": "NRVDL096A01H501Y",
+            "relatore": false,
+            "pagante": false,
+            "event": 1,
+            "staff": false
+        }
+    }
+]

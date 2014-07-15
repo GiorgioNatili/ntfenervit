@@ -1,0 +1,107 @@
+[
+    {
+        "pk": 1,
+        "model": "campaigns.eventtype",
+        "fields": {
+            "description": "SEMINARIO"
+        }
+    },
+    {
+        "pk": 2,
+        "model": "campaigns.eventtype",
+        "fields": {
+            "description": "ONE-TO-ONE"
+        }
+    },
+    {
+        "pk": 3,
+        "model": "campaigns.eventtype",
+        "fields": {
+            "description": "FORMAZIONE A PUNTO VENDITA"
+        }
+    },
+    {
+        "pk": 4,
+        "model": "campaigns.eventtype",
+        "fields": {
+            "description": "INFORMAZIONE MEDICA"
+        }
+    },
+
+
+
+    {
+        "pk": 1,
+        "model": "campaigns.theme",
+        "fields": {
+            "description": "DIETA ZONA"
+        }
+    },
+    {
+        "pk": 2,
+        "model": "campaigns.theme",
+        "fields": {
+            "description": "SPORT"
+        }
+    },
+    {
+        "pk": 3,
+        "model": "campaigns.theme",
+        "fields": {
+            "description": "GYMLINE"
+        }
+    },
+
+
+
+
+    {
+        "pk": 1,
+        "model": "campaigns.pointofsaletype",
+        "fields": {
+            "description": "FARMACIA"
+        }
+    },
+    {
+        "pk": 2,
+        "model": "campaigns.pointofsaletype",
+        "fields": {
+            "description": "PARAFARMACIA"
+        }
+    },
+    {
+        "pk": 3,
+        "model": "campaigns.pointofsaletype",
+        "fields": {
+            "description": "ERBORISTERIA"
+        }
+    },
+    {
+        "pk": 4,
+        "model": "campaigns.pointofsaletype",
+        "fields": {
+            "description": "NEGOZIO DI INTEGRATORI"
+        }
+    },
+    {
+        "pk": 5,
+        "model": "campaigns.pointofsaletype",
+        "fields": {
+            "description": "PALESTRA"
+        }
+    },
+    {
+        "pk": 6,
+        "model": "campaigns.pointofsaletype",
+        "fields": {
+            "description": "NEGOZIO CICLO"
+        }
+    },
+    {
+        "pk": 7,
+        "model": "campaigns.pointofsaletype",
+        "fields": {
+            "description": "STUDIO MEDICO"
+        }
+    }
+]

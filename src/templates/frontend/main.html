@@ -155,6 +155,12 @@
                                         <td>{{ ref_file.event.title }}</td>
                                     </tr>
                                 {% endfor %}
+                                {% for event_file in event_files %}
+                                    <tr>
+                                        <td><a href="{{ event_file.file.file_ref.url }}" target="_blank">{{ event_file.file.title }}</a></td>
+                                        <td>{{ event_file.event.title }}</td>
+                                    </tr>
+                                {% endfor %}
                                 </tbody>
                             </table>
                         </div>

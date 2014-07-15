@@ -2,7 +2,7 @@
 {% load i18n admin_static bootstrapped_goodies_tags %}
 {% block icon-detail %}<i class="{{ icon_name }}"></i>{% endblock %}
 {% block content_title %} {{ page_title }} {% endblock %}
-{% block content_subtitle %}<h5> {{ page_subtitle }} -- {{ id }}</h5>{% endblock %}
+{% block content_subtitle %}<h5> {{ page_subtitle }}</h5>{% endblock %}
 {% block content %}
 
     <!-- supported action: add/ref/cert -->
@@ -62,7 +62,7 @@
                                             {% if file_type == "ref" %}
                                                 <label>{{ form.event_title.label }}</label>
                                                 <input type="text" id="id_event_title" name="event_title" data-prompt-position="topLeft" value="{{ form.event_title.value }}" disabled/>
-                                            {% else %}
+                                            {% elif file_type == "cert" %}
                                                 <label>{{ form.expiry.label }}</label>
                                                 {{ form.expiry }}
                                             {% endif %}
