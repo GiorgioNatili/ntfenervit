@@ -74,6 +74,7 @@ def view_home(request):
 def view_signup(request):
     import json
     response_data = {}
+    # TODO coupon management
     if request.method == 'POST':
         print request.POST.get("cro")
         print request.user
@@ -93,12 +94,13 @@ def view_signup(request):
                 pagante = False
                 staff = False
                 nota = request.POST.get("note")
+
+                #tODO coupon management
                 if request.POST.get("cro") == "00000000000000":
                     omaggio = True
                 else:
                     pagante = True
 
-                print "QUI"
                 if not EventSignup.objects.filter(event=event, contact=contact, staff=staff, omaggio=omaggio,
                                                   pagante=pagante, relatore=relatore):
                     signup = EventSignup(event=event, contact=contact, staff=staff, omaggio=omaggio,
