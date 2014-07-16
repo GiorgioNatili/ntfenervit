@@ -62,13 +62,17 @@
                                     {% endif %}
                                 <form  enctype="multipart/form-data" method="post" id="signup_form-{{ev.id}}" role="form" style="display: none;margin-top: 10px;background-color: #f7f7f9;padding-top: 9px;padding-right: 14px;padding-bottom: 9px;padding-left: 14px;">
                                     {% csrf_token %}
-                                 
+{#                                    TODO here to manage coupon#}
                                     <div class="row">
                                      <div  {%if ev.money == '0' %}style="display:none;"{%endif%}>
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label for="cro">Numero di CRO</label>
+                                                <label for="cro">Numero di CRO <a class="btn btn-blue" href="#">Hai un coupon?</a></label>
                                                 <input type="text" class="form-control" id="cro-{{ev.id}}" name="cro" placeholder="Numero di CRO">
+                                            </div>
+                                            <div class="form-group" id="coupon_event_signup">
+                                                <label for="coupon">Coupon</label>
+                                                <input type="text" class="form-control" id="coupon-{{ev.id}}" name="coupon" placeholder="Coupon">
                                             </div>
                         					<div class="form-group">
                         					    <label for="cro" style="margin-left: 63%;">Importo pagato</label>
@@ -723,7 +727,7 @@
                    $(this).next("form").hide();
                }
            });
-
+{#            todo here coupon management#}
           {% for ev in events %}
            $("#submitSignup-{{ev.id}}").on("click",function(e){
                 $("#cro-{{ev.id}}").val(function () {
