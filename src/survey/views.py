@@ -184,17 +184,38 @@ def report_list(request):
                               context_instance=RequestContext(request))
 
 
+def _find_contacts_not_open_survey(survey, all_submissions):
+    #all_submissions is a list of three Submission querysets
+    all_contacts = [n.contact for n in NewsletterTarget.objects.all().filter(newsletter=survey.newsletter)]
+
+    for qs in all_submissions:
+        for sub in qs:
+            # print sub.contact
+            if sub.contact in all_contacts:
+                all_contacts.remove(sub.contact)
+                # print str(sub.contact) + 'removed from negligents'
+    #all_contacts list contains only 'negligent' contacts now
+    return all_contacts
+
+
+
 @staff_member_required
-def report_detail(request, id):
-    abandoned_threshold = datetime.now() - timedelta(days=7)
-    survey = get_object_or_404(Survey, id=id)
+def report_detail(request, id_survey):
+
+    thresh = settings.SURVEY_ACTIVE_DAYS
+    abandoned_threshold = datetime.now() - timedelta(days=settings.SURVEY_ACTIVE_DAYS)
+    survey = get_object_or_404(Survey, id=id_survey)
     submissions_ = Submission.objects.all().filter(survey=survey, status=Submission.COMPLETED)
     abandoned = Submission.objects.all().filter(survey=survey, status=Submission.OPENED,
                                                 submitted_at__lt=abandoned_threshold)
+    opened = Submission.objects.all().filter(survey=survey, status=Submission.OPENED,
+                                             submitted_at__gte=abandoned_threshold)
+    contacts_not_opened = _find_contacts_not_open_survey(survey, [submissions_, abandoned, opened])
     add_counters_to_survey(abandoned_threshold, submissions_, survey)
-    counters = {'targets': survey.targets, 'submissions': survey.submissions,
+    counters = {'targets': survey.targets, 'submissions': survey.submissions, 'not_opened': len(contacts_not_opened),
                 'active': survey.active, 'abandoned': survey.abandoned, 'contacts': Contact.objects.all().count()}
     submissions2 = []
+
     for sub in submissions_:
         answers = Answer.objects.all().filter(submission=sub)
         sub.answers = answers
@@ -202,8 +223,10 @@ def report_detail(request, id):
         submissions2.append(sub)
 
     return render_to_response('admin/survey/view_report_details.html',
-                              {'survey': survey, 'submissions': submissions2, 'abandoned': abandoned,
-                               'counters': counters},
+                              {'survey': survey, 'submissions': submissions2,
+                               'abandoned': abandoned, 'opened': opened,
+                               'negligent_contacts': contacts_not_opened,
+                               'counters': counters, 'thresh': thresh},
                               context_instance=RequestContext(request))
 
 
