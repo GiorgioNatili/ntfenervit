@@ -30,6 +30,11 @@
             </a>
         </li>
         <li>
+            <a href="/admin/cabinet/{{ event.id }}/event/add" class="btn btn-blue" id="btn-add-files">
+                <i class="icon-plus icon-white"></i> Aggiungi Files
+            </a>
+        </li>
+        <li>
             <a href="/admin/campaigns/eventsignup/add" class="btn btn-blue">
                 <i class="icon-plus icon-white"></i> Aggiungi Partecipante
             </a>
@@ -362,7 +367,50 @@
     </div>
     <!-- row fluid -->
     </div>
+
+    <div class="container-fluid padded">
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Files:</span>
+                    </div>
+                    <div class="box-content">
+                        <div id="eventFileTable">
+                            <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
+                                <thead>
+                                <tr>
+                                    <th><div>Id</div></th>
+                                    <th><div>Titolo</div></th>
+                                    <th><div>File</div></th>
+                                    <th><div>Data</div></th>
+                                    <th>&nbsp;</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for eventfile in eventfiles %}
+                                    <tr>
+                                        <td>{{ eventfile.id }}</td>
+                                        <td>{{ eventfile.file.title }}</td>
+                                        <td><a href="{{ MEDIA_URL }}{{ eventfile.file.file_ref }}" target="_blank">{{ eventfile.file.file_basename }}</a></td>
+                                        <td>{{ eventfile.date_created|date:"d-m-Y" }}</td>
+
+                                        <td><a href="/admin/cabinet/{{ event.id }}/event/{{ eventfile.id }}"><i class="icon-tasks"></i></a></td>
+                                    </tr>
+
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
     <script>
+
         $(document).ready(function () {
 
             $("#abilita_email").on("click", function () {
@@ -421,6 +469,28 @@
                 imageUpload: '/ajax/photos/upload/',
                 imageGetJson: '/ajax/photos/recent/'
 
+            });
+
+            $(".dTable2").dataTable({
+                bJQueryUI:!1
+                ,bAutoWidth:!1,
+                sPaginationType:"full_numbers",
+                sDom:'<"table-header"fl>t<"table-footer"ip>',
+                "oLanguage": {
+                    "sSearch":"Cerca",
+                    "sLengthMenu": "Mostra _MENU_ righe per pagina",
+                    "sZeroRecords": "Nessun risultato trovato",
+                    "sInfo": "Risultati da _START_ a _END_ di _TOTAL_ ",
+                    "sInfoEmpty": "Mostrati da 0 a 0 di 0 records",
+                    "sInfoFiltered": "(filtrati da _MAX_ records totali)",
+                    "oPaginate":{
+                        "sFirst":"Primo",
+                        "sLast":"Ultimo",
+                        "sNext":"Prossimo",
+                        "sPrevious":"Precedente"
+
+                    }
+                }
             });
 
 

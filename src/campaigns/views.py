@@ -27,6 +27,9 @@ import uuid
 
 from django.contrib.auth.decorators import user_passes_test
 
+from cabinet.models import EventFile
+
+
 @csrf_exempt
 @require_POST
 @staff_member_required
@@ -721,6 +724,7 @@ def view_event_details(request, id):
     theme = Theme.objects.all()
     pointofsaletype = PointOfSaleType.objects.all()
     province = Province.objects.all()
+    eventfiles = EventFile.objects.filter(event=event)
     if request.method == 'POST':
         form = EventForm(request.POST, instance=event)
         if form.is_valid():
@@ -739,7 +743,8 @@ def view_event_details(request, id):
             messages.success(request,
                              'Evento \"' + new_event.date.strftime("%d-%m-%Y") + '\" aggiornato correttamente!')
             return HttpResponseRedirect('/admin/campaigns/event/'+id)
-    return render_to_response('admin/campaigns/view_event_details.html', {'event': event, 'form': form,'campaigns':campaigns,'province':province,'district':district,'areamanager':areamanager,'eventtype':eventtype,'channel':channel,'theme':theme,'pointofsaletype':pointofsaletype},
+    return render_to_response('admin/campaigns/view_event_details.html',
+                              {'event': event, 'form': form,'campaigns':campaigns,'province':province,'district':district,'areamanager':areamanager,'eventtype':eventtype,'channel':channel,'theme':theme,'pointofsaletype':pointofsaletype, 'eventfiles':eventfiles},
                               context_instance=RequestContext(request))
 
 @staff_member_required

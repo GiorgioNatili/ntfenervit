@@ -16,7 +16,8 @@ from django.test import TestCase
 from django.test.client import Client
 from django.test.utils import override_settings
 
-from cabinet.models import UserRefFile, UserCertFile
+from campaigns.models import Event, EventSignup
+from cabinet.models import EventFile, UserRefFile, UserCertFile
 
 # ToDo: add a another test to make sure user does not have access to the admin urls
 
@@ -84,10 +85,13 @@ class BaseHTMLTestCase(TestCase):
         return result
 
     def _upload_url(self, type):
-        return "/admin/cabinet/%d/%s/add" % (self.user.id, type)
+        if type == "event":
+            return "/admin/cabinet/%d/%s/add" % (self.event.id, type)
+        else:
+            return "/admin/cabinet/%d/%s/add" % (self.user.id, type)
 
-    def _edit_url(self, type, user_file_id):
-        return "/admin/cabinet/%d/%s/%d" % (self.user.id, type, user_file_id)
+    def _edit_url(self, type, file_id):
+        return "/admin/cabinet/%d/%s/%d" % (self.user.id, type, file_id)
 
     def _upload_file(self, type, **kwargs):
         """
@@ -119,8 +123,10 @@ class BaseHTMLTestCase(TestCase):
         # Customize the user_file object based on type
         if type == "ref":
             user_file_class = UserRefFile
-        else:
+        elif type == "cert":
             user_file_class = UserCertFile
+        else:
+            user_file_class = EventFile
         kwargs["cabinet"] = user_file_class.CABINET_ID
 
         # Get the url based on action
@@ -160,7 +166,10 @@ class BaseHTMLTestCase(TestCase):
         else:
             # Make sure that database entry is created
             user_file = user_file_class.objects.get(file__title=kwargs["title"])
-            self.assertEqual(user_file.user_id, kwargs["user_id"])
+            if type == "event":
+                self.assertEqual(user_file.event.id, self.event.id)
+            else:
+                self.assertEqual(user_file.user_id, kwargs["user_id"])
 
         return (user_file, kwargs, resp)
 
@@ -169,11 +178,12 @@ class CabinetAdminHTMLTestCase(BaseHTMLTestCase):
     '''
     Test Admin GUI
     '''
-    fixtures = ['initial_data', 'users_tests', 'contacts_tests']
+    fixtures = ['initial_data', 'users_tests.json', 'contacts_tests.json', 'events_tests.json']
 
     def setUp(self):
         self.admin = User.objects.get(pk=1)
         self.user = User.objects.get(pk=3)
+        self.event = Event.objects.get(pk=1)
         self.is_logged_in = self.client.login(username=self.admin.username, password="devel02")
 
 
@@ -245,13 +255,6 @@ class CabinetAdminHTMLTestCase(BaseHTMLTestCase):
         selector = "table > tbody > tr"
         tbl_rows = self._get_elements(tbl, selector=selector)
         self.assertFalse(tbl_rows, "No result expected from the Files table but got '%d' rows." % len(tbl_rows))
-
-
-
-
-    '''
-    User File Testing Common Methods
-    '''
 
 
     '''
@@ -450,19 +453,109 @@ class CabinetAdminHTMLTestCase(BaseHTMLTestCase):
         self.assertEqual(elems[0].text, "File con estensione '.ppt' non supportato.")
 
 
+    '''
+    Event Testing
+    '''
+    @override_settings(MEDIA_ROOT=TEST_MEDIA_ROOT)
+    def test30_addEventFile(self):
+        """
+        Make sure that file upload works
+        """
 
+        # Make sure that button exists in the event detail page and that point to the right page
+        url_event = "/admin/campaigns/event/%d/" % self.event.id
+        doc = self._get_elem_from_url(url_event)
+        elems = self._get_list_from_element(doc, "#btn-add-files", attr="href")
 
+        url_upload = self._upload_url("event")
+        self.assertEqual(elems, [url_upload])
+
+        # Make sure needed fields exists on the add page
+        doc = self._get_elem_from_url(url_upload)
+        for field_selector in ('#id_file_ref', '#id_title'):
+            elem = doc.cssselect(field_selector)
+            self.assertTrue(elem, "Selector '%s' should not to be empty" % field_selector)
+
+        # Upload an file
+        title = "Event File VACUI7tkcT"
+        event_file, test_data, resp = self._upload_file("event", action="add", title=title, file_path="res/certificate.png")
+        event_file_id = event_file.id
+        self.assertEqual(event_file.file.title, title)
+
+        # Make sure that file has been uploaded
+        uploaded_file = event_file.file.file_fullpath()
+        self.assertTrue(os.path.isfile(uploaded_file), "Expected local file to exists at: %s" % uploaded_file)
+        self.assertTrue(uploaded_file.startswith(TEST_MEDIA_ROOT), "Expected file to start with '%s'.  Local file: %s" % (TEST_MEDIA_ROOT, uploaded_file))
+
+        # Make sure that file can be viewed in the edit page and that title matches
+        url = self._edit_url("event", event_file_id)
+        doc = self._get_elem_from_url(url)
+
+        title = self._get_list_from_element(doc, selector="#id_title", attr="value")
+        self.assertTrue(title, "Expect title to exists.")
+        self.assertEqual(title[0], test_data["title"])
+
+        # Make sure that path shown on the page point to the same file
+        file_path = self._get_list_from_element(doc, "form#file_form > div > div > ul > li > a", attr="href")
+        self.assertTrue(file_path, "Expect path to the file to exists in the form.")
+        self.assertRegexpMatches(file_path[0], "certificate.*png$", "Expect file path to end with 'certificate.png' but got '%s'" % file_path)
+
+        # Make sure that file can be viewed in the event page and that title matches
+        doc = self._get_elem_from_url(url_event)
+
+        titles = self._get_list_from_element(doc, selector="#eventFileTable > table > tbody > tr > td:nth-child(2)", attr="object.text")
+        # self.assertTrue(title, "Expect title to exists.")
+        self.assertEqual(titles, [test_data["title"]])
+
+    @override_settings(MEDIA_ROOT=TEST_MEDIA_ROOT)
+    def test31_editEventFile(self):
+        """
+        Make sure that file edit works
+        """
+
+        # Upload an file
+        event_file, test_data, resp = self._upload_file("event", action="add", title="Editing a file gOTuW9Fj9r", file_path="res/presentation.pptx")
+        event_file_id = event_file.id
+        uploaded_file = event_file.file.file_fullpath()
+        url_edit = self._edit_url("event", event_file_id)
+
+        # Make sure that edit only title works
+        event_file, test_data_edited, resp = self._upload_file("event", action="edit", user_file_id=event_file_id, title="A file edited 6aQ7j74RAT")
+        self.assertEqual(event_file.id, event_file_id)
+        self.assertTrue(os.path.isfile(uploaded_file), "Expected local file exists: %s" % uploaded_file)
+
+        # Check GUI
+        doc = self._get_elem_from_url(url_edit)
+        title = self._get_list_from_element(doc,selector="#id_title", attr="value")
+        self.assertTrue(title, "Expect title to exists.")
+        self.assertEqual(title[0], test_data_edited["title"])
+
+        # Make sure that edit title and file works
+        event_file, test_data_edited2, resp = self._upload_file("event", action="edit", user_file_id=event_file_id, title="File changed 4dU8uLXpr2", file_path="res/presentation.pdf")
+        uploaded_file = event_file.file.file_fullpath()
+        self.assertEqual(event_file.id, event_file_id)
+
+        # Check GUI
+        doc = self._get_elem_from_url(url_edit)
+        title = self._get_list_from_element(doc,selector="#id_title", attr="value")
+        self.assertTrue(title, "Expect title to exists.")
+        self.assertEqual(title[0], test_data_edited2["title"])
+
+        # Make sure that delete works
+        event_file, test_data_deleted, resp = self._upload_file("event", action="delete", user_file_id=event_file_id)
+        self.assertFalse(os.path.isfile(uploaded_file), "Expected local file to have been deleted: %s" % uploaded_file)
 
 
 class CabinetHTMLTestCase(BaseHTMLTestCase):
     '''
     Test Admin GUI
     '''
-    fixtures = ['initial_data', 'users_tests', 'contacts_tests']
+    fixtures = ['initial_data', 'users_tests.json', 'contacts_tests.json', 'events_tests.json']
 
     def setUp(self):
         self.admin = User.objects.get(pk=1)
         self.user = self.admin
+        self.event = Event.objects.get(pk=1)
         self.is_logged_in = self.client.login(username=self.user.username, password="devel02")
 
     def test01_login(self):
@@ -540,3 +633,42 @@ class CabinetHTMLTestCase(BaseHTMLTestCase):
         # Get the entry
         elems = self._get_list_from_element(doc, selector="#cert_table > tbody > tr > td > span.label-danger", attr="object.text")
         self.assertEqual(elems, ["scaduto"])
+
+    def test05_eventFile(self):
+        '''
+        Make sure event files are shown correctly in the GUI
+        '''
+
+        # Upload normal files
+        ref_titles = ["Event File q2S4HwpBaL", "Another Event foeO1et5QU"]
+        ref_files = []
+
+        res_ref = self._upload_file("event", action="add", title=ref_titles[0], file_path="res/presentation.pdf")
+        res_url = res_ref[0].file.file_ref.url
+        self.assertRegexpMatches(res_url, "presentation.*pdf$")
+        ref_files.append(res_url)
+
+        res_ref = self._upload_file("event", action="add", title=ref_titles[1], file_path="res/presentation.pptx")
+        res_url = res_ref[0].file.file_ref.url
+        self.assertRegexpMatches(res_url, "presentation.*pptx$")
+        ref_files.append(res_url)
+
+        # Go to the frontend
+        url = "/frontend/main/"
+        doc = self._get_elem_from_url(url)
+
+        # Check event files
+        elems = self._get_list_from_element(doc, selector="#ref_table > tbody > tr > td > a", attr="object.text")
+        self.assertEqual(elems, ref_titles)
+
+        elems = self._get_list_from_element(doc, selector="#ref_table > tbody > tr > td > a", attr="href")
+        self.assertEqual(elems, ref_files)
+
+        # Clear the sign up flag and file should no longer showup
+        signup = EventSignup.objects.get(event=self.event, contact__owner=self.user)
+        signup.presence = False
+        signup.save()
+
+        doc = self._get_elem_from_url(url)
+        elems = self._get_list_from_element(doc, selector="#ref_table > tbody > tr > td > a")
+        self.assertEqual(len(elems), 0, "No files should exist if presence flag is not set on the event signup object.")

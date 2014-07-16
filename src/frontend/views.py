@@ -30,7 +30,8 @@ from email.mime.text import MIMEText
 import mimetypes
 from django.conf import settings
 from django.utils.encoding import smart_str, smart_unicode
-from cabinet.models import UserRefFile, UserCertFile
+from campaigns.models import EventSignup
+from cabinet.models import EventFile, UserRefFile, UserCertFile
 
 class ContactForm(forms.Form):
     name = forms.CharField(error_messages={'required': 'Inserire il proprio nome'})
@@ -200,9 +201,28 @@ def view_main(request):
             my_contact = Contact(name=form.cleaned_data["name"], surname=form.cleaned_data["surname"], street=form.cleaned_data["street"], province=province,
                                  birthdate = form.cleaned_data["birthdate"],sex = form.cleaned_data["sex"], city=form.cleaned_data["city"], zip=form.cleaned_data["zip"], civic = form.cleaned_data["civic"], email=form.cleaned_data["email"], phone_number=form.cleaned_data["phone_number"], work=work, code = form.cleaned_data["code"], owner = request.user)
             my_contact.save()
+
     work_str = "0"
+    event_files = []
+
     if contact:
-        work_str = str(contact[0].work.id)
+        contact_entry = contact[0]
+        work_str = str(contact_entry.work.id)
+
+        # Search for event files
+        files = []
+        # print "### Searching for contact_id: %s" % contact_entry.code
+        for signup in EventSignup.objects.filter(contact=contact_entry, presence=True):
+            # print "### Searching for file for event: %s [%d]" % (signup, signup.event_id)
+            for file in EventFile.objects.filter(event=signup.event):
+                # print "### Found file: %s" % file
+                files.append(file)
+
+        # Not sure why EventSignup allow for duplicate signup per event, as result,
+        # need to create a unique list of files per user
+        # ToDo: Find out why EventSignup allow for duplicate signup and fix it if bug and remove the create of the unique list below
+        event_files = set(files)
+
     return render_to_response(
         'frontend/main.html',
         {
@@ -214,6 +234,7 @@ def view_main(request):
             "signups": signups,
             "work_str": work_str,
             "ref_files": ref_files,
+            "event_files": event_files,
             "cert_files": cert_files
         },
         context_instance=RequestContext(request)

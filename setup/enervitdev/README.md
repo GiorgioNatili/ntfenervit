@@ -41,7 +41,7 @@ After code and db deployment is completed, you must update Whoosh index and rest
 
 ```
 cd /var/www/test
-manage.py update_index
+sudo -u www-data DJANGO_SETTINGS_MODULE=yellowPage.settings_test ./manage.py update_index
 sudo service apache2 restart
 ```
 
