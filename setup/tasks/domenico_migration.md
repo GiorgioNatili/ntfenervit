@@ -4,6 +4,10 @@ Note for Production Migration
 ## New `coupon` app
 * Added a new INSTALLED_APPS called coupon
 
+#Added a field max_date DateField
+ 
+#Modified the field its_user into backend_user (changed the FK)
+
 ## Added a settings for Survey
 
     #SURVEY app

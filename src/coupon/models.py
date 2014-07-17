@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from django.db import models
 from campaigns.models import Event
 # Create your models here.
@@ -9,7 +10,8 @@ class CouponSet(models.Model):
         verbose_name_plural = "Pacchetti Coupon"
     event = models.ForeignKey('campaigns.Event', blank=False, null=False, verbose_name="Evento")
     size = models.PositiveIntegerField(null=False, verbose_name="Numero coupons")
-    its_area = models.ForeignKey('campaigns.AreaIts', blank=True, null=True)
+    owner = models.ForeignKey(User)
+    max_date = models.DateField(blank=False, null=False)
 
     def __repr__(self):
         return 'SerieCoupon_%d__Evento_%d' % (self.id, self.event.id)

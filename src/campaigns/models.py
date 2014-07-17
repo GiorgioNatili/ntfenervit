@@ -170,6 +170,7 @@ class PointOfSaleType(models.Model):
         verbose_name = "Tipologia Punto Vendita"
         verbose_name_plural = "Tipologia Punto Vendita"
 
+#TODO TO prune because not used any longer
 class EventCoupon(models.Model):
     event = models.ForeignKey('campaigns.Event',blank=False,null=False,verbose_name="Evento")
     coupon = models.CharField(max_length=14,blank=False, null=False,verbose_name="Omaggio")

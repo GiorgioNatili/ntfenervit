@@ -35,21 +35,28 @@
                                 <div class="span6">
                                     <ul class="padded separate-sections">
                                         <li class="input">
+                                        <input type="hidden" name="event" value="{{ event.id }}"/>
                                             <label>Evento: {% if event.title %}{{ event.title }}{% else %}
                                                 {{ event.description }}{% endif %} </label>
                                         </li>
-                                        <li><label for="its_sel">ITS</label>
-                                            <select id="its_sel" class="chzn-select" name="its">
-                                                {% for pos in its %}
-                                                    <option value="{{ pos.id }}"
-                                                            {% if pos.id == event.districtmanager.id %}
-                                                            selected="selected"{% endif %}>{{ pos }}</option>
+                                        <li><label for="owner">Utente backend a cui assegnare il pacchetto:</label>
+                                            {{ form.owner.errors }}
+                                            <select id="owner" class="chzn-select" name="owner">
+                                                <option value="-1">------</option>
+                                                {% for pos in staff_users %}
+                                                    <option value="{{ pos.id }}">{{ pos.first_name }} {{ pos.last_name }} ({{ pos.email }} {{ pos }})</option>
                                                 {% endfor %}
                                             </select></li>
                                         <li class="input">
                                             <label>Quantità: <i>(max 150)</i></label>
-                                            <input id="qt" name="qt" type="number" min="1" max="150" placeholder="da 1 a 150"
-                                                   value="100"/>
+                                            {{ form.size.errors }}
+                                            <input id="qt" name="size" type="number" min="1" max="150"
+                                                   placeholder="da 1 a 150" value="{{ form.instance.size|default_if_none:'' }}"/>
+                                        </li>
+                                        <li class="input">
+                                            <label>Data di scadenza coupon: </label>
+                                            {{ form.max_date.errors }}
+                                            <input id="date" type="text" name="max_date" data-prompt-position="topLeft" placeholder="Data" value="{{ form.instance.max_date|default_if_none:'' }}"/>
                                         </li>
 
 
@@ -70,58 +77,13 @@
         </div>
         <!-- row fluid -->
 
-
-
-{#        #NOT USED ANYMORE#}
-        <div class="row-fluid" id="codeList">
-            <div class="row-fluid">
-                <div class="span12">
-                    <div class="box">
-                        <div class="box-header">
-                            <span class="title">Codici</span>
-                            <ul class="object-tools form-inline pull-right inline">
-                                <li>
-                                    <a href="#" id="saveAndExport" class="btn btn-blue">
-                                        <i class="icon-plus icon-white"></i> Salva
-                                    </a>
-                                </li>
-                            </ul>
-                        </div>
-                        <div class="box-content">
-                            <div id="dataTables">
-                                <table class="table table-normal">
-                                    <thead>
-                                    <tr>
-                                        <th></th>
-                                    </tr>
-                                    </thead>
-                                    <tbody id="tbody">
-
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
     <script>
-        function makeid(lenght) {
-            var text = "";
-            var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-            for (var i = 0; i < lenght; i++)
-                text += possible.charAt(Math.floor(Math.random() * possible.length));
-
-            return text.toLowerCase();
-        }
 
         $(document).ready(function () {
+            $("#date" ).datepicker({"language":"it","format":"dd/mm/yyyy"});
             var event = "{{ event.id }}";
-            var codes = [];
-            $("#codeList").hide();
 
             $(".active").removeClass("active");
             $("#eventsMenu").addClass("active");
