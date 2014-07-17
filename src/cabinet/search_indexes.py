@@ -1,4 +1,5 @@
 from haystack import indexes
+from django.core.exceptions import ObjectDoesNotExist
 from contacts.models import Contact
 from cabinet.models import UserCertFile
 
@@ -32,7 +33,11 @@ class UserCertFileIndex(indexes.SearchIndex, indexes.Indexable):
 
         # Append the contact detail to the end of the text
         # ToDo: Ideally, the UserFile object should modified to contain `contact` instead of `user`, making contact lookup below unecessary
-        contact = Contact.objects.get(owner=object.user)
+        try:
+            contact = Contact.objects.get(owner=object.user)
+        except ObjectDoesNotExist:
+            contact = None
+
         if contact:
             self.prepared_data['user_id'] = object.user.id
             self.prepared_data['title'] = object.file.title
@@ -55,5 +60,20 @@ class UserCertFileIndex(indexes.SearchIndex, indexes.Indexable):
 
             self.prepared_data['text'] = contact_text
             #print "### prepared_data: %s" % self.prepared_data['text']
+        else:
+            self.prepared_data['user_id'] = object.user.id
+            self.prepared_data['title'] = object.file.title
+            self.prepared_data['cert_file_id'] = object.pk
+            self.prepared_data['file_url'] = object.file.file_ref.url
+            self.prepared_data['file_name'] = object.file.file_basename()
+            # self.prepared_data["duration_code"] = object.duration_code
+
+            contact_text = "\n".join([
+                self.prepared_data['title'],
+                self.prepared_data['file_name'],
+                object.expiry.strftime("%d-%m-%Y")
+            ])
+
+            self.prepared_data['text'] = contact_text
 
         return self.prepared_data
