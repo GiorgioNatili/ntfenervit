@@ -37,6 +37,14 @@ cd /var/www/test
 manage.py ...
 ```
 
+Create `whoosh_index` if not exists:
+
+```
+cd /var/www/test/yellowPage
+mkdir whoosh_index
+sudo chown www-data:www-data whoosh_index
+```
+
 After code and db deployment is completed, you must update Whoosh index and restart webserver by doing:
 
 ```
