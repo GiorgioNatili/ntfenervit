@@ -320,9 +320,7 @@ def search_certificate(request):
             if entry and entry.pk not in result_ids:
                 result_ids.add(entry.pk)
                 results.append(entry)
-                print "### Certificate Entry Found: %s" % entry.duration_code
-
-
+                # print "### Certificate Entry Found: %s" % entry.duration_code
     # print "### Search Results: %s" % results
 
     return render_to_response("admin/search/search_certificate.html", { 'form': form, 'results': results })
