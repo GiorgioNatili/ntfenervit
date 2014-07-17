@@ -45,7 +45,10 @@
                                             <div>Quantità</div>
                                         </th>
                                         <th>
-                                            <div>ITS</div>
+                                            <div>Proprietario</div>
+                                        </th>
+                                        <th>
+                                            <div>Data Scadenza</div>
                                         </th>
                                         <th>
                                             <div>Usati</div>
@@ -59,7 +62,8 @@
                                         <tr>
                                             <td>{{ coupon_set.id }}</td>
                                             <td>{{ coupon_set.size }}</td>
-                                            <td>{{ coupon_set.its_area }}</td>
+                                            <td>{{ coupon_set.owner }}</td>
+                                            <td>{{ coupon_set.max_date }}</td>
                                             <td>{{ coupon_set.used }}/{{ coupon_set.size }}</td>
                                             <td><a href="{% url 'view_couponset' coupon_set.id event.id%}"><i class="icon-tasks"></i></a></td>
                                         </tr>

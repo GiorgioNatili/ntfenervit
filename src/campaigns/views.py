@@ -120,6 +120,7 @@ class EventTypeForm(ModelForm):
     class Meta:
         model = EventType
 
+#TODO TO prune because not used any longer
 class EventCouponForm(ModelForm):
     class Meta:
         model = EventCoupon

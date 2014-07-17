@@ -4,6 +4,8 @@ Note for Production Migration
 ## New `coupon` app
 * Added a new INSTALLED_APPS called coupon
 
+
+
 ## Added a settings for Survey
 
     #SURVEY app
@@ -13,3 +15,15 @@ Note for Production Migration
     # last access to the survey to be considered
     # as Active (in corso)
     SURVEY_ACTIVE_DAYS = 15
+    
+## To drop coupon_* tables and do syncdb again (branch coupon_CR_1)
+#Added a field max_date DateField
+ 
+#Modified the field its_user into owner (changed the FK to User)
+
+## To add FK to coupons in EventSignup table after merging of branch coupon_CR_1
+
+    coupon = models.ForeignKey('coupon.Coupon', null=True)
+    
+    ALTER TABLE campaigns_eventsignup ADD COLUMN `coupon_id` integer
+    CREATE INDEX `campaigns_eventsignup_606a82fc` ON `campaigns_eventsignup` (`coupon_id`);

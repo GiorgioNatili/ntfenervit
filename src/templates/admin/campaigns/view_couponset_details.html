@@ -51,9 +51,9 @@
                                     </thead>
                                     <tbody>
                                     {% for coupon in coupons %}
-                                        <tr>
+                                        <tr {% if coupon.used %}style="background: #e7c3c3"{% endif %}>
                                             <td>{{ coupon.id }}</td>
-                                            <td>{{ coupon.used }} {% if coupon.assigned_to %}{{ coupon.assigned_to }} {% endif %}</td>
+                                            <td >{{ coupon.used }} {% if coupon.assigned_to %} - ({{ coupon.assigned_to }} {{ coupon.assigned_to.email }}) {% endif %}</td>
                                             <td>{{ coupon }}</td>
                                             <td><a title="cancella singolo coupon" href="{% url 'delete_single_coupon' coupon.id %}"><i class="icon-minus-sign"></i></a></td>
                                         </tr>

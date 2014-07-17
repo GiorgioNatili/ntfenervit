@@ -32,6 +32,8 @@ from django.conf import settings
 from django.utils.encoding import smart_str, smart_unicode
 from campaigns.models import EventSignup
 from cabinet.models import EventFile, UserRefFile, UserCertFile
+from coupon.models import Coupon
+
 
 class ContactForm(forms.Form):
     name = forms.CharField(error_messages={'required': 'Inserire il proprio nome'})
@@ -70,13 +72,18 @@ def view_home(request):
                               context_instance=RequestContext(request))
 
 
+def _is_valid_coupon(coupon):
+    pass
+
 @login_required(login_url="/")
 def view_signup(request):
     import json
     response_data = {}
-    # TODO coupon management
     if request.method == 'POST':
+        print "CRO"
         print request.POST.get("cro")
+        print "COUPON"
+        print request.POST.get("coupon")
         print request.user
         print request.user.email
         print request.POST.get("note")
@@ -95,18 +102,48 @@ def view_signup(request):
                 staff = False
                 nota = request.POST.get("note")
 
-                #tODO coupon management
-                if request.POST.get("cro") == "00000000000000":
-                    omaggio = True
+                error_coupon = True
+                if request.POST.get("coupon") != '':
+                    #ENERVITXXXXXZZZYYYY
+                    coupon = None
+
+                    try:
+                        id_event_coupon = int(request.POST.get("coupon")[8:10])
+                        id_coupon = int(request.POST.get("coupon")[9:14])
+                        print id_coupon
+                        coupon = Coupon.objects.get(pk=id_coupon)
+                        print coupon.coupon_bulk.max_date
+                        print datetime.date.today()
+                        if coupon and coupon.is_valid(event.id):
+                        # if coupon and not coupon.used and id_event_coupon == event.id and coupon.coupon_bulk.max_date > datetime.date.today():
+                            print coupon.coupon_bulk.max_date
+                            print datetime.datetime.now()
+                            omaggio = True
+                            coupon.assigned_to = contact
+                            coupon.used = True
+                            coupon.save()
+                            error_coupon = False
+                        else:
+                            msg = ''
+                            if coupon.used:
+                                msg += 'usato!'
+                            if id_event_coupon != event.id:
+                                msg += 'id event !'+str(id_event_coupon)+' different from '+str(event.id)
+                            if coupon.coupon_bulk.max_date < datetime.date.today():
+                                msg += 'scaduto'
+                            response_data["error"] = "[ERRORE] Problemi con il coupon. Contattare l'assistenza!!! " + msg
+                    except ValueError:
+                        response_data["error"] = "[ERRORE] Problemi con il coupon. Contattare l'assistenza!!!"+ msg
                 else:
                     pagante = True
 
                 if not EventSignup.objects.filter(event=event, contact=contact, staff=staff, omaggio=omaggio,
-                                                  pagante=pagante, relatore=relatore):
+                                                  pagante=pagante, relatore=relatore) and not error_coupon:
                     signup = EventSignup(event=event, contact=contact, staff=staff, omaggio=omaggio,
-                                         pagante=pagante, note=nota,relatore=relatore)
+                                         pagante=pagante, note=nota, relatore=relatore, coupon=coupon)
                     signup.save()
-                if pagante:		   
+
+                if pagante:
                     type = request.POST.get("money") #event.money
                     print "TYPE" + type
                     way = request.POST.get("cro")
@@ -124,8 +161,9 @@ def view_signup(request):
                                            vat=vat)
                     payment.save()
 
-                response_data["success"] = "Iscrizione effettuata. Ti verra' inviata una mail di conferma!"
-                sendConfirmation(event,contact)
+                if 'error' not in response_data:
+                    response_data["success"] = "Iscrizione effettuata. Ti verra' inviata una mail di conferma!"
+                    sendConfirmation(event,contact)
             else:
                 response_data["error"] = "[ERRORE] Problemi nella registrazione. Contattare l'assistenza!!!"
     return HttpResponse(json.dumps(response_data), mimetype="application/json")
