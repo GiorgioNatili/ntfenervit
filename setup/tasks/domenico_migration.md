@@ -21,7 +21,7 @@ Note for Production Migration
  
 #Modified the field its_user into owner (changed the FK to User)
 
-## To add FK to coupons in EventSignup table
+## To add FK to coupons in EventSignup table after merging of branch coupon_CR_1
 
     coupon = models.ForeignKey('coupon.Coupon', null=True)
     
