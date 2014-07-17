@@ -114,9 +114,9 @@ class CabinetModelTestCase(TestCase):
         )
         self.assertRaises(IntegrityError, user_cert.save)
 
-    def test12_userCertFile_is_valid(self):
+    def test12_userCertFile_expiry(self):
         '''
-        Check certificate is valid logic
+        Check certificate is valid logic and duration
         '''
         today = datetime.date.today()
 
@@ -129,20 +129,63 @@ class CabinetModelTestCase(TestCase):
         )
         user_cert.save()
         self.assertTrue(user_cert.is_valid, "Expected certificate with '%s' expiry to be valid." % expiry)
+        self.assertEqual(user_cert.duration, 0, "Expected expiry '%s' to result in duration of '0' but got '%s'" % (expiry,user_cert.duration))
+        self.assertEqual(user_cert.duration_code, "1y-", "Expected expiry '%s' to result in duration of '1y-' but got '%s'" % (expiry,user_cert.duration_code))
 
         # Set certificate to expire today, and should be valid
         user_cert.expiry = today
         user_cert.save()
         self.assertTrue(user_cert.is_valid, "Expected certificate to be valid on the expiry day.")
+        self.assertEqual(user_cert.duration, 0, "Expected expiry '%s' to result in duration of '0' but got '%s'" % (expiry,user_cert.duration))
+        self.assertEqual(user_cert.duration_code, "1y-", "Expected expiry '%s' to result in duration of '1y-' but got '%s'" % (expiry,user_cert.duration_code))
 
-        # Set the expiry to 10 days from ago, and should be invalid
+        # Set the expiry to 10 days ago, and should be invalid
         expiry = today - datetime.timedelta(10)
         user_cert.expiry = expiry
         user_cert.save()
         self.assertFalse(user_cert.is_valid, "Expected certificate with '%s' expiry NOT to be valid." % expiry)
+        self.assertEqual(user_cert.duration, -1, "Expected expiry '%s' to result in duration of '-1' but got '%s'" % (expiry,user_cert.duration))
+        self.assertEqual(user_cert.duration_code, "expired", "Expected expiry '%s' to result in duration of 'expired' but got '%s'" % (expiry,user_cert.duration_code))
 
+        # Set the expiry to 1 year from now, and should be invalid
+        expiry = today + datetime.timedelta(365 + 10)
+        user_cert.expiry = expiry
+        user_cert.save()
+        self.assertTrue(user_cert.is_valid, "Expected certificate with '%s' expiry be valid." % expiry)
+        self.assertEqual(user_cert.duration, 1, "Expected expiry '%s' to result in duration of '1' but got '%s'" % (expiry,user_cert.duration))
+        self.assertEqual(user_cert.duration_code, "1y-", "Expected expiry '%s' to result in duration of '1y-' but got '%s'" % (expiry,user_cert.duration_code))
 
+        # Set the expiry to 2 years from ago, and should be invalid
+        expiry = today + datetime.timedelta(365 * 2 + 10)
+        user_cert.expiry = expiry
+        user_cert.save()
+        self.assertTrue(user_cert.is_valid, "Expected certificate with '%s' expiry be valid." % expiry)
+        self.assertEqual(user_cert.duration, 2, "Expected expiry '%s' to result in duration of '2' but got '%s'" % (expiry,user_cert.duration))
+        self.assertEqual(user_cert.duration_code, "2y", "Expected expiry '%s' to result in duration of '2y' but got '%s'" % (expiry,user_cert.duration_code))
 
+        # Set the expiry to 3 years from ago, and should be invalid
+        expiry = today + datetime.timedelta(365 * 3 + 10)
+        user_cert.expiry = expiry
+        user_cert.save()
+        self.assertTrue(user_cert.is_valid, "Expected certificate with '%s' expiry be valid." % expiry)
+        self.assertEqual(user_cert.duration, 3, "Expected expiry '%s' to result in duration of '3' but got '%s'" % (expiry,user_cert.duration))
+        self.assertEqual(user_cert.duration_code, "3y", "Expected expiry '%s' to result in duration of '3y' but got '%s'" % (expiry,user_cert.duration_code))
+
+        # Set the expiry to 4 years from ago, and should be invalid
+        expiry = today + datetime.timedelta(365 * 4 + 10)
+        user_cert.expiry = expiry
+        user_cert.save()
+        self.assertTrue(user_cert.is_valid, "Expected certificate with '%s' expiry be valid." % expiry)
+        self.assertEqual(user_cert.duration, 4, "Expected expiry '%s' to result in duration of '4' but got '%s'" % (expiry,user_cert.duration))
+        self.assertEqual(user_cert.duration_code, "4y+", "Expected expiry '%s' to result in duration of '4y+' but got '%s'" % (expiry,user_cert.duration_code))
+
+        # Set the expiry to 7 years from ago, and should be invalid
+        expiry = today + datetime.timedelta(365 * 7 + 10)
+        user_cert.expiry = expiry
+        user_cert.save()
+        self.assertTrue(user_cert.is_valid, "Expected certificate with '%s' expiry be valid." % expiry)
+        self.assertEqual(user_cert.duration, 7, "Expected expiry '%s' to result in duration of '7' but got '%s'" % (expiry,user_cert.duration))
+        self.assertEqual(user_cert.duration_code, "4y+", "Expected expiry '%s' to result in duration of '4y+' but got '%s'" % (expiry,user_cert.duration_code))
 
     def test20_EventFile(self):
         '''

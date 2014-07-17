@@ -154,6 +154,7 @@ urlpatterns = patterns('',
     url(r'^admin/search/newsletterexport/$','campaigns.views.search_newsletter_export'),
     url(r'^admin/search/event/$','campaigns.views.search_event'),
     url(r'^admin/search/eventexport/$','campaigns.views.search_event_export'),
+    url(r'^admin/search/certificate/$','cabinet.views.search_certificate'),
 
     url(r'^admin/campaigns/registro','campaigns.views.view_registro'),
     url(r'^admin/campaigns/eventpresence/export/(\d+)/$', 'campaigns.views.view_export_presence'),

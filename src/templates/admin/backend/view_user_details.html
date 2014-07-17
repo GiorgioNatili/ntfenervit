@@ -151,7 +151,7 @@
                                                         <td>{{ refile.file.title }}</td>
                                                         <td>{{ refile.event }}</td>
                                                         <td><a href="{{ MEDIA_URL }}{{ refile.file.file_ref }}" target="_blank">{{ refile.file.file_basename }}</a></td>
-                                                        <td>{{ refile.date_created|date:"d-m-Y" }}</td>
+                                                        <td>{{ refile.date_created|date:'d-m-Y H:i:s' }}</td>
 
                                                         <td><a href="/admin/cabinet/{{ usr.id }}/ref/{{ refile.id }}"><i class="icon-tasks"></i></a></td>
                                                     </tr>
@@ -198,9 +198,9 @@
                                                     <tr>
                                                         <td>{{ certfile.id }}</td>
                                                         <td>{{ certfile.file.title }}</td>
-                                                        <td>{{ certfile.expiry }}</td>
+                                                        <td>{{ certfile.expiry|date:"d-m-Y" }}</td>
                                                         <td><a href="{{ MEDIA_URL }}{{ certfile.file.file_ref }}" target="_blank">{{ certfile.file.file_basename }}</a></td>
-                                                        <td>{{ certfile.date_created|date:"d-m-Y" }}</td>
+                                                        <td>{{ certfile.date_created|date:'d-m-Y H:i:s' }}</td>
 
                                                         <td><a href="/admin/cabinet/{{ usr.id }}/cert/{{ certfile.id }}"><i class="icon-tasks"></i></a></td>
                                                     </tr>

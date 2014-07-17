@@ -4,6 +4,7 @@ Model for keeping track of uploaded files
 
 import os
 import datetime
+from dateutil.relativedelta import relativedelta
 
 from django.db import IntegrityError
 from django.template.defaultfilters import slugify
@@ -102,6 +103,40 @@ class UserCertFile(UserFile):
             return self.expiry >= datetime.date.today()
         else:
             return False
+
+    @property
+    def duration(self):
+        """
+        Return duration in years
+        :return: integer, -1 for invalid certificate
+        """
+        if self.is_valid:
+            return relativedelta(self.expiry, datetime.date.today()).years
+        else:
+            return -1
+
+    @property
+    def duration_code(self):
+        """
+        Return following code:
+        expired: duration = -1
+        1y-:      duration = 0 or 1
+        2y:       duration = 2
+        3y:       duration = 3
+        4y+:      duration >= 4
+        :return: string
+        """
+        duration = self.duration
+        if duration == -1:
+            return "expired"
+        elif duration <= 1:
+            return "1y-"
+        elif duration == 2:
+            return "2y"
+        elif duration == 3:
+            return "3y"
+        else:
+            return "4y+"
 
 
 

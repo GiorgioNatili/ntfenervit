@@ -11,6 +11,7 @@ from django.http import HttpResponseRedirect
 from django.contrib.auth.decorators import user_passes_test
 from django.forms import Form, ModelForm
 from django import forms
+from haystack.forms import ModelSearchForm
 
 from cabinet.models import UploadedFile, UserFile, EventFile, UserRefFile, UserCertFile
 
@@ -48,6 +49,7 @@ class EventFileForm(UploadedFileForm):
     ALLOWED_EXTS = frozenset(['.ppt', '.pptx', '.pps', '.ppsx', '.doc', '.docx', '.pdf', '.tif', '.tiff', '.png'])
     class Meta(UploadedFileForm.Meta):
         pass
+
 
 
 class ViewUserFileUtil(object):
@@ -284,3 +286,43 @@ def view_event_file_add(request, event_id):
 def view_event_file(request, event_id, id):
     return ViewUserFile(request, event_id, type, id)
 
+
+'''
+SEARCH
+'''
+class CertSearchForm(ModelSearchForm):
+    models = [ UserCertFile ]
+    title = forms.CharField(max_length=100,required=False)
+    duration_code = forms.CharField(max_length=10, required=False)
+
+    def no_query_found(self):
+        return self.searchqueryset
+
+    def search(self):
+        sqs = super(CertSearchForm,self).search()
+
+        if not self.is_valid():
+            return self.no_query_found()
+
+        if self.cleaned_data['title']:
+            sqs = sqs.filter(title__startswith = self.cleaned_data['title'])
+        if self.cleaned_data['duration_code']:
+            sqs = sqs.filter(duration_code = self.cleaned_data['duration_code'])
+        return sqs
+
+def search_certificate(request):
+    form = CertSearchForm(request.GET)
+    result_ids = set()
+    results = []
+    if request.GET.has_key('q'):
+        res = form.search()
+        for entry in res:
+            if entry and entry.pk not in result_ids:
+                result_ids.add(entry.pk)
+                results.append(entry)
+                print "### Certificate Entry Found: %s" % entry.duration_code
+
+
+    # print "### Search Results: %s" % results
+
+    return render_to_response("admin/search/search_certificate.html", { 'form': form, 'results': results })
