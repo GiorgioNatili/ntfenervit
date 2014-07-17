@@ -230,7 +230,7 @@ class Event(models.Model):
         verbose_name = 'Evento'
         verbose_name_plural = 'Eventi'
 
-#TODO Coupon usage here T387
+
 class EventSignup(models.Model):
     event = models.ForeignKey('campaigns.Event',blank=False,null=False,verbose_name="Evento")
     contact = models.ForeignKey('contacts.Contact',blank=False,null=False,verbose_name="Contatto")
@@ -241,6 +241,7 @@ class EventSignup(models.Model):
     pagante = models.BooleanField(verbose_name="Pagante",default=False)
     note = models.CharField(verbose_name="Note",max_length=250,blank=True,null=True)
     presence = models.BooleanField(verbose_name="Presente",default=False)
+    coupon = models.ForeignKey('coupon.Coupon', null=True)
     def __unicode__(self):
         return '%s %s' % (self.event, self.contact)
 
@@ -248,7 +249,7 @@ class EventSignup(models.Model):
         verbose_name = "Iscrizione evento"
         verbose_name_plural = "Iscrizioni eventi"
 
-#TODO Coupon usage here T387
+
 class EventPayment(models.Model):
     type = models.CharField(max_length=20,blank=True,null=True,verbose_name="Pagamento")
     way = models.CharField(max_length=30,blank=True,null=True,verbose_name="Modalita\'")

@@ -14,7 +14,7 @@ from django.contrib import messages
 
 
 def write_sheet_couponset(couponset, wb):
-    ws = wb.add_sheet('Serie coupon %d assegnata a %s' % (couponset.id, couponset.owner))
+    ws = wb.add_sheet('Serie %d assegnata a %s' % (couponset.id, couponset.owner))
     ws.write(0, 0, 'Owner')
     ws.write(0, 1, 'Coupon')
     ws.write(0, 2, 'Usato')
@@ -22,11 +22,15 @@ def write_sheet_couponset(couponset, wb):
     coupons = couponset.coupons.all()
     row = 1
     for coupon in coupons:
-        ws.write(row, 0, coupon.owner)
+        ws.write(row, 0, '%s %s %s' % (couponset.owner.first_name,
+                                       couponset.owner.last_name,
+                                       couponset.owner.email))
         ws.write(row, 1, str(coupon))
-        ws.write(row, 2, coupon.used)
+        ws.write(row, 2, str(coupon.used))
         if coupon.used:
-            ws.write(row, 3, coupon.assigned_to)
+            ws.write(row, 3, '%s %s %s' % (coupon.assigned_to.name,
+                                           coupon.assigned_to.surname,
+                                           coupon.assigned_to.email))
         else:
             ws.write(row, 3, '')
         row += 1
@@ -65,7 +69,6 @@ def view_eventcoupon(request):
 
 @staff_member_required
 def view_couponbyevent(request, id_event):
-
     event = get_object_or_404(Event, id=id_event)
     coupon_sets = CouponSet.objects.all().filter(event=event)
     for cs in coupon_sets:
