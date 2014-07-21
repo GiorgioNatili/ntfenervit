@@ -101,11 +101,11 @@ def view_signup(request):
                 pagante = False
                 staff = False
                 nota = request.POST.get("note")
-
+                coupon = None
                 error_coupon = False
                 if request.POST.get("coupon") != '':
                     #ENERVITXXXXXZZZYYYY
-                    coupon = None
+
 
                     try:
                         id_event_coupon = int(request.POST.get("coupon")[8:10])
