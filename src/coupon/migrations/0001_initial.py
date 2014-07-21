@@ -8,31 +8,32 @@ from django.db import models
 class Migration(SchemaMigration):
 
     def forwards(self, orm):
-        # Adding field 'Event.emailcontent'
-        db.add_column(u'campaigns_event', 'emailcontent',
-                      self.gf('redactor.fields.RedactorField')(null=True, blank=True),
-                      keep_default=False)
+        # Adding model 'CouponSet'
+        db.create_table(u'coupon_couponset', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('event', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['campaigns.Event'])),
+            ('size', self.gf('django.db.models.fields.PositiveIntegerField')()),
+            ('owner', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['auth.User'])),
+            ('max_date', self.gf('django.db.models.fields.DateField')()),
+        ))
+        db.send_create_signal(u'coupon', ['CouponSet'])
 
-        # Adding field 'Event.emailattachment'
-        db.add_column(u'campaigns_event', 'emailattachment',
-                      self.gf('django.db.models.fields.files.FileField')(max_length=100, null=True, blank=True),
-                      keep_default=False)
-
-        # Adding field 'Event.is_public'
-        db.add_column(u'campaigns_event', 'is_public',
-                      self.gf('django.db.models.fields.BooleanField')(default=False),
-                      keep_default=False)
+        # Adding model 'Coupon'
+        db.create_table(u'coupon_coupon', (
+            (u'id', self.gf('django.db.models.fields.AutoField')(primary_key=True)),
+            ('coupon_bulk', self.gf('django.db.models.fields.related.ForeignKey')(related_name='coupons', to=orm['coupon.CouponSet'])),
+            ('assigned_to', self.gf('django.db.models.fields.related.ForeignKey')(to=orm['contacts.Contact'], null=True)),
+            ('used', self.gf('django.db.models.fields.BooleanField')(default=False)),
+        ))
+        db.send_create_signal(u'coupon', ['Coupon'])
 
 
     def backwards(self, orm):
-        # Deleting field 'Event.emailcontent'
-        db.delete_column(u'campaigns_event', 'emailcontent')
+        # Deleting model 'CouponSet'
+        db.delete_table(u'coupon_couponset')
 
-        # Deleting field 'Event.emailattachment'
-        db.delete_column(u'campaigns_event', 'emailattachment')
-
-        # Deleting field 'Event.is_public'
-        db.delete_column(u'campaigns_event', 'is_public')
+        # Deleting model 'Coupon'
+        db.delete_table(u'coupon_coupon')
 
 
     models = {
@@ -65,6 +66,17 @@ class Migration(SchemaMigration):
             'user_permissions': ('django.db.models.fields.related.ManyToManyField', [], {'to': u"orm['auth.Permission']", 'symmetrical': 'False', 'blank': 'True'}),
             'username': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '30'})
         },
+        u'campaigns.areaits': {
+            'Meta': {'object_name': 'AreaIts'},
+            'description': ('django.db.models.fields.CharField', [], {'max_length': '250'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'})
+        },
+        u'campaigns.areamanager': {
+            'Meta': {'object_name': 'AreaManager'},
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'name': ('django.db.models.fields.CharField', [], {'max_length': '250'}),
+            'surname': ('django.db.models.fields.CharField', [], {'max_length': '250'})
+        },
         u'campaigns.campaign': {
             'Meta': {'object_name': 'Campaign'},
             'description': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
@@ -74,107 +86,58 @@ class Migration(SchemaMigration):
             'startdate': ('django.db.models.fields.DateField', [], {}),
             'status': ('django.db.models.fields.CharField', [], {'default': "'N'", 'max_length': '1'})
         },
+        u'campaigns.channel': {
+            'Meta': {'object_name': 'Channel'},
+            'description': ('django.db.models.fields.CharField', [], {'max_length': '250'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'})
+        },
         u'campaigns.event': {
             'Meta': {'object_name': 'Event'},
+            'areamanager': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['campaigns.AreaManager']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'}),
             'campaign': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['campaigns.Campaign']", 'null': 'True', 'blank': 'True'}),
+            'channel': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['campaigns.Channel']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'}),
             'date': ('django.db.models.fields.DateField', [], {}),
             'description': ('django.db.models.fields.CharField', [], {'max_length': '500', 'null': 'True', 'blank': 'True'}),
+            'districtmanager': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['campaigns.AreaIts']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'}),
             'emailattachment': ('django.db.models.fields.files.FileField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
             'emailcontent': ('redactor.fields.RedactorField', [], {'null': 'True', 'blank': 'True'}),
             'enddate': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
+            'eventtype': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['campaigns.EventType']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'}),
+            'feedback': ('django.db.models.fields.SmallIntegerField', [], {'null': 'True', 'blank': 'True'}),
+            'feedback_note': ('django.db.models.fields.CharField', [], {'max_length': '500', 'null': 'True', 'blank': 'True'}),
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'is_public': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
             'money': ('django.db.models.fields.CharField', [], {'max_length': '250', 'null': 'True', 'blank': 'True'}),
             'money_description': ('django.db.models.fields.CharField', [], {'max_length': '500', 'null': 'True', 'blank': 'True'}),
             'payment': ('django.db.models.fields.CharField', [], {'max_length': '500', 'null': 'True', 'blank': 'True'}),
             'place': ('django.db.models.fields.CharField', [], {'max_length': '250', 'null': 'True', 'blank': 'True'}),
-            'title': ('django.db.models.fields.CharField', [], {'max_length': '250', 'null': 'True', 'blank': 'True'})
+            'pointofsale': ('django.db.models.fields.CharField', [], {'max_length': '6', 'null': 'True', 'blank': 'True'}),
+            'pointofsaledescription': ('django.db.models.fields.CharField', [], {'max_length': '250', 'null': 'True', 'blank': 'True'}),
+            'population': ('django.db.models.fields.IntegerField', [], {'null': 'True', 'blank': 'True'}),
+            'province': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['contacts.Province']", 'null': 'True', 'blank': 'True'}),
+            'saleenddate': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
+            'salestartdate': ('django.db.models.fields.DateField', [], {'null': 'True', 'blank': 'True'}),
+            'salevalue': ('django.db.models.fields.CharField', [], {'max_length': '250', 'null': 'True', 'blank': 'True'}),
+            'signups_enabled': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
+            'theme': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['campaigns.Theme']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'}),
+            'title': ('django.db.models.fields.CharField', [], {'max_length': '250', 'null': 'True', 'blank': 'True'}),
+            'trainer': ('django.db.models.fields.CharField', [], {'max_length': '250', 'null': 'True', 'blank': 'True'}),
+            'typepointofsale': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['campaigns.PointOfSaleType']", 'null': 'True', 'on_delete': 'models.SET_NULL', 'blank': 'True'})
         },
-        u'campaigns.eventpayment': {
-            'Meta': {'object_name': 'EventPayment'},
-            'city': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True'}),
-            'code': ('django.db.models.fields.CharField', [], {'max_length': '16'}),
-            'contact': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['contacts.Contact']", 'null': 'True'}),
-            'event': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['campaigns.Event']", 'null': 'True'}),
-            'executor': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'note': ('django.db.models.fields.CharField', [], {'max_length': '250', 'null': 'True', 'blank': 'True'}),
-            'province': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['contacts.Province']", 'null': 'True'}),
-            'street': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True'}),
-            'type': ('django.db.models.fields.CharField', [], {'max_length': '20', 'null': 'True', 'blank': 'True'}),
-            'vat': ('django.db.models.fields.CharField', [], {'max_length': '16'}),
-            'way': ('django.db.models.fields.CharField', [], {'max_length': '30', 'null': 'True', 'blank': 'True'}),
-            'zip': ('django.db.models.fields.CharField', [], {'max_length': '6', 'null': 'True'})
+        u'campaigns.eventtype': {
+            'Meta': {'object_name': 'EventType'},
+            'description': ('django.db.models.fields.CharField', [], {'max_length': '250'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'})
         },
-        u'campaigns.eventsignup': {
-            'Meta': {'object_name': 'EventSignup'},
-            'contact': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['contacts.Contact']"}),
-            'event': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['campaigns.Event']"}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'note': ('django.db.models.fields.CharField', [], {'max_length': '250', 'null': 'True', 'blank': 'True'}),
-            'omaggio': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'pagante': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'presence': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'relatore': ('django.db.models.fields.BooleanField', [], {'default': 'False'}),
-            'relatore_payment': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'staff': ('django.db.models.fields.BooleanField', [], {'default': 'False'})
+        u'campaigns.pointofsaletype': {
+            'Meta': {'object_name': 'PointOfSaleType'},
+            'description': ('django.db.models.fields.CharField', [], {'max_length': '250'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'})
         },
-        u'campaigns.image': {
-            'Meta': {'object_name': 'Image'},
-            'date_created': ('django.db.models.fields.DateTimeField', [], {'default': 'datetime.datetime.now'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'is_image': ('django.db.models.fields.BooleanField', [], {'default': 'True'}),
-            'upload': ('django.db.models.fields.files.FileField', [], {'max_length': '100'})
-        },
-        u'campaigns.newsletter': {
-            'Meta': {'object_name': 'Newsletter'},
-            'author': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']", 'null': 'True', 'blank': 'True'}),
-            'campaign': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['campaigns.Campaign']"}),
-            'content': ('redactor.fields.RedactorField', [], {}),
-            'description': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
-            'enddate': ('django.db.models.fields.DateField', [], {}),
-            'event': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['campaigns.Event']", 'null': 'True', 'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '100'}),
-            'slug': ('django.db.models.fields.SlugField', [], {'unique': 'True', 'max_length': '100'}),
-            'startdate': ('django.db.models.fields.DateField', [], {}),
-            'status': ('django.db.models.fields.CharField', [], {'default': "'D'", 'max_length': '1'}),
-            'subject': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'testcontact': ('django.db.models.fields.EmailField', [], {'max_length': '75'})
-        },
-        u'campaigns.newsletterattachment': {
-            'Meta': {'object_name': 'NewsletterAttachment'},
-            'description': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
-            'file': ('django.db.models.fields.files.FileField', [], {'max_length': '100'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'newsletter': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['campaigns.Newsletter']"})
-        },
-        u'campaigns.newsletterschedulation': {
-            'Meta': {'object_name': 'NewsletterSchedulation'},
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'newsletter': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['campaigns.Newsletter']"}),
-            'report_email': ('django.db.models.fields.EmailField', [], {'max_length': '75'}),
-            'send_date': ('django.db.models.fields.DateTimeField', [], {}),
-            'status': ('django.db.models.fields.CharField', [], {'default': "'W'", 'max_length': '1'})
-        },
-        u'campaigns.newslettertarget': {
-            'Meta': {'object_name': 'NewsletterTarget'},
-            'contact': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['contacts.Contact']"}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'newsletter': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['campaigns.Newsletter']"})
-        },
-        u'campaigns.newslettertemplate': {
-            'Meta': {'object_name': 'NewsletterTemplate'},
-            'content': ('redactor.fields.RedactorField', [], {}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '100'})
-        },
-        u'campaigns.survey': {
-            'Meta': {'object_name': 'Survey'},
-            'description': ('django.db.models.fields.CharField', [], {'max_length': '200', 'null': 'True', 'blank': 'True'}),
-            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
-            'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '100'}),
-            'newsletter': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['campaigns.Newsletter']"})
+        u'campaigns.theme': {
+            'Meta': {'object_name': 'Theme'},
+            'description': ('django.db.models.fields.CharField', [], {'max_length': '250'}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'})
         },
         u'contacts.company': {
             'Meta': {'object_name': 'Company'},
@@ -259,7 +222,22 @@ class Migration(SchemaMigration):
             u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
             'model': ('django.db.models.fields.CharField', [], {'max_length': '100'}),
             'name': ('django.db.models.fields.CharField', [], {'max_length': '100'})
+        },
+        u'coupon.coupon': {
+            'Meta': {'object_name': 'Coupon'},
+            'assigned_to': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['contacts.Contact']", 'null': 'True'}),
+            'coupon_bulk': ('django.db.models.fields.related.ForeignKey', [], {'related_name': "'coupons'", 'to': u"orm['coupon.CouponSet']"}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'used': ('django.db.models.fields.BooleanField', [], {'default': 'False'})
+        },
+        u'coupon.couponset': {
+            'Meta': {'object_name': 'CouponSet'},
+            'event': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['campaigns.Event']"}),
+            u'id': ('django.db.models.fields.AutoField', [], {'primary_key': 'True'}),
+            'max_date': ('django.db.models.fields.DateField', [], {}),
+            'owner': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['auth.User']"}),
+            'size': ('django.db.models.fields.PositiveIntegerField', [], {})
         }
     }
 
-    complete_apps = ['campaigns']
+    complete_apps = ['coupon']
