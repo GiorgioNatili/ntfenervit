@@ -9,3 +9,7 @@ except ImportError:
             kwargs.pop('thumbnail', None)
             kwargs.pop('extra_thumbnails', None)
             super(ImageWithThumbnailsField, self).__init__(*args, **kwargs)
+
+
+from south.modelsinspector import add_introspection_rules
+add_introspection_rules([], ["^survey\.fields\.ImageWithThumbnailsField"])

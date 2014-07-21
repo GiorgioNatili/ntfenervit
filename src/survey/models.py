@@ -70,8 +70,9 @@ class LiveSurveyManager(models.Manager):
         return super(LiveSurveyManager, self).get_query_set().filter(
             is_published=True,
             starts_at__lte=now).filter(~models.Q(archive_policy__exact=ARCHIVE_POLICY_CHOICES.NEVER) |
-            models.Q(ends_at__isnull=True) |
-            models.Q(ends_at__gt=now))
+                                       models.Q(ends_at__isnull=True) |
+                                       models.Q(ends_at__gt=now))
+
 
 FORMAT_CHOICES = ('json', 'csv', 'xml', 'html',)
 
@@ -92,12 +93,12 @@ class Survey(models.Model):
 
     require_login = models.BooleanField(default=False, verbose_name="Richiede il login?")
     allow_multiple_submissions = models.BooleanField(default=False, verbose_name="Puo\' essere rifatto?")
-    moderate_submissions = models.BooleanField(
-        default=local_settings.MODERATE_SUBMISSIONS,
-        help_text=_(u"Se selezionata, tutte le richieste saranno  NON pubbliche e "
-                    "si dovra\' manualmente renderle pubbliche. "
-                    "Se il sondaggio non mostra alcun risultato, e\' possibile che questa opzione sia selezionata.",
-        ), verbose_name="Moderazione delle risposte?")
+    moderate_submissions = models.BooleanField(default=local_settings.MODERATE_SUBMISSIONS,
+                                               help_text=_(
+                                                   u"Se selezionata, tutte le richieste saranno  NON pubbliche e "
+                                                   "si dovra\' manualmente renderle pubbliche. "
+                                                   "Se il sondaggio non mostra alcun risultato, e\' possibile che questa opzione sia selezionata.",
+                                               ), verbose_name="Moderazione delle risposte?")
     allow_comments = models.BooleanField(
         default=False,
         help_text="Permetti il commento all\'invio",
@@ -157,14 +158,14 @@ class Survey(models.Model):
 
     @property
     def is_open(self):
-        now = timezone.now()  #datetime.datetime.now()
+        now = timezone.now()  # datetime.datetime.now()
         if self.ends_at:
             return self.starts_at <= now < self.ends_at
         return self.starts_at <= now
 
     @property
     def is_live(self):
-        now = timezone.now()  #datetime.datetime.now()
+        now = timezone.now()  # datetime.datetime.now()
         return all([
             self.is_published,
             self.starts_at <= now,
@@ -827,7 +828,7 @@ class Answer(models.Model):
         else:
             self.text_answer = v
 
-        # return get, set
+            # return get, set
 
     value = property(get, set)
 
