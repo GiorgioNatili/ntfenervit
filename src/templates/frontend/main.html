@@ -63,25 +63,27 @@
                                 <form  enctype="multipart/form-data" method="post" id="signup_form-{{ev.id}}" role="form" style="display: none;margin-top: 10px;background-color: #f7f7f9;padding-top: 9px;padding-right: 14px;padding-bottom: 9px;padding-left: 14px;">
                                     {% csrf_token %}
                                     <div class="row">
-                                    <input type="hidden" value="{{ ev.money }}" id="moneyhidden-{{ev.id}}" />
-                                     <div  {%if ev.money == '0' %}style="display:none;"{%endif%}>
+                                        <input type="hidden" value="{{ ev.money }}" id="moneyhidden-{{ev.id}}" />
+                                        <div  {%if ev.money == '0' %}style="display:none;"{%endif%}>
                                         <div class="col-md-6">
                                                 <ul class="nav nav-tabs" id="cro_coupon_tabs">
-                                                    <li class="active"><a id="active_cro" href="#cro_event_signup">CRO</a></li>
-                                                    <li><a href="#coupon_event_signup">Hai un coupon?</a></li>
+                                                    <li class="active"><a  data-toggle="tab" id="active_cro" href="#cro_event_signup-{{ev.id}}">CRO</a></li>
+                                                    <li><a data-toggle="tab" href="#coupon_event_signup-{{ev.id}}">Hai un coupon?</a></li>
                                                 </ul>
                                                 <div class="tab-content">
-                                                    <div class="tab-pane fade in active" id="cro_event_signup">
+                                                    {#    TAB CRO #}
+                                                    <div class="tab-pane fade in active" id="cro_event_signup-{{ev.id}}">
                                                         <div class="form-group ">
-                                                        <label for="cro">Numero di CRO </label>
-                                                        <input type="text" class="form-control" id="cro-{{ev.id}}" name="cro" placeholder="Numero di CRO">
-                                                            </div>
+                                                            <label for="cro">Numero di CRO </label>
+                                                            <input type="text" class="form-control" id="cro-{{ev.id}}" name="cro" placeholder="Numero di CRO">
+                                                         </div>
                                                         <div class="form-group ">
                                                             <label for="money">Importo pagato</label>
                                                             <input style="display:inline;width:20%" type="text" class="form-control" id="money-{{ev.id}}" name="money" value="{{ev.money}}" placeholder="{{ev.money}}">
                                                         </div>
                                                     </div>
-                                                    <div class="tab-pane fade in" id="coupon_event_signup">
+                                                    {#    TAB COUPON #}
+                                                    <div class="tab-pane fade in" id="coupon_event_signup-{{ev.id}}">
                                                         <div class="form-group ">
                                                             <label for="coupon">Coupon</label>
                                                             <input type="text" class="form-control" id="coupon-{{ev.id}}" name="coupon" placeholder="COUPONXXXXXXXXXXX">
@@ -573,8 +575,8 @@
 
 {% endblock %}
 {% block additionalscripts %}
-    <script src="{{ STATIC_URL }}frontend/js/date.js"><!-- ff --></script>
-    <script src="{{ STATIC_URL }}frontend/js/jquery.maskedinput.min.js"><!-- ff --></script>
+    <script src="{{ STATIC_URL }}frontend/js/date.js"></script>
+    <script src="{{ STATIC_URL }}frontend/js/jquery.maskedinput.min.js"></script>
     <script>
         $(function() {
 
@@ -589,7 +591,7 @@
                 return re.test(email);
             }
 
-           var bdate = "{{ contact.0.birthdate }}"
+           var bdate = "{{ contact.0.birthdate }}";
 
            $(document).on("ready",function(){
             $("#active_cro").tab('show');
@@ -606,6 +608,7 @@
 
              $('#menu a').click(function (e) {
                    e.preventDefault();
+                   alert(this);
                    $(this).tab('show');
               });
 

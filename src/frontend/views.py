@@ -138,8 +138,10 @@ def view_signup(request):
                     #event.money == 0 or CRO
                     pagante = True
 
-                if not EventSignup.objects.filter(event=event, contact=contact, staff=staff, omaggio=omaggio,
-                                                  pagante=pagante, relatore=relatore) and not error_coupon:
+                already_signedup = EventSignup.objects.filter(event=event, contact=contact, staff=staff, omaggio=omaggio, pagante=pagante, relatore=relatore).count() > 0
+                print already_signedup
+                if not already_signedup and not error_coupon:
+                    print 'signing up'
                     signup = EventSignup(event=event, contact=contact, staff=staff, omaggio=omaggio,
                                          pagante=pagante, note=nota, relatore=relatore, coupon=coupon)
                     signup.save()
