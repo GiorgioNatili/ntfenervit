@@ -62,8 +62,8 @@
                                     {% endif %}
                                 <form  enctype="multipart/form-data" method="post" id="signup_form-{{ev.id}}" role="form" style="display: none;margin-top: 10px;background-color: #f7f7f9;padding-top: 9px;padding-right: 14px;padding-bottom: 9px;padding-left: 14px;">
                                     {% csrf_token %}
-{#                                    TODO here to manage coupon#}
                                     <div class="row">
+                                    <input type="hidden" value="{{ ev.money }}" id="moneyhidden-{{ev.id}}" />
                                      <div  {%if ev.money == '0' %}style="display:none;"{%endif%}>
                                         <div class="col-md-6">
                                                 <ul class="nav nav-tabs" id="cro_coupon_tabs">
@@ -751,7 +751,6 @@
                    $(this).next("form").hide();
                }
            });
-{#            todo here coupon management#}
           {% for ev in events %}
            $("#submitSignup-{{ev.id}}").on("click",function(e){
                 $("#cro-{{ev.id}}").val(function () {
@@ -767,7 +766,7 @@
                 var provincia=$("#provincia-{{ev.id}}").val();
                 var piva=$("#piva-{{ev.id}}").val();
                 var codefiscale=$("#codefiscale-{{ev.id}}").val();
-
+                var money=parseInt($("#moneyhidden-{{ev.id}}").val());
                 var valid=false;
                 if (coupon.length>0 && coupon.length!=18) {
                         valid=false;
@@ -775,9 +774,11 @@
                   }
                 if (cro.length==0) {
                     valid=true;
-                    if (coupon.length!=18) {
-                        valid=false;
-                        alert("Coupon non valido.");
+                    if (money > 0) {
+                        if (coupon.length != 18) {
+                            valid = false;
+                            alert("Coupon non valido.");
+                        }
                     }
                 } else if (cro.length<11) {
                     alert("Il CRO deve essere di minimo 11 caratteri alfanumerici.");

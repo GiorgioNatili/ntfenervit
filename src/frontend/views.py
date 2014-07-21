@@ -91,7 +91,7 @@ def view_signup(request):
         print request.POST.get("money")
         event = Event.objects.filter(id=request.POST.get("event"))[0]
         contact = Contact.objects.all().filter(owner=request.user)[0]
-        if EventSignup.objects.all().filter(event=event,contact=contact):
+        if EventSignup.objects.all().filter(event=event, contact=contact):
             response_data["error"] = "L'utente risulta gia' regolarmente iscritto all'evento"
         else:
             print "Non iscritto"
@@ -103,9 +103,8 @@ def view_signup(request):
                 nota = request.POST.get("note")
                 coupon = None
                 error_coupon = False
-                if request.POST.get("coupon") != '':
+                if request.POST.get("coupon") != '' and event.money > 0:
                     #ENERVITXXXXXZZZYYYY
-
 
                     try:
                         id_event_coupon = int(request.POST.get("coupon")[8:10])
@@ -136,6 +135,7 @@ def view_signup(request):
                         error_coupon = True
                         response_data["error"] = "[ERRORE] Problemi con il coupon. Contattare l'assistenza!!!"+ msg
                 else:
+                    #event.money == 0 or CRO
                     pagante = True
 
                 if not EventSignup.objects.filter(event=event, contact=contact, staff=staff, omaggio=omaggio,
