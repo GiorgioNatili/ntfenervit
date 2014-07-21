@@ -102,7 +102,7 @@ def view_signup(request):
                 staff = False
                 nota = request.POST.get("note")
 
-                error_coupon = True
+                error_coupon = False
                 if request.POST.get("coupon") != '':
                     #ENERVITXXXXXZZZYYYY
                     coupon = None
@@ -115,7 +115,6 @@ def view_signup(request):
                         print coupon.coupon_bulk.max_date
                         print datetime.date.today()
                         if coupon and coupon.is_valid(event.id):
-                        # if coupon and not coupon.used and id_event_coupon == event.id and coupon.coupon_bulk.max_date > datetime.date.today():
                             print coupon.coupon_bulk.max_date
                             print datetime.datetime.now()
                             omaggio = True
@@ -124,6 +123,7 @@ def view_signup(request):
                             coupon.save()
                             error_coupon = False
                         else:
+                            error_coupon = True
                             msg = ''
                             if coupon.used:
                                 msg += 'usato!'
@@ -133,6 +133,7 @@ def view_signup(request):
                                 msg += 'scaduto'
                             response_data["error"] = "[ERRORE] Problemi con il coupon. Contattare l'assistenza!!! " + msg
                     except ValueError:
+                        error_coupon = True
                         response_data["error"] = "[ERRORE] Problemi con il coupon. Contattare l'assistenza!!!"+ msg
                 else:
                     pagante = True
