@@ -579,10 +579,12 @@ def view_signups(request):
                               context_instance=RequestContext(request))
 
 @staff_member_required
-def view_signup_by_event(request,eventid):
-    event= Event.objects.all().filter(id=eventid)[0]
+def view_signup_by_event(request, eventid):
+    event = Event.objects.get(pk=eventid)
+    payments_qs = EventPayment.objects.filter(event=event)
+    payments = {str(row.contact): row.way for row in payments_qs}
     signups = EventSignup.objects.all().filter(event=event)
-    return render_to_response('admin/campaigns/view_signup_by_event.html', {'signups': signups},
+    return render_to_response('admin/campaigns/view_signup_by_event.html', {'signups': signups, 'payments': payments},
                               context_instance=RequestContext(request))
 @staff_member_required
 def view_signup_details(request,signupid):
