@@ -22,5 +22,5 @@
 # m h  dom mon dow   command
 #* * * * * python /var/www/yellowpagetest/manage.py sendmassive >> /var/www/yellowpagetest/log_massive
 0 * * * * python /var/www/yellowpage/manage.py update_index 
-12 * * * * su -c "DJANGO_SETTINGS_MODULE=yellowPage.settings_test python /var/www/test/manage.py update_index" www-data
+12 * * * * su -c "DJANGO_SETTINGS_MODULE=yellowPage.settings_test python /var/www/test/manage.py update_index --remove" www-data
 
