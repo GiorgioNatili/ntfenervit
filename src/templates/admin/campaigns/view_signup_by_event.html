@@ -1,5 +1,5 @@
 {% extends "admin/base_site.html" %}
-{% load i18n admin_static bootstrapped_goodies_tags %}
+{% load i18n admin_static bootstrapped_goodies_tags dict_access%}
 {% block icon-detail %}<i class="icon-ok"></i>{% endblock %}
 {% block content_title %}Evento del {{ signups.0.event.date|date:"d F Y" }} - {% if signups.0.event.title %}{{ signups.0.event.title }}{% else %} {{ signups.0.event.description }}{% endif %}{% endblock %}
 {% block content_subtitle %}<h5>Registro Iscrizioni</h5>{% endblock %}
@@ -33,7 +33,7 @@
                                     <th><div>Email</div></th>
                                     <th><div>Telefono</div></th>
                                     <th><div>Indirizzo</div></th>
-                                    <th><div>Attributo</div></th>
+                                    <th><div>Coupon / CRO</div></th>
                                     <th>&nbsp;</th>
                                 </tr>
                                 </thead>
@@ -49,9 +49,11 @@
                                         <td>{% if signup.staff %}
                                             Staff
                                         {% elif signup.omaggio %}
-                                            Omaggio {% if signup.note %}({{ signup.note }}){% endif %}
+                                            Coupon {{ signup.coupon }}<br />
+                                            ({{ signup.coupon.coupon_bulk.owner.get_full_name }})
                                         {% elif signup.pagante %}
-                                            Pagante
+
+                                            {{ payments|get_item:signup.contact }}
                                         {% endif %}
                                         </td>
 

@@ -34,7 +34,7 @@
                                             <span class="text-success" style="font-weight: bold;">Pagante {% if payment %}(cro: {{ payment.way }}, importo: {{ signup.event.money }}){% endif %}</span>
 
                                             {% elif signup.omaggio %}
-                                            <span class="text-success" style="font-weight: bold;">Omaggio</span>
+                                            <span class="text-success" style="font-weight: bold;">Omaggio {{ signup.coupon }} (assegnato da {{ signup.coupon.coupon_bulk.owner.get_full_name }})</span>
                                             {% elif signup.relatore %}
                                             <span class="text-success" style="font-weight: bold;">Relatore</span>
                                             {% elif signup.staff %}
