@@ -11,7 +11,7 @@ mysqldump --no-create-info --complete-insert yellowpagedb -r <<filename>>
 
 ```
 drop database if exists yellowpage_local;
-create database if not exists yellowpage_local DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci;
+create database if not exists yellowpage_local DEFAULT CHARACTER SET latin1;
 
 # drop user 'enervit_devuser'@localhost;
 create user 'enervit_devuser'@localhost identified by 'v22ghIqnqH';
@@ -75,3 +75,46 @@ manage.py shell
 >>> u.save()
 ```
 
+
+Prepping Test DB to Test Prod Turnover
+======================================
+
+### DB
+
+```
+drop database if exists yellowpagedev;
+create database if not exists yellowpagedev DEFAULT CHARACTER SET latin1;
+
+grant all on yellowpagedev.* to 'enervitdev'@localhost;
+
+# Following needed for unit test
+GRANT CREATE, DROP ON yellowpagedev.* TO 'enervitdev'@localhost;
+```
+
+Update with prod data
+```
+mysql --database yellowpagedev <  20140721_prod_db.sql
+```
+
+
+### Update Code Base
+
+Update code code:
+
+```
+cd ~enervitdev/dev/ntfenervit/
+git pull
+setup/deploy_test.sh
+
+cd /var/www/test
+```
+
+Next step is to follow instruction in the (ProdRelease.md)[./ProdRelease.md] except for `Update Index` section,
+which should be done using the commands below:
+
+```
+cd /var/www/test/
+sudo -u www-data rm /var/www/test/yellowPage/whoosh_index/*
+sudo -u www-data DJANGO_SETTINGS_MODULE=yellowPage.settings_test ./manage.py update_index
+
+```
