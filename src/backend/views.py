@@ -12,8 +12,6 @@ from django.contrib.auth.models import User,Group,Permission
 from django.contrib.auth.decorators import user_passes_test
 from django.forms import ModelForm,forms
 
-from cabinet.models import UserRefFile, UserCertFile
-
 from contacts.models import Contact
 
 class UserForm(ModelForm):
@@ -40,8 +38,6 @@ def user_list(request):
 @user_passes_test(lambda u:u.is_superuser)
 def user_details(request,id):
     user = get_object_or_404(User,id=id)
-    refiles = UserRefFile.objects.filter(user_id=id)
-    certfiles = UserCertFile.objects.filter(user_id=id)
     contact = None
     gruppo = None
     print user.groups.all()
@@ -65,7 +61,7 @@ def user_details(request,id):
             messages.success(request, 'Utente \"' + new_user.username + '\" aggiornato correttamente!')
             return HttpResponseRedirect('/admin/backend/utenti')
     return render_to_response('admin/backend/view_user_details.html',
-                              {'usr': user, 'form': form,'contact':contact,'ugruppo':gruppo,"gruppi":gruppi, "refiles": refiles, "certfiles": certfiles},
+                              {'usr': user, 'form': form,'contact':contact,'ugruppo':gruppo,"gruppi":gruppi},
                               context_instance=RequestContext(request))
 
 @user_passes_test(lambda u:u.is_superuser)

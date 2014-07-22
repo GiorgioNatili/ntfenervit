@@ -7,3 +7,7 @@ Note for Production Migration
 
 ## New `status` column in `survey_submission`
 * sql used: `alter table survey_submission add column status smallint(6);`
+
+
+## Index update need a `--remove` option added
+* manage.py update_index --remove

@@ -23,14 +23,13 @@
             <div class="span12">
 
                 <div class="box">
+                    <!-- Navigation Tab -->
                     <div class="box-header">
-
                         <ul class="nav nav-tabs nav-tabs-left">
                             <li id="contactTab" class="active"><a href="#" data-toggle="tab"><i class="icon-book"></i>Contatto</a></li>
                             <li id="mapTab"><a href="#" data-toggle="tab"><i class="icon-map-marker"></i>Mappa</a></li>
-
+                            <li id="filesTab"><a href="#" data-toggle="tab"><i class="icon-file"></i>Allegati</a></li>
                         </ul>
-
                         <ul class="box-toolbar">
                             <li>
                                 <a href="#" id="hideDetails"><i class="icon-arrow-up"></i> Nascondi
@@ -38,39 +37,8 @@
                             </li>
                         </ul>
                     </div>
-                    <div class="box-content" id="mapDetails" style="display: none;">
-                        <div id="map-canvas"></div>
-                        <div class="row-fluid">
-                            <div class="span6">
-                                <form name="findRoute" action="">
-                                    <div class="row-fluid"> <!-- contenitore form -->
-                                        <!-- primo tab -->
-                                        <div class="span6">
-                                            <ul class="padded separate-sections">
-                                                <li><label><span style="font-weight: bold;">Calcola Percorso</span></label></li>
-                                                <li>
-                                                    <label>Indirizzo di Partenza</label>
-                                                    <input type="text" name="partenza" id="partenza" placeholder="Indirizzo di partenza" />
 
-                                                </li>
-                                                <li>
-                                                    <label>Indirizzo di Arrivo</label>
-                                                    <input type="text" name="arrivo" id="arrivo" placeholder="Indirizzo di arrivo" value="{{ contact.street }} {{ contact.civic }} {{ contact.city }}" />
-
-                                                </li>
-                                                <li>
-                                                    <button name="calcola" id="calcola" class="btn btn-blue">Calcola</button>
-                                                </li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                </form>
-                            </div>
-                            <div class="span6">
-                                <div id="route" style="background-color: #fff;padding: 5px;border: 1px solid #999;height: 100%;float: right;overflow: auto;"></div>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Contact Tab -->
                     <div class="box-content" id="contactDetails">
                         <form class="fill-up validatable" enctype="multipart/form-data" method="post" id="contact_form">
                             {% csrf_token %}
@@ -262,6 +230,141 @@
                             </div>
                         </form>
                     </div>
+
+                    <!-- Map Tab -->
+                    <div class="box-content" id="mapDetails" style="display: none;">
+                        <div id="map-canvas"></div>
+                        <div class="row-fluid">
+                            <div class="span6">
+                                <form name="findRoute" action="">
+                                    <div class="row-fluid"> <!-- contenitore form -->
+                                        <!-- primo tab -->
+                                        <div class="span6">
+                                            <ul class="padded separate-sections">
+                                                <li><label><span style="font-weight: bold;">Calcola Percorso</span></label></li>
+                                                <li>
+                                                    <label>Indirizzo di Partenza</label>
+                                                    <input type="text" name="partenza" id="partenza" placeholder="Indirizzo di partenza" />
+
+                                                </li>
+                                                <li>
+                                                    <label>Indirizzo di Arrivo</label>
+                                                    <input type="text" name="arrivo" id="arrivo" placeholder="Indirizzo di arrivo" value="{{ contact.street }} {{ contact.civic }} {{ contact.city }}" />
+
+                                                </li>
+                                                <li>
+                                                    <button name="calcola" id="calcola" class="btn btn-blue">Calcola</button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="span6">
+                                <div id="route" style="background-color: #fff;padding: 5px;border: 1px solid #999;height: 100%;float: right;overflow: auto;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Files Tab -->
+                    <div class="box-content" id="fileDetails" style="display: none;">
+                        <div class="container-fluid padded">
+                            <div class="row-fluid">
+                                <div class="span12">
+                                    <div class="box">
+                                        <div class="box-header">
+                                            <span class="title">Certificati</span>
+                                            <ul class="object-tools form-inline pull-right inline">
+                                                <li>
+                                                    <button id="addCertFile" class="btn btn-blue">
+                                                        <i class="icon-plus icon-white"></i> Aggiungi
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <div class="box-content">
+                                            <div id="certFileTable">
+                                                <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
+                                                    <thead>
+                                                    <tr>
+                                                        <th><div>Id</div></th>
+                                                        <th><div>Titolo</div></th>
+                                                        <th><div>Scadenza</div></th>
+                                                        <th><div>File</div></th>
+                                                        <th><div>Data</div></th>
+                                                        <th>&nbsp;</th>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                    {% for certfile in certfiles %}
+                                                        <tr>
+                                                            <td>{{ certfile.id }}</td>
+                                                            <td>{{ certfile.file.title }}</td>
+                                                            <td>{{ certfile.expiry|date:"d-m-Y" }}</td>
+                                                            <td><a href="{{ MEDIA_URL }}{{ certfile.file.file_ref }}" target="_blank">{{ certfile.file.file_basename }}</a></td>
+                                                            <td>{{ certfile.date_created|date:'d-m-Y H:i:s' }}</td>
+
+                                                            <td><a href="/admin/cabinet/{{ contact.code }}/cert/{{ certfile.id }}?hash=filesTab"><i class="icon-tasks"></i></a></td>
+                                                        </tr>
+
+                                                    {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div> <!-- end "container-fluid padded" for Certificati -->
+
+                        <div class="container-fluid padded">
+                            <div class="row-fluid">
+                                <div class="span12">
+                                    <div class="box">
+                                        <div class="box-header">
+                                            <span class="title">Files</span>
+                                            <ul class="object-tools form-inline pull-right inline">
+                                                <li>
+                                                    <button id="addRefFile" class="btn btn-blue">
+                                                        <i class="icon-plus icon-white"></i> Aggiungi
+                                                    </button>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                        <div class="box-content">
+                                            <div id="refFileTable">
+                                                <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
+                                                    <thead>
+                                                    <tr>
+                                                        <th><div>Id</div></th>
+                                                        <th><div>Titolo</div></th>
+                                                        <th><div>File</div></th>
+                                                        <th><div>Data</div></th>
+                                                        <th>&nbsp;</th>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                    {% for refile in refiles %}
+                                                        <tr>
+                                                            <td>{{ refile.id }}</td>
+                                                            <td>{{ refile.file.title }}</td>
+                                                            <td><a href="{{ MEDIA_URL }}{{ refile.file.file_ref }}" target="_blank">{{ refile.file.file_basename }}</a></td>
+                                                            <td>{{ refile.date_created|date:'d-m-Y H:i:s' }}</td>
+
+                                                            <td><a href="/admin/cabinet/{{ contact.code }}/ref/{{ refile.id }}?hash=filesTab"><i class="icon-tasks"></i></a></td>
+                                                        </tr>
+
+                                                    {% endfor %}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div> <!-- end "container-fluid padded" for Files -->
+
+                    </div>
                 </div> <!-- end box -->
             </div> <!-- span 12 -->
         </div><!-- row fluid -->
@@ -272,151 +375,150 @@
                 <span class="title">Storia</span>
             </div>
 
-        <div class="row-fluid" style="margin-top: 20px;">
-            <div class="span6">
-                <div class="box">
-                    <div class="box-header">
-                        <span class="title">Destinatario newsletter</span>
-                    </div>
-                    <div class="box-content">
-                        <div id="newsletterDataTables">
-                            <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
-                                <thead>
-                                <tr>
-                                    <th>
-                                        <div>Id</div>
-                                    </th>
-                                    <th>
-                                        <div>Denominazione</div>
-                                    </th>
-                                    <th>
-                                        <div>Campagna</div>
-                                    </th>
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {% for nl in newsletter_target %}
+            <div class="row-fluid" style="margin-top: 20px;">
+                <div class="span6">
+                    <div class="box">
+                        <div class="box-header">
+                            <span class="title">Destinatario newsletter</span>
+                        </div>
+                        <div class="box-content">
+                            <div id="newsletterDataTables">
+                                <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
+                                    <thead>
                                     <tr>
-                                        <td>{{ nl.newsletter.id }}</td>
-                                        <td>{{ nl.newsletter.name }}</td>
-                                        <td>{{ nl.newsletter.campaign }}</td>
+                                        <th>
+                                            <div>Id</div>
+                                        </th>
+                                        <th>
+                                            <div>Denominazione</div>
+                                        </th>
+                                        <th>
+                                            <div>Campagna</div>
+                                        </th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for nl in newsletter_target %}
+                                        <tr>
+                                            <td>{{ nl.newsletter.id }}</td>
+                                            <td>{{ nl.newsletter.name }}</td>
+                                            <td>{{ nl.newsletter.campaign }}</td>
+
+                                        </tr>
+
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="span6">
+                    <div class="box">
+                        <div class="box-header">
+                            <span class="title">Eventi</span>
+                        </div>
+                        <div class="box-content">
+                            <div id="dataTables">
+                                <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
+                                    <thead>
+                                    <tr>
+                                        <th>
+                                            <div>Id</div>
+                                        </th>
+                                        <th>
+                                            <div>Data</div>
+                                        </th>
+                                        <th>
+                                            <div>Descrizione</div>
+                                        </th>
+                                        <th>
+                                            <div>Attributo</div>
+                                        </th>
+                                        <th>
+                                            <div>Presente</div>
+                                        </th>
 
                                     </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for event in event_signup %}
+                                        <tr>
+                                            <td>{{ event.event.id }}</td>
+                                            <td>{{ event.event.date|date:"d-m-Y" }}</td>
+                                            <td>{% if event.event.title %}{{ event.event.title }}{% else %}{{ event.event.description }}{% endif %}</td>
+                                            <td>{% if event.staff %}
+                                                Staff
+                                            {% elif event.omaggio %}
+                                                Omaggio {% if event.note %}({{ event.note }}){% endif %}
+                                            {% elif event.pagante %}
+                                                Pagante
+                                            {% endif %}
+                                            </td>
+                                            <td>{{ event.presence|yesno:"Si,No"  }}</td>
+                                        </tr>
 
-                                {% endfor %}
-                                </tbody>
-                            </table>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-            <div class="span6">
-                <div class="box">
-                    <div class="box-header">
-                        <span class="title">Eventi</span>
-                    </div>
-                    <div class="box-content">
-                        <div id="dataTables">
-                            <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
-                                <thead>
-                                <tr>
-                                    <th>
-                                        <div>Id</div>
-                                    </th>
-                                    <th>
-                                        <div>Data</div>
-                                    </th>
-                                    <th>
-                                        <div>Descrizione</div>
-                                    </th>
-                                    <th>
-                                        <div>Attributo</div>
-                                    </th>
-                                    <th>
-                                        <div>Presente</div>
-                                    </th>
 
-                                </tr>
-                                </thead>
-                                <tbody>
-                                {% for event in event_signup %}
-                                    <tr>
-                                        <td>{{ event.event.id }}</td>
-                                        <td>{{ event.event.date|date:"d-m-Y" }}</td>
-                                        <td>{% if event.event.title %}{{ event.event.title }}{% else %}{{ event.event.description }}{% endif %}</td>
-                                        <td>{% if event.staff %}
-                                            Staff
-                                        {% elif event.omaggio %}
-                                            Omaggio {% if event.note %}({{ event.note }}){% endif %}
-                                        {% elif event.pagante %}
-                                            Pagante
-                                        {% endif %}
-                                        </td>
-                                        <td>{{ event.presence|yesno:"Si,No"  }}</td>
-                                    </tr>
-
-                                {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row-fluid">
-                  <div class="span6">
-                      <div class="box">
-                          <div class="box-header">
-                              <span class="title">Sottomissioni questionari</span>
-                          </div>
-                          <div class="box-content">
-                              <div id="submissionDataTables">
-                                  <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
-                                      <thead>
-                                      <tr>
-                                          <th>
-                                              <div>Id</div>
-                                          </th>
-                                          <th>
-                                              <div>Questionario</div>
-                                          </th>
-                                          <th>
-                                              <div>Risposto il</div>
-                                          </th>
-                                          <th>
-                                              <div>Punteggio</div>
-                                          </th>
-                                          <th>
-                                              <div>&nbsp;</div>
-                                          </th>
-                                      </tr>
-                                      </thead>
-                                      <tbody>
-                                      {% for nl in submissions %}
+            <div class="row-fluid">
+                      <div class="span6">
+                          <div class="box">
+                              <div class="box-header">
+                                  <span class="title">Sottomissioni questionari</span>
+                              </div>
+                              <div class="box-content">
+                                  <div id="submissionDataTables">
+                                      <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
+                                          <thead>
                                           <tr>
-                                              <td>{{ nl.survey.id }}</td>
-                                              <td>{{ nl.survey.title }}</td>
-                                              <td>{{ nl.submitted_at|date:"d-m-Y H:i" }}</td>
-                                              <td>{{ nl.score }} / {{ nl.total_score }}</td>
-                                              <td><a href="/admin/survey/report/details/{{ nl.id }}"><i
-                                                      class="icon-tasks"></i></a></td>
+                                              <th>
+                                                  <div>Id</div>
+                                              </th>
+                                              <th>
+                                                  <div>Questionario</div>
+                                              </th>
+                                              <th>
+                                                  <div>Risposto il</div>
+                                              </th>
+                                              <th>
+                                                  <div>Punteggio</div>
+                                              </th>
+                                              <th>
+                                                  <div>&nbsp;</div>
+                                              </th>
                                           </tr>
+                                          </thead>
+                                          <tbody>
+                                          {% for nl in submissions %}
+                                              <tr>
+                                                  <td>{{ nl.survey.id }}</td>
+                                                  <td>{{ nl.survey.title }}</td>
+                                                  <td>{{ nl.submitted_at|date:"d-m-Y H:i" }}</td>
+                                                  <td>{{ nl.score }} / {{ nl.total_score }}</td>
+                                                  <td><a href="/admin/survey/report/details/{{ nl.id }}"><i
+                                                          class="icon-tasks"></i></a></td>
+                                              </tr>
 
-                                      {% endfor %}
-                                      </tbody>
-                                  </table>
+                                          {% endfor %}
+                                          </tbody>
+                                      </table>
+                                  </div>
                               </div>
                           </div>
-                      </div>
-              </div>
+                  </div>
+            </div>
         </div>
-
     </div>
 
     <script>
         $(function() {
-
 
             $("#mapDetails").width($("#contactDetails").width());
             $("#mapDetails").height($("#contactDetails").height()/2);
@@ -467,53 +569,6 @@
                 });
             }
 
-            $(document).on("ready",function(){
-               $("#contactTab").addClass("active");
-               $("#mapTab").removeClass("active");
-
-
-               google.maps.visualRefresh = true;
-
-           });
-
-            $("#contactTab").on("click",function(e){
-                $("#contactTab").addClass("active");
-                $("#mapTab").removeClass("active");
-                $("#mapDetails").hide();
-                $("#contactDetails").show();
-                $("#hideDetails").show();
-                $("#history").show();
-            });
-
-            $("#mapTab").on("click",function(e){
-                $("#mapTab").addClass("active");
-                $("#contactTab").removeClass("active");
-                $("#mapDetails").show();
-                $("#contactDetails").hide();
-                $("#hideDetails").hide();
-                $("#history").hide();
-
-                if(address!="" && city!=""){
-                    geocoder = new google.maps.Geocoder();
-                    geocoder.geocode({
-                        'address': address
-                    }, function(results, status) {
-                        if (status == google.maps.GeocoderStatus.OK) {
-                            var marker = new google.maps.Marker({
-                                map: map,
-                                position: results[0].geometry.location
-                            });
-                            map.panTo(marker.getPosition());
-                            map.setZoom(15);
-                        }
-                    });
-                }else{
-                    map.panTo(new google.maps.LatLng( 45.465454, 9.186516));
-                    map.setZoom(9);
-                }
-                google.maps.event.trigger(map, 'resize');
-            });
-
             $("#birthdate" ).datepicker({"language":"it","format":"dd/mm/yyyy"});
 
             $("#sector").on("change",function(){
@@ -546,7 +601,6 @@
                 );
 
             });
-
 
             $("#division").on("change",function(){
                 var sector = $("#division").val();
@@ -581,15 +635,14 @@
             $("#code").on("keyup",function(e){
                 $("#code").val($("#code").val().toUpperCase());
             });
+
             $("#email").on("keyup",function(e){
                 $("#email").val($("#email").val().toLowerCase());
             });
 
-            $(".active").removeClass("active");
-            $("#contactsMenu").addClass("active");
-
             $(".dTable2").dataTable({
-                bJQueryUI: !1, bAutoWidth: !1,
+                bJQueryUI: !1,
+                bAutoWidth: !1,
                 sPaginationType: "full_numbers",
                 sDom: '<"table-header"fl>t<"table-footer"ip>',
                 "oLanguage": {
@@ -618,6 +671,116 @@
                     $("#contactDetails").show();
                     $("#hideDetails").html('<i class="icon-arrow-up"></i> Nascondi')
                 }
+            });
+
+            /*
+             Files Section
+            */
+            $("#addCertFile, #addRefFile").on("click", function (e) {
+                var buttonName = this.id,
+                    url;
+
+                if (buttonName === "addCertFile") {
+                    url = "/admin/cabinet/{{ contact.code }}/cert/add";
+                } else {
+                    url = "/admin/cabinet/{{ contact.code }}/ref/add";
+                }
+
+                if (window.location.hash) {
+                    var hash = window.location.hash.substring(1);
+                    url += "?hash=" + hash;
+                }
+
+                window.location.href = url;
+
+            });
+
+            /*
+             TABS Management: set form status based on active tab
+             */
+            var tabs = {
+                "contactTab": "contactDetails",
+                "mapTab": "mapDetails",
+                "filesTab": "fileDetails"
+            };
+            function setFormStatus(activeTab) {
+                // Manage tabs display
+                $.each(tabs, function (key, value) {
+                    if (key === activeTab) {
+                        $('#' + key).addClass("active");
+                        $('#' + value).show();
+                    } else {
+                        $('#' + key).removeClass("active");
+                        $('#' + value).hide();
+                    }
+                });
+
+                // Set the hash
+                window.location.hash = activeTab;
+
+                // Manage elements that should only show when contactTab is selected
+                if (activeTab === 'contactTab') {
+                    $("#hideDetails").show();
+                    $("#history").show();
+                } else {
+                    $("#hideDetails").hide();
+                    $("#history").hide();
+                }
+
+                // Special processing for maps tab
+                if (activeTab === 'mapTab') {
+                    displayMap();
+                }
+            }
+            function displayMap() {
+                if(address!="" && city!=""){
+                    geocoder = new google.maps.Geocoder();
+                    geocoder.geocode({
+                        'address': address
+                    }, function(results, status) {
+                        if (status == google.maps.GeocoderStatus.OK) {
+                            var marker = new google.maps.Marker({
+                                map: map,
+                                position: results[0].geometry.location
+                            });
+                            map.panTo(marker.getPosition());
+                            map.setZoom(15);
+                        }
+                    });
+                }else{
+                    map.panTo(new google.maps.LatLng( 45.465454, 9.186516));
+                    map.setZoom(9);
+                }
+                google.maps.event.trigger(map, 'resize');
+            }
+
+            $("#contactTab, #mapTab, #filesTab").on("click", function (e) {
+                setFormStatus(this.id);
+            });
+
+            /*
+            When Document is ready, set the form status according to url hash
+             */
+
+            $(document).on("ready",function(){
+                var hash = "contactTab";
+                if (window.location.hash) {
+                    var h = window.location.hash.substring(1);
+                    // Only update hash variable if hash is valid
+                    if (h in tabs) {
+                        hash = h;
+                    } else {
+                        // Invalid hash given, reset to default
+                        window.location.hash = hash;
+                    }
+                } else {
+                    // No hash given.  Set default.
+                    window.location.hash = hash;
+                }
+
+                setFormStatus(hash);
+
+                google.maps.visualRefresh = true;
             });
 
         });

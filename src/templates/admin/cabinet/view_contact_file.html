@@ -60,8 +60,7 @@
                                     <ul class="padded separate-sections">
                                         <li class="input">
                                             {% if file_type == "ref" %}
-                                                <label>{{ form.event_title.label }}</label>
-                                                <input type="text" id="id_event_title" name="event_title" data-prompt-position="topLeft" value="{{ form.event_title.value }}" disabled/>
+                                                <input type="hidden" id="id_event_title" name="event_title" data-prompt-position="topLeft" value="{{ form.event_title.value }}"/>
                                             {% elif file_type == "cert" %}
                                                 <label>{{ form.expiry.label }}</label>
                                                 {{ form.expiry }}
@@ -75,7 +74,7 @@
                             <div class="form-actions">
                                 <input type="hidden" id="id_action" name="action" value="{{ action }}">
                                 <input type="hidden" id="id_cabinet" name="cabinet" value="{{ cabinet_id }}">
-                                <input type="hidden" id="id_user_id" name="user_id" value="{{ user_id }}">
+                                <input type="hidden" id="id_contact_id" name="contact_id" value="{{ contact_id }}">
                                 <input type="hidden" id="id_owner" name="owner" value="{{ owner_id }}">
                                 <input type="hidden" name="referer" value="{{ referer }}">
 

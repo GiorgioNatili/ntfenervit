@@ -13,6 +13,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.conf import settings
 
+from contacts.models import Contact
 from campaigns.models import Event
 
 UPLOAD_TO_DIR = "cabinet"
@@ -40,10 +41,12 @@ class UploadedFile(models.Model):
     owner = models.ForeignKey(User)
     date_created = models.DateTimeField(auto_now_add=True)
 
+    @property
     def file_basename(self):
         if self.file_ref:
             return os.path.basename(self.file_ref.name)
 
+    @property
     def file_fullpath(self):
         if self.file_ref:
             return os.path.join(settings.MEDIA_ROOT, self.file_ref.name)
@@ -68,14 +71,14 @@ class EventFile(models.Model):
             raise IntegrityError("Only cabinet_id '%d' allowed but got '%d'" % (self.CABINET_ID, self.file.cabinet_id))
 
 
-class UserFile(models.Model):
+class ContactFile(models.Model):
     CABINET_ID = 0
-    user = models.ForeignKey(User)
+    contact = models.ForeignKey(Contact)
     file = models.ForeignKey(UploadedFile)
     date_created = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = (("user", "file"),)
+        unique_together = (("contact", "file"),)
 
     def save(self, *args, **kwargs):
         '''
@@ -83,17 +86,20 @@ class UserFile(models.Model):
         '''
 
         if self.file.cabinet_id == self.CABINET_ID:
-            super(UserFile, self).save(*args, **kwargs)
+            super(ContactFile, self).save(*args, **kwargs)
         else:
             raise IntegrityError("Only cabinet_id '%d' allowed but got '%d'" % (self.CABINET_ID, self.file.cabinet_id))
 
 
-
-class UserRefFile(UserFile):
+'''
+2014-07-22: ContactRefFile.event is suppressed in the front end following introduction of EventFile object.
+            It has not been removed from the data model intentionally, awaiting further decision from users.
+'''
+class ContactRefFile(ContactFile):
     CABINET_ID = 1
     event = models.ForeignKey(Event, blank=True, null=True)
 
-class UserCertFile(UserFile):
+class ContactCertFile(ContactFile):
     CABINET_ID = 2
     expiry = models.DateField(blank=False)
 

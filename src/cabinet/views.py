@@ -13,7 +13,7 @@ from django.forms import Form, ModelForm
 from django import forms
 from haystack.forms import ModelSearchForm
 
-from cabinet.models import UploadedFile, UserFile, EventFile, UserRefFile, UserCertFile
+from cabinet.models import UploadedFile, ContactFile, EventFile, ContactRefFile, ContactCertFile
 
 class UploadedFileForm(ModelForm):
     class Meta:
@@ -33,14 +33,14 @@ class UploadedFileForm(ModelForm):
 
 class UserRefFileForm(UploadedFileForm):
     ALLOWED_EXTS = frozenset(['.ppt', '.pptx', '.pps', '.ppsx', '.doc', '.docx', '.pdf', '.tif', '.tiff', '.png'])
-    user_id = forms.IntegerField()
+    contact_id = forms.CharField(max_length=16)
     event_title = forms.CharField(required=False, label="Evento")
     class Meta(UploadedFileForm.Meta):
         pass
 
 class UserCertFileForm(UploadedFileForm):
     ALLOWED_EXTS = frozenset(['.pdf', '.tif', '.tiff', '.png'])
-    user_id = forms.IntegerField()
+    contact_id = forms.CharField(max_length=16)
     expiry = forms.DateField(required=True, label="Scadenza", widget=forms.DateInput(format="%d/%m/%Y", attrs={'placeholder':'__/__/____'}))
     class Meta(UploadedFileForm.Meta):
         pass
@@ -63,18 +63,18 @@ class ViewUserFileUtil(object):
 
         if self.type == "ref":
             self.form_class = UserRefFileForm
-            self.userfile_class = UserRefFile
+            self.userfile_class = ContactRefFile
             self.object_name = "file"
-            kwargs["user_id"] = kwargs["entity_id"]
+            kwargs["contact_id"] = kwargs["entity_id"]
             kwargs["page_title"] = "Files"
-            kwargs["cabinet_id"] = UserRefFile.CABINET_ID
+            kwargs["cabinet_id"] = ContactRefFile.CABINET_ID
         elif self.type == "cert":
             self.form_class = UserCertFileForm
-            self.userfile_class = UserCertFile
+            self.userfile_class = ContactCertFile
             self.object_name = "certificato"
-            kwargs["user_id"] = kwargs["entity_id"]
+            kwargs["contact_id"] = kwargs["entity_id"]
             kwargs["page_title"] = "Certificati"
-            kwargs["cabinet_id"] = UserCertFile.CABINET_ID
+            kwargs["cabinet_id"] = ContactCertFile.CABINET_ID
         elif self.type == "event":
             self.form_class = EventFileForm
             self.userfile_class = EventFile
@@ -85,7 +85,7 @@ class ViewUserFileUtil(object):
         else:
             raise RuntimeError("Type of '%s' used in cabinet.view not supported." % self.type)
 
-        # Remove the generic entity_id entry now that user_id or event_id has been set
+        # Remove the generic entity_id entry now that contact_id or event_id has been set
         del kwargs["entity_id"]
 
         # Setting based on action
@@ -99,11 +99,21 @@ class ViewUserFileUtil(object):
         # set data
         self.__data = kwargs
 
-    def get_redirect_response(self, post):
+    def get_redirect_response(self, post, get=None):
+        # Check if hash query string has been passed
+        if get:
+            hash = get.get("hash")
+        else:
+            hash = None
+
+        # Build the url with hash if provided
         if post.get("referer"):
-            url = post.get("referer")
-        elif post.get("user_id"):
-            url = "/admin/backend/utenti/details/%d/" % post.get("user_id")
+            if hash:
+                url = "%s#%s" % (post.get("referer"), hash)
+            else:
+                url = post.get("referer")
+        elif post.get("contact_id"):
+            url = "/admin/contacts/contact/%s/#filesTab" % post.get("contact_id")
         elif post.get("event_id"):
             url = "/admin/campaigns/event/%d/" % post.get("event_id")
         else:
@@ -117,47 +127,47 @@ class ViewUserFileUtil(object):
         if self.action == "add":
             self.__data["form"] = self.form_class()
         else:
-            user_file = self.userfile_class.objects.get(pk=pk_id)
+            contact_file = self.userfile_class.objects.get(pk=pk_id)
             init_data = {}
             if self.type == "ref":
-                if user_file.event and user_file.event.title:
-                    init_data["event_title"] = user_file.event.title
+                if contact_file.event and contact_file.event.title:
+                    init_data["event_title"] = contact_file.event.title
                 else:
                     init_data["event_title"] = " "
             elif self.type == "cert":
-                init_data["expiry"] = user_file.expiry
+                init_data["expiry"] = contact_file.expiry
             else:
                 pass
 
-            self.__data["form"] = self.form_class(initial=init_data,instance=user_file.file)
+            self.__data["form"] = self.form_class(initial=init_data,instance=contact_file.file)
 
-    def save_user_form(self, form, post, user_file=None):
+    def save_user_form(self, form, post, get, contact_file=None):
         """
         Action to be called after form.save() has been called
         :param form:  Form to be saved
         :param post: request.POST object
-        :param user_file: instance of user_file
+        :param contact_file: instance of contact_file
         :return: HttpResponseRedirect
         """
         file_ref = form.save()
 
-        if not user_file:
-            user_file = self.userfile_class(user_id=self.data["user_id"], file=file_ref)
+        if not contact_file:
+            contact_file = self.userfile_class(contact_id=self.data["contact_id"], file=file_ref)
 
         if self.type == "cert":
             dt = form['expiry'].value()
-            user_file.expiry = datetime.datetime.strptime(dt, "%d/%m/%Y")
+            contact_file.expiry = datetime.datetime.strptime(dt, "%d/%m/%Y")
 
-        user_file.save()
+        contact_file.save()
 
-        return self.get_redirect_response(post)
+        return self.get_redirect_response(post, get)
 
-    def save_event_form(self, form, post, event_file=None):
+    def save_event_form(self, form, post, get, event_file=None):
         """
         Action to be called after form.save() has been called
         :param form:  Form to be saved
         :param post: request.POST object
-        :param user_file: instance of user_file
+        :param contact_file: instance of contact_file
         :return: HttpResponseRedirect
         """
         file_ref = form.save()
@@ -167,7 +177,7 @@ class ViewUserFileUtil(object):
 
         event_file.save()
 
-        return self.get_redirect_response(post)
+        return self.get_redirect_response(post, get)
 
     def _get_data(self):
         return self.__data
@@ -191,17 +201,16 @@ def ViewUserFileAdd(request, entity_id, type):
         form = util.form_class(request.POST, request.FILES)
         if form.is_valid():
             if util.type == "event":
-                return util.save_event_form(form, request.POST)
+                return util.save_event_form(form, request.POST, request.GET)
             else:
-                return util.save_user_form(form, request.POST)
+                return util.save_user_form(form, request.POST, request.GET)
         else:
             util.data["form"] = form
-            return render_to_response('admin/cabinet/view_user_file.html', util.data, context_instance=RequestContext(request))
+            return render_to_response('admin/cabinet/view_contact_file.html', util.data, context_instance=RequestContext(request))
 
     else:
         util.initialize_form()
-
-        return render_to_response('admin/cabinet/view_user_file.html', util.data, context_instance=RequestContext(request))
+        return render_to_response('admin/cabinet/view_contact_file.html', util.data, context_instance=RequestContext(request))
 
 def ViewUserFile(request, entity_id, type, id):
     """
@@ -219,6 +228,8 @@ def ViewUserFile(request, entity_id, type, id):
     if request.method == "POST":
         file_entry = get_object_or_404(util.userfile_class, id=id)
         upload_file = file_entry.file
+
+        # Procesisng post according to action
         if request.POST.get("action") == "edit":
             form = util.form_class(request.POST, request.FILES, instance=upload_file)
 
@@ -226,10 +237,10 @@ def ViewUserFile(request, entity_id, type, id):
             if 'file_ref' in request.FILES:
                 file_ref = request.FILES['file_ref']
                 if form.is_valid():
-                    return util.save_user_form(form,request.POST,file_entry)
+                    return util.save_user_form(form, request.POST, request.GET, file_entry)
                 else:
                     util.data["form"] = form
-                    return render_to_response('admin/cabinet/view_user_file.html', util.data, context_instance=RequestContext(request))
+                    return render_to_response('admin/cabinet/view_contact_file.html', util.data, context_instance=RequestContext(request))
             else:
                 # File not changed.  Cannot user form save as it will not validate due to missing file_ref field.
                 # Using the models directly
@@ -242,18 +253,18 @@ def ViewUserFile(request, entity_id, type, id):
                 upload_file.title = form['title'].value()
                 file_entry.save()
                 upload_file.save()
-                return util.get_redirect_response(request.POST)
+                return util.get_redirect_response(request.POST, request.GET)
 
         elif request.POST.get("action") == "delete":
             upload_delete = False
 
             if type == "event":
                 if EventFile.objects.filter(file=upload_file).count() == 1:
-                    file_fullpath = upload_file.file_fullpath()
+                    file_fullpath = upload_file.file_fullpath
                     upload_delete = True
             else:
-                if UserFile.objects.filter(file=upload_file).count() == 1:
-                    file_fullpath = upload_file.file_fullpath()
+                if ContactFile.objects.filter(file=upload_file).count() == 1:
+                    file_fullpath = upload_file.file_fullpath
                     upload_delete = True
 
             file_entry.delete()
@@ -261,22 +272,22 @@ def ViewUserFile(request, entity_id, type, id):
                 upload_file.delete()
                 os.remove(file_fullpath)
 
-            return util.get_redirect_response(request.POST)
+            return util.get_redirect_response(request.POST, request.GET)
         else:
             raise SuspiciousOperation("Unexpected form action '%s' received" % request.POST.get("action"))
     else:
         util.initialize_form(id)
 
-    return render_to_response('admin/cabinet/view_user_file.html', util.data, context_instance=RequestContext(request))
+    return render_to_response('admin/cabinet/view_contact_file.html', util.data, context_instance=RequestContext(request))
 
 
-@user_passes_test(lambda u:u.is_superuser)
-def view_user_file_add(request, user_id, type):
-    return ViewUserFileAdd(request, user_id, type)
+@staff_member_required
+def view_contact_file_add(request, contact_id, type):
+    return ViewUserFileAdd(request, contact_id, type)
 
-@user_passes_test(lambda u:u.is_superuser)
-def view_user_file(request, user_id, type, id):
-    return ViewUserFile(request, user_id, type, id)
+@staff_member_required
+def view_contact_file(request, contact_id, type, id):
+    return ViewUserFile(request, contact_id, type, id)
 
 @staff_member_required
 def view_event_file_add(request, event_id):
@@ -291,7 +302,6 @@ def view_event_file(request, event_id, id):
 SEARCH
 '''
 class CertSearchForm(ModelSearchForm):
-    models = [ UserCertFile ]
     title = forms.CharField(max_length=100,required=False)
     duration_code = forms.CharField(max_length=10, required=False)
 
@@ -317,10 +327,19 @@ def search_certificate(request):
     if request.GET.has_key('q'):
         res = form.search()
         for entry in res:
+            #print "### Certificate Entry Found: %s" % entry
             if entry and entry.pk not in result_ids:
                 result_ids.add(entry.pk)
                 results.append(entry)
-                # print "### Certificate Entry Found: %s" % entry.duration_code
-    # print "### Search Results: %s" % results
+                # print "### Certificate Entry Found: %s" % entry
+    #print "### Search Results: %s" % results
 
-    return render_to_response("admin/search/search_certificate.html", { 'form': form, 'results': results })
+    return render_to_response(
+        "admin/search/search_certificate.html",
+        {
+            'form': form,
+            'results': results,
+            'search_model': 'cabinet.contactcertfile'
+        },
+        context_instance=RequestContext(request)
+    )

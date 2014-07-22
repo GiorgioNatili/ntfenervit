@@ -9,21 +9,24 @@ from django.contrib.auth.models import User
 from django.db import IntegrityError
 from django.core.files.uploadedfile import SimpleUploadedFile
 
-from cabinet.models import Cabinet, UploadedFile, UserFile, EventFile, UserRefFile, UserCertFile
+from cabinet.models import Cabinet, UploadedFile, ContactFile, EventFile, ContactRefFile, ContactCertFile
 from campaigns.models import Event
+from contacts.models import Contact
 
 class CabinetModelTestCase(TestCase):
     fixtures = ['initial_data', 'users_tests.json', 'contacts_tests.json', 'events_tests.json']
     def setUp(self):
         # Get the normal user
-        self.user = User.objects.get(pk=3)
+        self.contact = Contact.objects.get(owner=3)
+
         # Get the staff user
+        self.staff_contact = Contact.objects.get(owner=2)
         self.staff = User.objects.get(pk=2)
 
         self.event = Event.objects.get(pk=1)
 
-        self.cabinet_file = Cabinet.objects.get(pk=UserRefFile.CABINET_ID)
-        self.cabinet_certificate = Cabinet.objects.get(pk=UserCertFile.CABINET_ID)
+        self.cabinet_file = Cabinet.objects.get(pk=ContactRefFile.CABINET_ID)
+        self.cabinet_certificate = Cabinet.objects.get(pk=ContactCertFile.CABINET_ID)
         self.refile = UploadedFile.objects.create(
             title="A Test File",
             file_ref=SimpleUploadedFile('reference.pdf', 'This is the reference file'),
@@ -50,8 +53,8 @@ class CabinetModelTestCase(TestCase):
         self.assertIsNotNone(self.refile.date_created, "Expected UploadedFile.date_created to be populated.")
         self.assertEqual(self.refile.cabinet_id, self.cabinet_file.pk, "Expected cabinet to be %s but got %s" % (self.refile.cabinet, self.cabinet_file.pk))
 
-        user_file = UserRefFile(
-            user=self.user,
+        user_file = ContactRefFile(
+            contact=self.contact,
             file=self.refile,
             event=self.event
         )
@@ -61,8 +64,8 @@ class CabinetModelTestCase(TestCase):
         self.assertEqual(user_file.event.title, self.event.title, "Expected user_file.event.title to be '%s' but got '%s" % (self.event.title, user_file.event.title))
 
         # Second user/file combination should raise integrity error
-        user_file2 = UserRefFile(
-            user=self.user,
+        user_file2 = ContactRefFile(
+            contact=self.contact,
             file=self.refile
         )
         self.assertRaises(IntegrityError, user_file2.save)
@@ -75,8 +78,8 @@ class CabinetModelTestCase(TestCase):
         self.assertEqual(self.certfile.cabinet_id, 2, "Expected cabinet to be %s but got %s" % (self.certfile.cabinet, self.cabinet_file.pk))
 
         # .clean should raise a ValidationError but .save should raise IntegrityError
-        user_file = UserRefFile(
-            user=self.user,
+        user_file = ContactRefFile(
+            contact=self.contact,
             file=self.certfile
         )
         self.assertRaises(IntegrityError, user_file.save)
@@ -91,13 +94,13 @@ class CabinetModelTestCase(TestCase):
         self.assertIsNotNone(self.certfile.date_created, "Expected UploadedFile.date_created to be populated.")
         self.assertEqual(self.certfile.cabinet_id, 2, "Expected cabinet to be %s but got %s" % (self.certfile.cabinet, self.cabinet_file.pk))
 
-        user_cert = UserCertFile(
-            user=self.user,
+        user_cert = ContactCertFile(
+            contact=self.contact,
             file=self.certfile,
             expiry=datetime.date(2012,7,10)
         )
         user_cert.save()
-        self.assertEqual(user_cert.user_id, self.user.pk, "Expected user_id to be %s but got %s" % (self.user.pk, user_cert.user_id))
+        self.assertEqual(user_cert.contact_id, self.contact.pk, "Expected user_id to be %s but got %s" % (self.contact.pk, user_cert.contact_id))
         self.assertFalse(user_cert.is_valid, "Expected certificate not to be valid.")
 
     def test11_UserCertFile_error(self):
@@ -107,8 +110,8 @@ class CabinetModelTestCase(TestCase):
         self.assertIsNotNone(self.refile.date_created, "Expected UploadedFile.date_created to be populated.")
         self.assertEqual(self.refile.cabinet_id, self.cabinet_file.pk, "Expected cabinet to be %s but got %s" % (self.refile.cabinet, self.cabinet_file.pk))
 
-        user_cert = UserCertFile(
-            user=self.user,
+        user_cert = ContactCertFile(
+            contact=self.contact,
             file=self.refile,
             expiry=datetime.date(2012,7,10)
         )
@@ -122,8 +125,8 @@ class CabinetModelTestCase(TestCase):
 
         # Set certificate to expire in 20 days, and should be valid
         expiry = today + datetime.timedelta(20)
-        user_cert = UserCertFile(
-            user=self.user,
+        user_cert = ContactCertFile(
+            contact=self.contact,
             file=self.certfile,
             expiry=expiry
         )
@@ -218,18 +221,18 @@ class CabinetModelTestCase(TestCase):
         Cascade delete from UploadedFile should work
         '''
 
-        self.assertEqual(UploadedFile.objects.count(), 3, "Expected UploadedFile to have 3 entries but got '%d'." % UserFile.objects.count())
+        self.assertEqual(UploadedFile.objects.count(), 3, "Expected UploadedFile to have 3 entries but got '%d'." % ContactFile.objects.count())
 
-        user_file = UserRefFile.objects.create(
-            user=self.user,
+        user_file = ContactRefFile.objects.create(
+            contact=self.contact,
             file=self.refile
         )
-        staff_file = UserRefFile.objects.create(
-            user=self.staff,
+        staff_file = ContactRefFile.objects.create(
+            contact=self.staff_contact,
             file=self.refile
         )
-        user_cert = UserCertFile.objects.create(
-            user=self.user,
+        user_cert = ContactCertFile.objects.create(
+            contact=self.contact,
             file=self.certfile,
             expiry=datetime.date(2012,7,10)
         )
@@ -238,18 +241,18 @@ class CabinetModelTestCase(TestCase):
             file=self.eventfile
         )
 
-        self.assertEqual(UserFile.objects.count(), 3, "Expected UserRefFile to have 3 entries but got '%d'." % UserFile.objects.count())
-        self.assertEqual(UserRefFile.objects.count(), 2, "Expected UserRefFile to have 2 entries but got '%d'." % UserRefFile.objects.count())
-        self.assertEqual(UserCertFile.objects.count(), 1, "Expected UserCertFile to have 1 entry but got '%d'." % UserCertFile.objects.count())
+        self.assertEqual(ContactFile.objects.count(), 3, "Expected UserRefFile to have 3 entries but got '%d'." % ContactFile.objects.count())
+        self.assertEqual(ContactRefFile.objects.count(), 2, "Expected UserRefFile to have 2 entries but got '%d'." % ContactRefFile.objects.count())
+        self.assertEqual(ContactCertFile.objects.count(), 1, "Expected UserCertFile to have 1 entry but got '%d'." % ContactCertFile.objects.count())
         self.assertEqual(EventFile.objects.count(), 1, "Expected EventFile to have 1 entry but got '%d'." % EventFile.objects.count())
 
         for file in UploadedFile.objects.all():
              file.delete()
 
-        self.assertEqual(UserFile.objects.count(), 0, "Expected UserRefFile to have 0 entries but got '%d'." % UserFile.objects.count())
+        self.assertEqual(ContactFile.objects.count(), 0, "Expected UserRefFile to have 0 entries but got '%d'." % ContactFile.objects.count())
         self.assertEqual(UploadedFile.objects.count(), 0, "Expected UploadedFile to have 0 entries but got '%d'." % UploadedFile.objects.count())
-        self.assertEqual(UserRefFile.objects.count(), 0, "Expected UserRefFile to have 0 entries but got '%d'." % UserRefFile.objects.count())
-        self.assertEqual(UserCertFile.objects.count(), 0, "Expected UserCertFile to have 0 entry but got '%d'." % UserCertFile.objects.count())
+        self.assertEqual(ContactRefFile.objects.count(), 0, "Expected UserRefFile to have 0 entries but got '%d'." % ContactRefFile.objects.count())
+        self.assertEqual(ContactCertFile.objects.count(), 0, "Expected UserCertFile to have 0 entry but got '%d'." % ContactCertFile.objects.count())
         self.assertEqual(EventFile.objects.count(), 0, "Expected EventFile to have 0 entry but got '%d'." % EventFile.objects.count())
 
     def test51_UserFile_delete(self):
@@ -257,18 +260,18 @@ class CabinetModelTestCase(TestCase):
         Cascade delete from EventFile, UserRefFile and UserCertFile should work up to UserFile but not UploadedFile
         '''
 
-        self.assertEqual(UploadedFile.objects.count(), 3, "Expected UploadedFile to have 3 entries but got '%d'." % UserFile.objects.count())
+        self.assertEqual(UploadedFile.objects.count(), 3, "Expected UploadedFile to have 3 entries but got '%d'." % ContactFile.objects.count())
 
-        user_file = UserRefFile.objects.create(
-            user=self.user,
+        user_file = ContactRefFile.objects.create(
+            contact=self.contact,
             file=self.refile
         )
-        staff_file = UserRefFile.objects.create(
-            user=self.staff,
+        staff_file = ContactRefFile.objects.create(
+            contact=self.staff_contact,
             file=self.refile
         )
-        user_cert = UserCertFile.objects.create(
-            user=self.user,
+        user_cert = ContactCertFile.objects.create(
+            contact=self.contact,
             file=self.certfile,
             expiry=datetime.date(2012,7,10)
         )
@@ -277,33 +280,33 @@ class CabinetModelTestCase(TestCase):
             file=self.eventfile
         )
 
-        self.assertEqual(UserFile.objects.count(), 3, "Expected UserRefFile to have 3 entries but got '%d'." % UserFile.objects.count())
-        self.assertEqual(UserRefFile.objects.count(), 2, "Expected UserRefFile to have 2 entries but got '%d'." % UserRefFile.objects.count())
-        self.assertEqual(UserCertFile.objects.count(), 1, "Expected UserCertFile to have 1 entry but got '%d'." % UserCertFile.objects.count())
+        self.assertEqual(ContactFile.objects.count(), 3, "Expected UserRefFile to have 3 entries but got '%d'." % ContactFile.objects.count())
+        self.assertEqual(ContactRefFile.objects.count(), 2, "Expected UserRefFile to have 2 entries but got '%d'." % ContactRefFile.objects.count())
+        self.assertEqual(ContactCertFile.objects.count(), 1, "Expected UserCertFile to have 1 entry but got '%d'." % ContactCertFile.objects.count())
         self.assertEqual(EventFile.objects.count(), 1, "Expected EventFile to have 1 entry but got '%d'." % EventFile.objects.count())
 
         # Testing cascade delete for certificate file
         user_cert.delete()
-        self.assertEqual(UserFile.objects.count(), 2, "Expected UserRefFile to have 2 entries but got '%d'." % UserFile.objects.count())
+        self.assertEqual(ContactFile.objects.count(), 2, "Expected UserRefFile to have 2 entries but got '%d'." % ContactFile.objects.count())
         self.assertEqual(UploadedFile.objects.count(), 3, "Expected UploadedFile to have 3 entries but got '%d'." % UploadedFile.objects.count())
-        self.assertEqual(UserRefFile.objects.count(), 2, "Expected UserRefFile to have 2 entries but got '%d'." % UserRefFile.objects.count())
-        self.assertEqual(UserCertFile.objects.count(), 0, "Expected UserCertFile to have 0 entry but got '%d'." % UserCertFile.objects.count())
+        self.assertEqual(ContactRefFile.objects.count(), 2, "Expected UserRefFile to have 2 entries but got '%d'." % ContactRefFile.objects.count())
+        self.assertEqual(ContactCertFile.objects.count(), 0, "Expected UserCertFile to have 0 entry but got '%d'." % ContactCertFile.objects.count())
         self.assertEqual(EventFile.objects.count(), 1, "Expected EventFile to have 1 entry but got '%d'." % EventFile.objects.count())
 
         # Testing cascade delete for reference file
         user_file.delete()
-        self.assertEqual(UserFile.objects.count(), 1, "Expected UserRefFile to have 1 entries but got '%d'." % UserFile.objects.count())
+        self.assertEqual(ContactFile.objects.count(), 1, "Expected UserRefFile to have 1 entries but got '%d'." % ContactFile.objects.count())
         self.assertEqual(UploadedFile.objects.count(), 3, "Expected UploadedFile to have 3 entries but got '%d'." % UploadedFile.objects.count())
-        self.assertEqual(UserRefFile.objects.count(), 1, "Expected UserRefFile to have 1 entries but got '%d'." % UserRefFile.objects.count())
-        self.assertEqual(UserCertFile.objects.count(), 0, "Expected UserCertFile to have 0 entry but got '%d'." % UserCertFile.objects.count())
+        self.assertEqual(ContactRefFile.objects.count(), 1, "Expected UserRefFile to have 1 entries but got '%d'." % ContactRefFile.objects.count())
+        self.assertEqual(ContactCertFile.objects.count(), 0, "Expected UserCertFile to have 0 entry but got '%d'." % ContactCertFile.objects.count())
         self.assertEqual(EventFile.objects.count(), 1, "Expected EventFile to have 1 entry but got '%d'." % EventFile.objects.count())
 
         # Testing delete for event file
         event_file.delete()
-        self.assertEqual(UserFile.objects.count(), 1, "Expected UserRefFile to have 1 entries but got '%d'." % UserFile.objects.count())
+        self.assertEqual(ContactFile.objects.count(), 1, "Expected UserRefFile to have 1 entries but got '%d'." % ContactFile.objects.count())
         self.assertEqual(UploadedFile.objects.count(), 3, "Expected UploadedFile to have 3 entries but got '%d'." % UploadedFile.objects.count())
-        self.assertEqual(UserRefFile.objects.count(), 1, "Expected UserRefFile to have 1 entries but got '%d'." % UserRefFile.objects.count())
-        self.assertEqual(UserCertFile.objects.count(), 0, "Expected UserCertFile to have 0 entry but got '%d'." % UserCertFile.objects.count())
+        self.assertEqual(ContactRefFile.objects.count(), 1, "Expected UserRefFile to have 1 entries but got '%d'." % ContactRefFile.objects.count())
+        self.assertEqual(ContactCertFile.objects.count(), 0, "Expected UserCertFile to have 0 entry but got '%d'." % ContactCertFile.objects.count())
         self.assertEqual(EventFile.objects.count(), 0, "Expected EventFile to have 0 entry but got '%d'." % EventFile.objects.count())
 
 

@@ -17,7 +17,8 @@ from django.test.client import Client
 from django.test.utils import override_settings
 
 from campaigns.models import Event, EventSignup
-from cabinet.models import EventFile, UserRefFile, UserCertFile
+from cabinet.models import EventFile, ContactRefFile, ContactCertFile
+from contacts.models import Contact
 
 # ToDo: add a another test to make sure user does not have access to the admin urls
 
@@ -42,7 +43,9 @@ class BaseHTMLTestCase(TestCase):
         resp = self.client.get(url)
         self.assertEqual(resp.status_code, 200, "Expected '%s' to return 200 but got %s" % (url, resp.status_code))
         doc = lxml.html.fromstring(resp.content)
-        self.assertTrue(doc, "Failed to parse '%s'.  HTML:\n%s" % (url, resp.content))
+
+        # self.assertTrue(doc, "Failed to parse '%s'.  HTML:\n%s" % (url, resp.content))
+        self.assertTrue(doc, "Failed to parse '%s'" % url)
         return doc
 
     def _get_elements(self, element, selector):
@@ -88,10 +91,10 @@ class BaseHTMLTestCase(TestCase):
         if type == "event":
             return "/admin/cabinet/%d/%s/add" % (self.event.id, type)
         else:
-            return "/admin/cabinet/%d/%s/add" % (self.user.id, type)
+            return "/admin/cabinet/%s/%s/add" % (self.contact.code, type)
 
     def _edit_url(self, type, file_id):
-        return "/admin/cabinet/%d/%s/%d" % (self.user.id, type, file_id)
+        return "/admin/cabinet/%s/%s/%d" % (self.contact.code, type, file_id)
 
     def _upload_file(self, type, **kwargs):
         """
@@ -102,11 +105,11 @@ class BaseHTMLTestCase(TestCase):
         """
 
         # Read the params that is meant for this method only
-        if "user_file_id" in kwargs:
-            user_file_id = kwargs["user_file_id"]
-            del kwargs["user_file_id"]
+        if "contact_file_id" in kwargs:
+            contact_file_id = kwargs["contact_file_id"]
+            del kwargs["contact_file_id"]
         else:
-            user_file_id = None
+            contact_file_id = None
 
         if "file_path" in kwargs:
             file_path = kwargs["file_path"]
@@ -120,24 +123,24 @@ class BaseHTMLTestCase(TestCase):
         else:
             expect_error = False
 
-        # Customize the user_file object based on type
+        # Customize the contact_file object based on type
         if type == "ref":
-            user_file_class = UserRefFile
+            contact_file_class = ContactRefFile
         elif type == "cert":
-            user_file_class = UserCertFile
+            contact_file_class = ContactCertFile
         else:
-            user_file_class = EventFile
-        kwargs["cabinet"] = user_file_class.CABINET_ID
+            contact_file_class = EventFile
+        kwargs["cabinet"] = contact_file_class.CABINET_ID
 
         # Get the url based on action
         if kwargs["action"] == "add":
             url = self._upload_url(type)
         else:
-            url = self._edit_url(type, user_file_id)
+            url = self._edit_url(type, contact_file_id)
 
         # Add the other needed info
         kwargs.update({
-            "user_id": self.user.id,
+            "contact_id": self.contact.code,
             "owner": self.admin.id,
             "referer": "/admin/"
         })
@@ -159,19 +162,19 @@ class BaseHTMLTestCase(TestCase):
 
         # Make sure delete works
         if kwargs["action"] == "delete":
-            self.assertRaises(ObjectDoesNotExist, UserRefFile.objects.get, pk=user_file_id)
-            user_file = None
+            self.assertRaises(ObjectDoesNotExist, ContactRefFile.objects.get, pk=contact_file_id)
+            contact_file = None
         elif expect_error:
-            user_file = None
+            contact_file = None
         else:
             # Make sure that database entry is created
-            user_file = user_file_class.objects.get(file__title=kwargs["title"])
+            contact_file = contact_file_class.objects.get(file__title=kwargs["title"])
             if type == "event":
-                self.assertEqual(user_file.event.id, self.event.id)
+                self.assertEqual(contact_file.event.id, self.event.id)
             else:
-                self.assertEqual(user_file.user_id, kwargs["user_id"])
+                self.assertEqual(contact_file.contact.code, kwargs["contact_id"])
 
-        return (user_file, kwargs, resp)
+        return (contact_file, kwargs, resp)
 
 
 class CabinetAdminHTMLTestCase(BaseHTMLTestCase):
@@ -182,7 +185,7 @@ class CabinetAdminHTMLTestCase(BaseHTMLTestCase):
 
     def setUp(self):
         self.admin = User.objects.get(pk=1)
-        self.user = User.objects.get(pk=3)
+        self.contact = Contact.objects.get(owner_id=3)
         self.event = Event.objects.get(pk=1)
         self.is_logged_in = self.client.login(username=self.admin.username, password="devel02")
 
@@ -197,14 +200,14 @@ class CabinetAdminHTMLTestCase(BaseHTMLTestCase):
         self.assertTrue(self.admin.is_staff, "Expected admin to be a staff")
         self.assertTrue(self.is_logged_in, "Expected .login to return true")
 
-    def test02_userDetailPage(self):
+    def test02_contactDetailPage(self):
         """
-        Make sure that user detail page exists and getting the right user
+        Make sure that contact detail page exists and getting the right user
         """
-        doc = self._get_elem_from_url("/admin/backend/utenti/details/%d/" % self.user.id)
+        doc = self._get_elem_from_url("/admin/contacts/contact/%s/" % self.contact.code)
 
         # Make sure the user is as expected by checking email
-        selector = "form#company_form > div > div > ul > li > input[name='email']"
+        selector = "form#contact_form > div > div > ul > li > input[name='email']"
         email = self._get_list_from_element(doc, selector, "value")
         self.assertGreater(len(email), 0, "Selector '%s' should not to be empty" % selector)
         self.assertEqual(email[0], "user.one@example.com", "Expect email field to be 'user.one@example.com' but got '%s'" % email[0])
@@ -214,7 +217,7 @@ class CabinetAdminHTMLTestCase(BaseHTMLTestCase):
         """
         Make sure that Files Table is as expected
         """
-        doc = self._get_elem_from_url("/admin/backend/utenti/details/%d/" % self.user.id)
+        doc = self._get_elem_from_url("/admin/contacts/contact/%s/" % self.contact.code)
 
         # Make sure that files section exists
         selector = "#refFileTable"
@@ -224,7 +227,7 @@ class CabinetAdminHTMLTestCase(BaseHTMLTestCase):
         # Check the header
         selector = "table > thead > tr > th > div"
         tbl_headers = self._get_list_from_element(tbl, selector=selector)
-        expected_result = ['<div>Id</div>', '<div>Titolo</div>', '<div>Evento</div>', '<div>File</div>', '<div>Data</div>']
+        expected_result = ['<div>Id</div>', '<div>Titolo</div>', '<div>File</div>', '<div>Data</div>']
         self.assertEqual(tbl_headers, expected_result, "Expected '%s' but got '%s'" % (expected_result, tbl_headers))
 
         # No entry should exists in the table
@@ -238,7 +241,7 @@ class CabinetAdminHTMLTestCase(BaseHTMLTestCase):
         Make sure that Certificate Table is as expected
         Could be merged with test03_filesTable is performance becomes an issue
         """
-        doc = self._get_elem_from_url("/admin/backend/utenti/details/%d/" % self.user.id)
+        doc = self._get_elem_from_url("/admin/contacts/contact/%s/" % self.contact.code)
 
         # Make sure that files section exists
         selector = "#certFileTable"
@@ -274,16 +277,16 @@ class CabinetAdminHTMLTestCase(BaseHTMLTestCase):
             self.assertTrue(elem, "Selector '%s' should not to be empty" % field_selector)
 
         # Upload an file
-        user_file, test_data, resp = self._upload_file("ref", action="add", title="Presentation File BQWy4ukoFq", file_path="res/presentation.pdf")
-        user_file_id = user_file.id
+        contact_file, test_data, resp = self._upload_file("ref", action="add", title="Presentation File BQWy4ukoFq", file_path="res/presentation.pdf")
+        contact_file_id = contact_file.id
 
         # Make sure that file has been uploaded
-        uploaded_file = user_file.file.file_fullpath()
+        uploaded_file = contact_file.file.file_fullpath
         self.assertTrue(os.path.isfile(uploaded_file), "Expected local file to exists at: %s" % uploaded_file)
         self.assertTrue(uploaded_file.startswith(TEST_MEDIA_ROOT), "Expected file to start with '%s'.  Local file: %s" % (TEST_MEDIA_ROOT, uploaded_file))
 
         # Make sure that file can be viewed and that title matches
-        url = self._edit_url("ref", user_file_id)
+        url = self._edit_url("ref", contact_file_id)
         doc = self._get_elem_from_url(url)
 
         title = self._get_list_from_element(doc,selector="#id_title", attr="value")
@@ -302,14 +305,14 @@ class CabinetAdminHTMLTestCase(BaseHTMLTestCase):
         """
 
         # Upload an file
-        user_file, test_data, resp = self._upload_file("ref", action="add", title="Editing a file s81a4oju1p", file_path="res/presentation.pptx")
-        user_file_id = user_file.id
-        uploaded_file = user_file.file.file_fullpath()
-        url_edit = self._edit_url("ref", user_file_id)
+        contact_file, test_data, resp = self._upload_file("ref", action="add", title="Editing a file s81a4oju1p", file_path="res/presentation.pptx")
+        contact_file_id = contact_file.id
+        uploaded_file = contact_file.file.file_fullpath
+        url_edit = self._edit_url("ref", contact_file_id)
 
         # Make sure that edit only title works
-        user_file, test_data_edited, resp = self._upload_file("ref", action="edit", user_file_id=user_file_id, title="A file edited HCffL9jl9U")
-        self.assertEqual(user_file.id, user_file_id)
+        contact_file, test_data_edited, resp = self._upload_file("ref", action="edit", contact_file_id=contact_file_id, title="A file edited HCffL9jl9U")
+        self.assertEqual(contact_file.id, contact_file_id)
         self.assertTrue(os.path.isfile(uploaded_file), "Expected local file exists: %s" % uploaded_file)
 
         # Check GUI
@@ -319,9 +322,9 @@ class CabinetAdminHTMLTestCase(BaseHTMLTestCase):
         self.assertEqual(title[0], test_data_edited["title"])
 
         # Make sure that edit title and file works
-        user_file, test_data_edited2, resp = self._upload_file("ref", action="edit", user_file_id=user_file_id, title="File changed dhVRNCsJJL", file_path="res/presentation.pdf")
-        uploaded_file = user_file.file.file_fullpath()
-        self.assertEqual(user_file.id, user_file_id)
+        contact_file, test_data_edited2, resp = self._upload_file("ref", action="edit", contact_file_id=contact_file_id, title="File changed dhVRNCsJJL", file_path="res/presentation.pdf")
+        uploaded_file = contact_file.file.file_fullpath
+        self.assertEqual(contact_file.id, contact_file_id)
 
         # Check GUI
         doc = self._get_elem_from_url(url_edit)
@@ -330,7 +333,7 @@ class CabinetAdminHTMLTestCase(BaseHTMLTestCase):
         self.assertEqual(title[0], test_data_edited2["title"])
 
         # Make sure that delete works
-        user_file, test_data_deleted, resp = self._upload_file("ref", action="delete", user_file_id=user_file_id)
+        contact_file, test_data_deleted, resp = self._upload_file("ref", action="delete", contact_file_id=contact_file_id)
         self.assertFalse(os.path.isfile(uploaded_file), "Expected local file to have been deleted: %s" % uploaded_file)
 
     @override_settings(MEDIA_ROOT=TEST_MEDIA_ROOT)
@@ -338,8 +341,8 @@ class CabinetAdminHTMLTestCase(BaseHTMLTestCase):
         '''
         Make sure that invalid file upload is rejected
         '''
-        user_file, test_data, resp = self._upload_file("ref", action="add", title="Adding a new presentation zvFAzzdkYC", file_path="res/presentation.txt", expect_error=True)
-        self.assertIsNone(user_file)
+        contact_file, test_data, resp = self._upload_file("ref", action="add", title="Adding a new presentation zvFAzzdkYC", file_path="res/presentation.txt", expect_error=True)
+        self.assertIsNone(contact_file)
         doc = lxml.html.fromstring(resp.content)
 
         elems = self._get_elements(doc, selector="form#file_form > .alert-error > ul > li")
@@ -365,17 +368,17 @@ class CabinetAdminHTMLTestCase(BaseHTMLTestCase):
         # Upload an file
         # datetime.datetime.strptime(test_data["expiry"], "%d/%m/%Y").date()
         expiry = datetime.date.today() + datetime.timedelta(20)
-        user_file, test_data, resp = self._upload_file("cert", action="add", title="Certification File qwa1g31SgT", expiry=expiry.strftime("%d/%m/%Y"), file_path="res/certificate.png")
-        user_file_id = user_file.id
-        self.assertEqual(user_file.expiry, expiry)
+        contact_file, test_data, resp = self._upload_file("cert", action="add", title="Certification File qwa1g31SgT", expiry=expiry.strftime("%d/%m/%Y"), file_path="res/certificate.png")
+        contact_file_id = contact_file.id
+        self.assertEqual(contact_file.expiry, expiry)
 
         # Make sure that file has been uploaded
-        uploaded_file = user_file.file.file_fullpath()
+        uploaded_file = contact_file.file.file_fullpath
         self.assertTrue(os.path.isfile(uploaded_file), "Expected local file to exists at: %s" % uploaded_file)
         self.assertTrue(uploaded_file.startswith(TEST_MEDIA_ROOT), "Expected file to start with '%s'.  Local file: %s" % (TEST_MEDIA_ROOT, uploaded_file))
 
         # Make sure that file can be viewed and that title matches
-        url = self._edit_url("cert", user_file_id)
+        url = self._edit_url("cert", contact_file_id)
         doc = self._get_elem_from_url(url)
 
         title = self._get_list_from_element(doc,selector="#id_title", attr="value")
@@ -394,16 +397,16 @@ class CabinetAdminHTMLTestCase(BaseHTMLTestCase):
         """
 
         # Upload an file
-        user_file, test_data, resp = self._upload_file("cert", action="add", title="Editing a certificate XrLDoOQl8H", expiry="07/12/2035", file_path="res/certificate.pdf")
-        user_file_id = user_file.id
-        uploaded_file = user_file.file.file_fullpath()
-        url_edit = self._edit_url("cert", user_file_id)
+        contact_file, test_data, resp = self._upload_file("cert", action="add", title="Editing a certificate XrLDoOQl8H", expiry="07/12/2035", file_path="res/certificate.pdf")
+        contact_file_id = contact_file.id
+        uploaded_file = contact_file.file.file_fullpath
+        url_edit = self._edit_url("cert", contact_file_id)
 
         # Make sure that edit only title works
-        user_file, test_data_edited, resp = self._upload_file("cert", action="edit", user_file_id=user_file_id, expiry="02/05/2040", title="Certificate edited DNjWOYzjTy")
-        self.assertEqual(user_file.id, user_file_id)
+        contact_file, test_data_edited, resp = self._upload_file("cert", action="edit", contact_file_id=contact_file_id, expiry="02/05/2040", title="Certificate edited DNjWOYzjTy")
+        self.assertEqual(contact_file.id, contact_file_id)
         self.assertTrue(os.path.isfile(uploaded_file), "Expected local file exists: %s" % uploaded_file)
-        self.assertEqual(user_file.expiry, datetime.datetime.strptime(test_data_edited["expiry"], "%d/%m/%Y").date())
+        self.assertEqual(contact_file.expiry, datetime.datetime.strptime(test_data_edited["expiry"], "%d/%m/%Y").date())
 
         # Check GUI
         doc = self._get_elem_from_url(url_edit)
@@ -418,9 +421,9 @@ class CabinetAdminHTMLTestCase(BaseHTMLTestCase):
 
 
         # Make sure that edit title and file works
-        user_file, test_data_edited2, resp = self._upload_file("cert", action="edit", user_file_id=user_file_id, expiry="30/06/2033", title="Certificate changed XDEZvMXhDE", file_path="res/certificate.png")
-        uploaded_file = user_file.file.file_fullpath()
-        self.assertEqual(user_file.id, user_file_id)
+        contact_file, test_data_edited2, resp = self._upload_file("cert", action="edit", contact_file_id=contact_file_id, expiry="30/06/2033", title="Certificate changed XDEZvMXhDE", file_path="res/certificate.png")
+        uploaded_file = contact_file.file.file_fullpath
+        self.assertEqual(contact_file.id, contact_file_id)
 
         # Check GUI
         doc = self._get_elem_from_url(url_edit)
@@ -435,7 +438,7 @@ class CabinetAdminHTMLTestCase(BaseHTMLTestCase):
 
 
         # Make sure that delete works
-        user_file, test_data_deleted, resp = self._upload_file("cert", action="delete", user_file_id=user_file_id)
+        contact_file, test_data_deleted, resp = self._upload_file("cert", action="delete", contact_file_id=contact_file_id)
         self.assertFalse(os.path.isfile(uploaded_file), "Expected local file to have been deleted: %s" % uploaded_file)
 
     @override_settings(MEDIA_ROOT=TEST_MEDIA_ROOT)
@@ -444,8 +447,8 @@ class CabinetAdminHTMLTestCase(BaseHTMLTestCase):
         Make sure that invalid certificate upload is rejected
         '''
         # Upload an file
-        user_file, test_data, resp = self._upload_file("cert", action="add", title="Adding a new certificate Zh5VbQurCe", expiry="07/12/2040", file_path="res/certificate.ppt", expect_error=True)
-        self.assertIsNone(user_file)
+        contact_file, test_data, resp = self._upload_file("cert", action="add", title="Adding a new certificate Zh5VbQurCe", expiry="07/12/2040", file_path="res/certificate.ppt", expect_error=True)
+        self.assertIsNone(contact_file)
         doc = lxml.html.fromstring(resp.content)
 
         elems = self._get_elements(doc, selector="form#file_form > .alert-error > ul > li")
@@ -483,7 +486,7 @@ class CabinetAdminHTMLTestCase(BaseHTMLTestCase):
         self.assertEqual(event_file.file.title, title)
 
         # Make sure that file has been uploaded
-        uploaded_file = event_file.file.file_fullpath()
+        uploaded_file = event_file.file.file_fullpath
         self.assertTrue(os.path.isfile(uploaded_file), "Expected local file to exists at: %s" % uploaded_file)
         self.assertTrue(uploaded_file.startswith(TEST_MEDIA_ROOT), "Expected file to start with '%s'.  Local file: %s" % (TEST_MEDIA_ROOT, uploaded_file))
 
@@ -516,11 +519,11 @@ class CabinetAdminHTMLTestCase(BaseHTMLTestCase):
         # Upload an file
         event_file, test_data, resp = self._upload_file("event", action="add", title="Editing a file gOTuW9Fj9r", file_path="res/presentation.pptx")
         event_file_id = event_file.id
-        uploaded_file = event_file.file.file_fullpath()
+        uploaded_file = event_file.file.file_fullpath
         url_edit = self._edit_url("event", event_file_id)
 
         # Make sure that edit only title works
-        event_file, test_data_edited, resp = self._upload_file("event", action="edit", user_file_id=event_file_id, title="A file edited 6aQ7j74RAT")
+        event_file, test_data_edited, resp = self._upload_file("event", action="edit", contact_file_id=event_file_id, title="A file edited 6aQ7j74RAT")
         self.assertEqual(event_file.id, event_file_id)
         self.assertTrue(os.path.isfile(uploaded_file), "Expected local file exists: %s" % uploaded_file)
 
@@ -531,8 +534,8 @@ class CabinetAdminHTMLTestCase(BaseHTMLTestCase):
         self.assertEqual(title[0], test_data_edited["title"])
 
         # Make sure that edit title and file works
-        event_file, test_data_edited2, resp = self._upload_file("event", action="edit", user_file_id=event_file_id, title="File changed 4dU8uLXpr2", file_path="res/presentation.pdf")
-        uploaded_file = event_file.file.file_fullpath()
+        event_file, test_data_edited2, resp = self._upload_file("event", action="edit", contact_file_id=event_file_id, title="File changed 4dU8uLXpr2", file_path="res/presentation.pdf")
+        uploaded_file = event_file.file.file_fullpath
         self.assertEqual(event_file.id, event_file_id)
 
         # Check GUI
@@ -542,7 +545,7 @@ class CabinetAdminHTMLTestCase(BaseHTMLTestCase):
         self.assertEqual(title[0], test_data_edited2["title"])
 
         # Make sure that delete works
-        event_file, test_data_deleted, resp = self._upload_file("event", action="delete", user_file_id=event_file_id)
+        event_file, test_data_deleted, resp = self._upload_file("event", action="delete", contact_file_id=event_file_id)
         self.assertFalse(os.path.isfile(uploaded_file), "Expected local file to have been deleted: %s" % uploaded_file)
 
 
@@ -554,9 +557,9 @@ class CabinetHTMLTestCase(BaseHTMLTestCase):
 
     def setUp(self):
         self.admin = User.objects.get(pk=1)
-        self.user = self.admin
+        self.contact = Contact.objects.get(owner_id=1)
         self.event = Event.objects.get(pk=1)
-        self.is_logged_in = self.client.login(username=self.user.username, password="devel02")
+        self.is_logged_in = self.client.login(username=self.admin.username, password="devel02")
 
     def test01_login(self):
         """
@@ -665,7 +668,7 @@ class CabinetHTMLTestCase(BaseHTMLTestCase):
         self.assertEqual(elems, ref_files)
 
         # Clear the sign up flag and file should no longer showup
-        signup = EventSignup.objects.get(event=self.event, contact__owner=self.user)
+        signup = EventSignup.objects.get(event=self.event, contact__owner=self.contact.owner)
         signup.presence = False
         signup.save()
 
