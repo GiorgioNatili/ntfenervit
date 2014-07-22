@@ -19,7 +19,7 @@
                         <div id="target" style="width:200px;height: 160px;display: inline-block;"
                              data-title="Destinatari"></div>
                         <div id="submissions" style="width:200px;height: 160px;display: inline-block;"
-                             data-title="Sottomissioni"></div>
+                             data-title="Compilati"></div>
                         <div id="active" style="width:200px;height: 160px;display: inline-block;"
                              data-title="Attivi"></div>
                         <div id="abandoned" style="width:200px;height: 160px;display: inline-block;"
@@ -33,7 +33,7 @@
             <div class="row-fluid">
                 <div class="box">
                     <div class="box-header">
-                        <span class="title">Sottomissioni</span>
+                        <span class="title">Compilati</span>
                     </div>
                     <div class="box-content">
                         <div id="submissionsionsDatatable">
@@ -212,7 +212,7 @@
                     value: {{counters.submissions}},
                     min: 0,
                     max: {{counters.targets}},
-                    title: "Sottomissioni"
+                    title: "Compilati"
                 });
                 var active = new JustGage({
                     id: "active",
