@@ -31,7 +31,7 @@ import mimetypes
 from django.conf import settings
 from django.utils.encoding import smart_str, smart_unicode
 from campaigns.models import EventSignup
-from cabinet.models import EventFile, UserRefFile, UserCertFile
+from cabinet.models import EventFile, ContactRefFile, ContactCertFile
 from coupon.models import Coupon
 
 
@@ -203,8 +203,8 @@ def view_main(request):
     contact = Contact.objects.all().filter(owner=request.user)
     provinces = Province.objects.all()
     sectors = Sector.objects.all()
-    ref_files = UserRefFile.objects.filter(user=request.user)
-    cert_files = UserCertFile.objects.filter(user=request.user)
+    ref_files = ContactRefFile.objects.filter(contact=contact)
+    cert_files = ContactCertFile.objects.filter(contact=contact)
     form = ContactForm()
     today = datetime.datetime.now()
     events = Event.objects.all().filter(date__gte=today,is_public=True)

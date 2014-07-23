@@ -37,7 +37,7 @@
                                             <label>Durata:</label>
                                             <select class="uniform" name="duration_code">
                                                 <option value="">---</option>
-                                                <option value="expired" {% if form.duration_code.value == 'expired' %}selected="selected"{% endif %}>Scadutto</option>
+                                                <option value="expired" {% if form.duration_code.value == 'expired' %}selected="selected"{% endif %}>Scaduto</option>
                                                 <option value="1y-" {% if form.duration_code.value == '1y-' %}selected="selected"{% endif %}>1 anno o meno</option>
                                                 <option value="2y" {% if form.duration_code.value == '2y' %}selected="selected"{% endif %}>2 anni</option>
                                                 <option value="3y" {% if form.duration_code.value == '3y' %}selected="selected"{% endif %}>3 anni</option>
@@ -48,7 +48,7 @@
                                 </div>
                             </div>
                             <div class="form-actions">
-                                <input type="hidden" name="models" value="cabinet.usercertfile">
+                                <input type="hidden" name="models" value="{{ search_model }}">
                                 <button type="submit" class="btn btn-blue">Cerca</button>
                             </div>
                         </form>

@@ -1,0 +1,8 @@
+{{object.contact.code}}
+{{object.contact.name}} {{object.contact.surname}}
+{{object.contact.email}}
+{{object.contact.city}}
+{{object.file.title}}
+{{object.file.file_basename}}
+{{object.duration_code}}
+{{object.expiry|date:"d-m-Y"}}

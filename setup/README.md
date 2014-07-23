@@ -101,3 +101,41 @@ All test file should follow the following pattern:
 * All test sql should end with `*_tests.sql`
 
 
+## Development Procedures
+
+### Arcanist
+[Arcanist](https://secure.phabricator.com/book/phabricator/article/arcanist/) is used for code submitting the code for
+review and approval.  A quick development cycle on arcanist is:
+
+1. Identify the Task you are working on in [Phabricator](http://projects.gnstudio.biz/project/board/16/), i.e., `T419`
+1. Create a branch in `git` so all work are done in that branch
+1. Commit changes to the branch as you see fit.  Be descriptive on what you are committing as each commit will show up
+   as an entry on the code review page
+1. Once completed, submit changes using `arc diff` to create a [Differential Revision](http://projects.gnstudio.biz/D24)
+1. Complete the process, merge changes to master and delete the branch, using `arc land` command
+
+Here are the steps, assuming that we are working on `T419` task:
+
+```
+# Create and checkout a new branch
+git checkout -b T419
+
+# Add and commit as you see fit
+git commit ...
+
+# The first push of new needs `-u` option to create a tracking branch
+# Following push can be simply done using `git push`
+git push -u origin T419
+
+# git cherry command to show commit in branch since master
+git cherry -v master
++ d5cd505a498c9aaa3df5e0115c6075dfb14b9b3d Sort event by Event.date ascending for frontend main page
+...
+
+# Tell arc to pick up commit starting from the one prior to first commit in branch
+arc diff d5cd505a498c9aaa3df5e0115c6075dfb14b9b3d^
+
+# When approved, do
+arc land
+
+```

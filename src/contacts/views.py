@@ -15,6 +15,9 @@ from survey.models import Submission, Answer
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import user_passes_test
 
+from cabinet.models import ContactRefFile, ContactCertFile
+
+
 class CompanyForm(ModelForm):
     class Meta:
         model = Company
@@ -344,7 +347,10 @@ def view_add_contact(request):
 def view_contact_details(request, id):
     contact = get_object_or_404(Contact, code=id)
     owner = contact.owner_id
-    print owner
+    # print owner
+
+    refiles = ContactRefFile.objects.filter(contact=contact)
+    certfiles = ContactCertFile.objects.filter(contact=contact)
 
     provinces = Province.objects.all()
 
@@ -400,9 +406,27 @@ def view_contact_details(request, id):
             messages.success(request,
                              'Contatto \"' + new_contact.name + ' ' + new_contact.surname + '\" aggiornato correttamente!')
             return HttpResponseRedirect('/admin/contacts/contact/'+id)
-    return render_to_response('admin/contacts/view_contact_details.html',
-                              {'submissions': submissions2, 'event_signup': event_signup,'newsletter_target':newsletter_target, 'contact': contact, 'provinces': provinces,  'companies': companies, 'sectors': sectors,'sector':sector, 'works':works,'divisions': divisions,'ana_division':ana_division,'subdivisions':subdivisions,'form': form},
-                              context_instance=RequestContext(request))
+
+    return render_to_response(
+        'admin/contacts/view_contact_details.html',
+        {
+            'submissions': submissions2,
+            'event_signup': event_signup,
+            'newsletter_target':newsletter_target,
+            'contact': contact,
+            'provinces': provinces,
+            'companies': companies,
+            'sectors': sectors,
+            'sector':sector,
+            'works':works,
+            'divisions': divisions,
+            'ana_division':ana_division,
+            'subdivisions':subdivisions,
+            'refiles': refiles,
+            'certfiles': certfiles,
+            'form': form
+        },
+        context_instance=RequestContext(request))
 
 
 @staff_member_required
