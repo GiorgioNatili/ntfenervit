@@ -207,7 +207,7 @@ def view_main(request):
     cert_files = ContactCertFile.objects.filter(contact=contact)
     form = ContactForm()
     today = datetime.datetime.now()
-    events = Event.objects.all().filter(date__gte=today,is_public=True)
+    events = Event.objects.all().filter(date__gte=today,is_public=True).order_by('date')
     iscrizioni = []
     #print contact
     if len(contact)>0:
