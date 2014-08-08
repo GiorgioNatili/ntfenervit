@@ -25,28 +25,36 @@
                                             {% for error in errors %}
                                                 <li>{{ error }}</li>
                                             {% endfor %}
-
                                         {% endfor %}
                                     </ul>
                                 </div>
                             {% endif %}
                             <div class="row-fluid"> <!-- contenitore form -->
-                                <!-- primo tab -->
                                 <div class="span6">
                                     <ul class="padded separate-sections">
-
                                         <li class="input">
-                                            <input type="text" name="description" class="validate[required]" data-prompt-position="topLeft" placeholder="Descrizione" value="{{ eventtype.description }}"/>
+                                            {{ form.description.label_tag }} {{ form.description }}
                                         </li>
-
-
+                                        <li class="input">
+                                            {{ form.selectable.label_tag }} {{ form.selectable }}
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li class="input">
+                                            {{ form.contact_to_customer.label_tag }} {{ form.contact_to_customer }}
+                                        </li>
+                                        <li class="input">
+                                            {{ form.customer_to_sale.label_tag }} {{ form.customer_to_sale }}
+                                        </li>
                                     </ul>
                                 </div>
                             </div> <!-- contenitore form -->
 
                             <div class="form-actions">
                                 <button type="submit" name="_save" class="btn btn-green ">Modifica</button>
-                                <a  href="delete/" name="delete" class="btn btn-red pull-right">Cancella</a>
+                                <a id="btn-delete" name="delete" class="btn btn-red pull-right">Cancella</a>
                             </div>
                         </form>
                     </div>
@@ -55,6 +63,12 @@
         </div><!-- row fluid -->
     </div>
 
+    <script>
 
+        $("#btn-delete").click(function () {
+            alert("Prego contattare sistemista per cancellare questo Tipologie Evento");
+        });
+
+    </script>
 
 {% endblock %}

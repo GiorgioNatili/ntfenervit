@@ -1532,9 +1532,6 @@ def view_eventtype(request):
 
 @user_passes_test(lambda u:u.is_superuser)
 def view_add_eventtype(request):
-    c = {}
-    c.update(csrf(request))
-    form = EventTypeForm()
     if request.method == 'POST':
         form = EventTypeForm(request.POST)
         if form.is_valid():
@@ -1545,16 +1542,17 @@ def view_add_eventtype(request):
             else:
                 messages.success(request, 'Aggiunta nuova tipologia evento \"' + new_type.description+ '\"')
                 return HttpResponseRedirect('/admin/campaigns/eventtype')
-    c = {'form': form}
-    return render_to_response('admin/campaigns/view_add_eventtype.html', c, context_instance=RequestContext(request))
+    else:
+        form = EventTypeForm()
+    return render_to_response('admin/campaigns/view_add_eventtype.html', {'form': form}, context_instance=RequestContext(request))
 
 
 @user_passes_test(lambda u:u.is_superuser)
 def view_eventtype_details(request, id):
     eventtype = get_object_or_404(EventType, id=id)
-    form = EventTypeForm()
+    form = EventTypeForm(instance=eventtype)
     if request.method == 'POST':
-        print request.POST
+        # print request.POST
         form = EventTypeForm(request.POST, instance=eventtype)
         if form.is_valid():
             new_type = form.save(commit=False)

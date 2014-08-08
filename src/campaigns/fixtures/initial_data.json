@@ -3,30 +3,53 @@
         "pk": 1,
         "model": "campaigns.eventtype",
         "fields": {
-            "description": "SEMINARIO"
+            "description": "SEMINARIO",
+            "contact_to_customer": 40,
+            "customer_to_sale": 0.2,
+            "selectable": true
         }
     },
     {
         "pk": 2,
         "model": "campaigns.eventtype",
         "fields": {
-            "description": "ONE-TO-ONE"
+            "description": "ONE-TO-ONE",
+            "contact_to_customer": 8,
+            "customer_to_sale": 0.3,
+            "selectable": true
         }
     },
     {
         "pk": 3,
         "model": "campaigns.eventtype",
         "fields": {
-            "description": "FORMAZIONE A PUNTO VENDITA"
+            "description": "FORMAZIONE A PUNTO VENDITA",
+            "contact_to_customer": 3,
+            "customer_to_sale": 0.3,
+            "selectable": true
         }
     },
     {
         "pk": 4,
         "model": "campaigns.eventtype",
         "fields": {
-            "description": "INFORMAZIONE MEDICA"
+            "description": "INFORMAZIONE MEDICA",
+            "contact_to_customer": 8,
+            "customer_to_sale": 0.4,
+            "selectable": true
         }
     },
+    {
+        "pk": 5,
+        "model": "campaigns.eventtype",
+        "fields": {
+            "description": "PORTALE ENS",
+            "contact_to_customer": 1,
+            "customer_to_sale": 0.0375,
+            "selectable": false
+        }
+    },
+
 
 
 

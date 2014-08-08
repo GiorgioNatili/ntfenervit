@@ -185,6 +185,14 @@ class EventCoupon(models.Model):
 
 class EventType(models.Model):
     description = models.CharField(max_length=250,blank=False, null=False,verbose_name="Tipo Evento")
+    contact_to_customer = models.FloatField(blank=False, verbose_name="Contatti Lordi")
+    customer_to_sale = models.FloatField(blank=False, verbose_name="Contatti Netti")
+    selectable = models.BooleanField(blank=False, default=True, verbose_name="Selezionabile")
+
+    @property
+    def customer_to_sale_percent(self):
+        # This was created to facilitate display of percentage in the template
+        return self.customer_to_sale * 100
 
     def __unicode__(self):
         return '%s' % (self.description)

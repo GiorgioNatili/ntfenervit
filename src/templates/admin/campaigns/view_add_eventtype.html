@@ -31,14 +31,24 @@
                             {% endif %}
 
                             <div class="row-fluid"> <!-- contenitore form -->
-                                <!-- primo tab -->
                                 <div class="span6">
                                     <ul class="padded separate-sections">
-
                                         <li class="input">
-                                            <input type="text" name="description" class="validate[required]" data-prompt-position="topLeft" placeholder="Descrizione" value="{{ form.instance.description|default_if_none:"" }}"/>
+                                            {{ form.description.label_tag }} {{ form.description }}
                                         </li>
-
+                                        <li class="input">
+                                            {{ form.selectable.label_tag }} {{ form.selectable }}
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+                                        <li class="input">
+                                            {{ form.contact_to_customer.label_tag }} {{ form.contact_to_customer }}
+                                        </li>
+                                        <li class="input">
+                                            {{ form.customer_to_sale.label_tag }} {{ form.customer_to_sale }}
+                                        </li>
                                     </ul>
                                 </div>
                             </div> <!-- contenitore form -->
