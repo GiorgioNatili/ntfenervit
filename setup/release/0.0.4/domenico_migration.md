@@ -16,7 +16,7 @@ Note for Production Migration
     python src/manage.py migrate campaigns 0004
 
 ## IMPORTANT: to plan a task for populate new Event fields based on old ones:
-
+*create users ITS for missing ones: Bosio, Marangi, Piovan
 *its_districtmanager based on districtmanager
 
     python setup/release/20140811/populate_its.py

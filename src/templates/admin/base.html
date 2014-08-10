@@ -111,9 +111,8 @@
                 </a>
             </li>
 
-    {# TODO: add area its here if user is ITS #}
-    {% if user|is_its%}
-    <li id="itsArea" class="dark-nav ">
+            {% if user|is_its%}
+            <li id="itsArea" class="dark-nav ">
 
                 <span class="glow"></span>
 
@@ -121,19 +120,17 @@
                     <i class="icon-briefcase icon-2x"></i>
                     <span>Area ITS<i class="icon-caret-down"></i>
                     </span>
-
                 </a>
 
                 <ul id="areaItsXXyy" class="collapse ">
                     <li class="">
                         <a href="/admin/backend/its/agenda">
-                            <i class="icon-table"></i> Agenda ITS
+                            <i class="icon-calendar"></i> Agenda ITS
                         </a>
                     </li>
                     <li class="">
-                        <!-- <a href="/admin/auth/user">-->
-                        <a href="/admin/backend/its/consulenti">
-                            <i class="icon-user"></i> Consulenti
+                        <a href="/admin/campaigns/event/add">
+                            <i class="icon-plus-sign-alt"></i> Aggiungi Evento
                         </a>
                     </li>
 
