@@ -1,7 +1,5 @@
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from django import forms
-from django.forms.extras.widgets import SelectDateWidget
 from django.contrib.auth.models import User
 # Create your models here.
 
@@ -25,6 +23,8 @@ CONTACT_STATUS = (
     ('C', 'Cancellato'),
     ('D', 'Non Interessato'),
 )
+
+CONTACT_TYPE = (('N', 'Normale'), ('C', 'Consulente'))
 
 
 class Company(models.Model):
@@ -171,6 +171,10 @@ class Payment(models.Model):
 
 
 class Contact(models.Model):
+
+    #TODO to add a new field ContactType
+    type = models.CharField(max_length=1, choices=CONTACT_TYPE, default='N', verbose_name='Tipo Contatto')
+
     name = models.CharField(max_length=100, blank=False, null=False, verbose_name='Nome')
     surname = models.CharField(max_length=100, blank=False, null=False, verbose_name='Cognome')
     code = models.CharField(primary_key=True, max_length=16, blank=False, null=False,
@@ -212,10 +216,10 @@ class RankingConfiguration(models.Model):
     maxvalue = models.PositiveSmallIntegerField(verbose_name="Valore massimo",blank=False,null=False,default=10)
     eventsignup = models.PositiveSmallIntegerField(verbose_name="Premio iscrizione evento",blank=False,null=False,default=1)
     eventpresence = models.PositiveSmallIntegerField(verbose_name="Premio presenza evento",blank=False,null=False,default=1)
-    survey =  models.PositiveSmallIntegerField(verbose_name="Premio risposta questionario",blank=False,null=False,default=1)
+    survey = models.PositiveSmallIntegerField(verbose_name="Premio risposta questionario",blank=False,null=False,default=1)
     inactive = models.SmallIntegerField(verbose_name="Penalizzazione per inattivita\'",blank=False,null=False,default=-1)
     active_threshold = models.PositiveSmallIntegerField(verbose_name="Valore di soglia contatto ATTIVO",blank=False,null=False,default=1)
-    inactivity_period =  models.PositiveSmallIntegerField(verbose_name="Periodo di inattivita\'",blank=False,null=False,default=24)
+    inactivity_period = models.PositiveSmallIntegerField(verbose_name="Periodo di inattivita\'",blank=False,null=False,default=24)
 
     class Meta:
         verbose_name = "Configurazione Ranking"

@@ -2,6 +2,7 @@ from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from redactor.fields import RedactorField
 from django.contrib.auth.models import User
+from backend.utils import is_its as is_its_util
 # Create your models here.
 import datetime
 
@@ -177,13 +178,14 @@ class EventCoupon(models.Model):
     used = models.BooleanField(verbose_name="Consumato",default=False)
 
     def __unicode__(self):
-        return '(%s) %s',(self.event,self.coupon)
+        return '(%s) %s',(self.event, self.coupon)
 
     class Meta:
         verbose_name = "Omaggio Evento"
         verbose_name_plural = "Omaggi Evento"
 
 class EventType(models.Model):
+
     description = models.CharField(max_length=250,blank=False, null=False,verbose_name="Tipo Evento")
     contact_to_customer = models.FloatField(blank=False, verbose_name="Contatti Lordi")
     customer_to_sale = models.FloatField(blank=False, verbose_name="Contatti Netti")
@@ -217,15 +219,36 @@ class Event(models.Model):
     salestartdate = models.DateField(blank=True,null=True,verbose_name="Periodo inizio sconto")
     saleenddate = models.DateField(blank=True,null=True,verbose_name="Periodo fine sconto")
     salevalue = models.CharField(max_length=250,blank=True,null=True,verbose_name="Quota di Iscrizione Scontata")
-    areamanager = models.ForeignKey('campaigns.AreaManager',blank=True,null=True,verbose_name="Area Manager",on_delete=models.SET_NULL)
-    districtmanager = models.ForeignKey('campaigns.AreaIts',blank=True,null=True,verbose_name="District ITS Manager",on_delete=models.SET_NULL)
+    areamanager = models.ForeignKey('campaigns.AreaManager',blank=True,null=True,
+                                    verbose_name="Area Manager",on_delete=models.SET_NULL)
+
+    #TODO drop this fk, not used anymore (after the population of the new field its_districtmanager)
+    districtmanager = models.ForeignKey('campaigns.AreaIts', blank=True, null=True,
+                                        verbose_name="District ITS Manager", on_delete=models.SET_NULL)
+    #TODO to add a FK to user for its district manager
+    its_districtmanager = models.ForeignKey(User, blank=True, null=True,
+                                            verbose_name="District ITS Manager", on_delete=models.SET_NULL,
+                                            related_name='my_its_events')
+    #TODO to plan a task for populate its_districtmanager
+    # (see setup/tasks/domenico_migrations.md document)
+
+    owner = models.ForeignKey(User, blank=True, null=True, verbose_name="Creator of the event",
+                              on_delete=models.SET_NULL, related_name='my_owned_events')
+
+    visible_for_its = models.BooleanField(verbose_name="Pubblica evento sulle agende ITS", blank=False, default=True)
+
     pointofsale = models.CharField(max_length=6,blank=True,null=True,verbose_name="Codice Punto Vendita")
     pointofsaledescription = models.CharField(max_length=250,blank=True,null=True,verbose_name="Nominativo Punto Vendita")
     typepointofsale = models.ForeignKey('campaigns.PointOfSaleType',blank=True,null=True,verbose_name="Tipologia Punto Vendita",on_delete=models.SET_NULL)
     channel = models.ForeignKey('campaigns.Channel',blank=True,null=True,verbose_name="Canale",on_delete=models.SET_NULL)
     eventtype = models.ForeignKey('campaigns.EventType',blank=True,null=True,verbose_name="Tipologia Evento",on_delete=models.SET_NULL)
     theme = models.ForeignKey('campaigns.Theme',blank=True,null=True,verbose_name="Tema Evento",on_delete=models.SET_NULL)
+
+    #TODO drop this field  - will be replaced by consultant (after population of consultant)
     trainer = models.CharField(max_length=250,blank=True,null=True,verbose_name="Relatore")
+    #TODO to plan a task for populate consultant
+    consultant = models.ForeignKey('contacts.Contact', blank=True, null=True, verbose_name="Relatore")
+
     feedback = models.SmallIntegerField(blank=True,null=True,verbose_name="Valutazione Evento")
     feedback_note = models.CharField(max_length=500,blank=True,null=True,verbose_name="Feedback Evento")
     population = models.IntegerField(blank=True,null=True,verbose_name="Numero di partecipanti")
@@ -237,6 +260,15 @@ class Event(models.Model):
     class Meta:
         verbose_name = 'Evento'
         verbose_name_plural = 'Eventi'
+
+    #TODO add two properties is_its and is_consultant_led
+    @property
+    def is_its(self):
+        return is_its_util(self.owner)
+
+    @property
+    def is_consultant_led(self):
+        return self.consultant is not None
 
 
 class EventSignup(models.Model):

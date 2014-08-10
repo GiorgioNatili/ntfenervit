@@ -16,10 +16,10 @@ Note for Production Migration
     # as Active (in corso)
     SURVEY_ACTIVE_DAYS = 15
     
-## To drop coupon_* tables and do syncdb again (branch coupon_CR_1)
-#Added a field max_date DateField
- 
-#Modified the field its_user into owner (changed the FK to User)
+
+* Added a field max_date DateField to CouponSet
+* Modified the field its_user into owner (changed the FK to User)
+* To drop coupon_* tables and do syncdb again (branch coupon_CR_1)
 
 ## To add FK to coupons in EventSignup table after merging of branch coupon_CR_1
 

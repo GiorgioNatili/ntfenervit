@@ -2,7 +2,9 @@
 # -*- coding: utf-8 -*-
 
 from django.contrib import messages
+from django.contrib.auth.models import User
 from django.contrib.messages import get_messages
+from backend.utils import get_its_users
 from campaigns.models import Campaign, Newsletter, Event, Image, NewsletterTemplate,NewsletterAttachment, NewsletterTarget, NewsletterSchedulation, EventSignup, EventPayment, AreaIts, AreaManager, Channel, Theme, Goal , PointOfSaleType, EventCoupon,EventType
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import *
@@ -689,6 +691,8 @@ def view_add_event(request):
     form = EventForm()
     campaigns = Campaign.objects.all()
     district = AreaIts.objects.all()
+    its_users = get_its_users()
+    consultants = Contact.objects.filter(type='C')
     areamanager = AreaManager.objects.all()
     eventtype = EventType.objects.filter(selectable=True)
     channel = Channel.objects.all()
@@ -711,7 +715,10 @@ def view_add_event(request):
             else:
                 messages.success(request, 'Aggiunto Evento \"' + new_event.date.strftime("%d-%m-%Y") + '\"')
                 return HttpResponseRedirect('/admin/campaigns/event')
-    c = {'form': form,'province':province,'campaigns':campaigns,'district':district,'areamanager':areamanager,'eventtype':eventtype,'channel':channel,'theme':theme,'pointofsaletype':pointofsaletype}
+    c = {'form': form, 'province':province, 'campaigns':campaigns,
+         'its_users': its_users, 'consultants': consultants,
+         'district':district,'areamanager':areamanager,'eventtype': eventtype,
+         'channel':channel,'theme':theme,'pointofsaletype': pointofsaletype}
     return render_to_response('admin/campaigns/view_add_event.html', c, context_instance=RequestContext(request))
 
 
@@ -911,18 +918,18 @@ def view_event_import(request):
                               context_instance=RequestContext(request))
 
 
-
-
-
+#TODO this lists events in main calendar. add a way to distinguish personal agenda its events
+# use following properties of event in target dictionary:
+# color
+# backgroundColor
+# borderColor
+#http://arshaw.com/fullcalendar/docs/event_data/Event_Object/
 def view_eventlist_rest(request):
     events = Event.objects.all()
     import json
     targets_json = []
     for i in range(0,len(events)):
-        target = {}
-        target['id'] = events[i].id
-        target['start'] = str(events[i].date)
-        target['end'] = str(events[i].enddate)
+        target = {'id': events[i].id, 'start': str(events[i].date), 'end': str(events[i].enddate)}
         if events[i].enddate is None:
             target['end'] = target['start']
         target['title'] = events[i].description
@@ -931,10 +938,7 @@ def view_eventlist_rest(request):
         target['campaign'] = events[i].campaign.name
         target['url'] = '/admin/campaigns/event/'+str(events[i].id)
         targets_json.append(target)
-    response_data = {}
-    response_data['value'] = 'OK'
-    response_data['message'] = 'lista'
-    response_data['targets'] = targets_json
+    response_data = {'value': 'OK', 'message': 'lista', 'targets': targets_json}
     return HttpResponse(json.dumps(response_data), mimetype="application/json")
 
 @staff_member_required
