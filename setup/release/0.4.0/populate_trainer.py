@@ -3,7 +3,9 @@ __author__ = 'dominik'
 from contacts.models import Contact
 from campaigns.models import Event
 
-#events with trainer field filled. to verify in production the ids (should be the same)
+# events with trainer field filled.
+# to verify in production the ids (should be the same)
+# events = Event.objects.exclude(trainer__isnull=True).exclude(trainer__exact='')
 e21 = Event.objects.get(pk=21)
 e23 = Event.objects.get(pk=23)
 e40 = Event.objects.get(pk=40)

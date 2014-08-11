@@ -11,7 +11,7 @@
         }
     </style>
 {% endblock %}
-{% load i18n admin_static bootstrapped_goodies_tags %}
+{% load i18n admin_static bootstrapped_goodies_tags access_control %}
 {% block icon-detail %}<i class="icon-calendar"></i>{% endblock %}
 {% block content_title %}Evento{% endblock %}
 {% block content_subtitle %}<h5>visualizza e modifica gli attributi dell'evento selezionato</h5>{% endblock %}
@@ -69,7 +69,7 @@
         </div>
     {% endif %}
     <h3 style="text-align: center;">Attributi Principali</h3>
-
+    <input type="hidden" name="owner" value="{{ event.owner.id }}"/>
     <div class="row-fluid"> <!-- contenitore form -->
         <!-- primo tab -->
         <div class="span6">
@@ -130,12 +130,37 @@
                     <input type="text" id="title" name="title" id="title" placeholder="Titolo"
                            class="validate[required]" value="{{ event.title }}"/>
                 </li>
+                {#                <li>#}
+                {#                    <label>Formatore</label>#}
+                {#                    {{ form.trainer.errors }}#}
+                {#                    <input type="text" name="trainer" id="trainer" placeholder="Formatore"#}
+                {#                           value="{{ event.trainer|default_if_none:"" }}"/>#}
+                {##}
+                {#                </li>#}
                 <li>
-                    <label>Formatore</label>
-                    {{ form.trainer.errors }}
-                    <input type="text" name="trainer" id="trainer" placeholder="Formatore"
-                           value="{{ event.trainer|default_if_none:"" }}"/>
+                    <label>ITS</label>
+                    <select class="chzn-select" name="its_districtmanager">
+                        <option>---</option>
 
+                        {% for pos in its_users %}
+                            <option value="{{ pos.id }}" {% if pos.id == event.its_districtmanager.id %}
+                                    selected="selected"{% endif %}>{{ pos.first_name }} {{ pos.last_name }}
+                                ({{ pos.email }})
+                            </option>
+                        {% endfor %}
+
+                    </select>
+                </li>
+                <li>
+                    <label>Consulente</label>
+                    <select class="chzn-select" name="consultant">
+                        <option>---</option>
+                        {% for c in consultants %}
+                            <option value="{{ c.code }}" {% if c.code == event.consultant.code %}
+                                    selected="selected"{% endif %}>{{ c }} ({{ c.email }})
+                            </option>
+                        {% endfor %}
+                    </select>
                 </li>
                 <li>
                     <label>Tipologia Evento</label>
@@ -156,15 +181,7 @@
                         {% endfor %}
                     </select>
                 </li>
-                <li>
-                    <label>ITS</label>
-                    <select class="chzn-select" name="districtmanager">
-                        {% for pos in district %}
-                            <option value="{{ pos.id }}" {% if pos.id == event.districtmanager.id %}
-                                    selected="selected"{% endif %}>{{ pos }}</option>
-                        {% endfor %}
-                    </select>
-                </li>
+
             </ul>
         </div>
     </div>
@@ -272,58 +289,66 @@
             </ul>
         </div>
     </div>
+    {% if not from_its %}
+        <h3 style="text-align: center;">Informazioni Pubbliche</h3>
 
-    <h3 style="text-align: center;">Informazioni Pubbliche</h3>
+        <div class="row-fluid">
+            <div class="span6">
+                <ul class="padded separate-sections">
+                    <li>
+                        <input type="checkbox" class="" id="abilita_email" name="abilita_email"
+                               {% if event.emailcontent != '' %}checked{% endif %}/>
+                        <label for="abilita_email" class="" style="margin-right:10px;">Abilita Email di
+                            Iscrizione</label>
+                    </li>
+                    <li id="emailText">
+                        <label>Email di Conferma</label>
+                        <textarea class="vLargeTextField" cols="40" id="id_body" name="emailcontent" rows="10">
+                            {% if event.emailcontent %} {{ event.emailcontent }} {% endif %}
+                        </textarea>
+                    </li>
+                </ul>
+            </div>
+            <div class="span6">
+                <ul class="padded separate-sections">
+                    <li>
+                        <input type="checkbox" class="icheck" id="is_public" name="is_public"
+                               {% if event.is_public == True %}checked{% endif %}/>
+                        <label for="is_public" class="" style="margin-right:10px;">Evento Pubblico (iscrizioni
+                            aperte)</label>
+                    </li>
+                    <li>
+                        <input type="checkbox" class="icheck" id="signups_enabled" name="signups_enabled"
+                               {% if event.signups_enabled == True %}checked{% endif %}/>
+                        <label for="signups_enabled" class="" style="margin-right:10px;">Iscrizioni lato frontend
+                            abilitate</label>
+                    </li>
+                    <li>
+                        <input checked type="checkbox" class="icheck" id="visible_for_its" name="visible_for_its"
+                               {% if event.visible_for_its == True %}checked{% endif %}/>
+                        <label for="visible_for_its" class="" style="margin-right:10px;">Pubblica evento sulle agende
+                            ITS</label>
+                    </li>
+                    <li id="emailAttachments">
+                        {% if event.emailattachment %}
+                            <div style="margin-bottom: 20px;">
+                                File presente: <a href="/media/emailattachments/{{ event.emailattachment }}"
+                                                  target="_blank"
+                                                  style="font-weight: bold;text-decoration: underline;display: block;">{{ event.emailattachment }}</a>
+                                <span style="display: block;font-style: italic">Per sostituire effettuare l'upload di un nuovo file</span>
+                                <span style="display: block;font-style: italic">Per cancellare il file selezionare "Cancella file"</span>
+                                <span>Cancella File: </span><input
+                                    style="width: 80%!important;vertical-align: 0px!important;" type="checkbox"
+                                    name="deleteFile"/>
+                            </div>
+                        {% endif %}
+                        <input type="file" name="emailattachment" enctype="multipart/form-data"/>
 
-    <div class="row-fluid">
-        <div class="span6">
-            <ul class="padded separate-sections">
-                <li>
-                    <input type="checkbox" class="" id="abilita_email" name="abilita_email"
-                           {% if event.emailcontent != '' %}checked{% endif %}/>
-                    <label for="abilita_email" class="" style="margin-right:10px;">Abilita Email di Iscrizione</label>
-                </li>
-                <li id="emailText">
-                    <label>Email di Conferma</label>
-                    <textarea class="vLargeTextField" cols="40" id="id_body" name="emailcontent" rows="10">
-                        {% if event.emailcontent %} {{ event.emailcontent }} {% endif %}
-                    </textarea>
-                </li>
-            </ul>
+                    </li>
+                </ul>
+            </div>
         </div>
-        <div class="span6">
-            <ul class="padded separate-sections">
-                <li>
-                    <input type="checkbox" class="icheck" id="is_public" name="is_public"
-                           {% if event.is_public == True %}checked{% endif %}/>
-                    <label for="is_public" class="" style="margin-right:10px;">Evento Pubblico (iscrizioni
-                        aperte)</label>
-                </li>
-                <li>
-                    <input type="checkbox" class="icheck" id="signups_enabled" name="signups_enabled"
-                           {% if event.signups_enabled == True %}checked{% endif %}/>
-                    <label for="signups_enabled" class="" style="margin-right:10px;">Iscrizioni lato frontend
-                        abilitate</label>
-                </li>
-                <li id="emailAttachments">
-                    {% if event.emailattachment %}
-                        <div style="margin-bottom: 20px;">
-                            File presente: <a href="/media/emailattachments/{{ event.emailattachment }}" target="_blank"
-                                              style="font-weight: bold;text-decoration: underline;display: block;">{{ event.emailattachment }}</a>
-                            <span style="display: block;font-style: italic">Per sostituire effettuare l'upload di un nuovo file</span>
-                            <span style="display: block;font-style: italic">Per cancellare il file selezionare "Cancella file"</span>
-                            <span>Cancella File: </span><input
-                                style="width: 80%!important;vertical-align: 0px!important;" type="checkbox"
-                                name="deleteFile"/>
-                        </div>
-                    {% endif %}
-                    <input type="file" name="emailattachment" enctype="multipart/form-data"/>
-
-                </li>
-            </ul>
-        </div>
-    </div>
-
+    {% endif %}
     <h3 style="text-align: center;">Informazioni di chiusura</h3>
 
     <div class="row-fluid">
@@ -380,10 +405,18 @@
                             <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
                                 <thead>
                                 <tr>
-                                    <th><div>Id</div></th>
-                                    <th><div>Titolo</div></th>
-                                    <th><div>File</div></th>
-                                    <th><div>Data</div></th>
+                                    <th>
+                                        <div>Id</div>
+                                    </th>
+                                    <th>
+                                        <div>Titolo</div>
+                                    </th>
+                                    <th>
+                                        <div>File</div>
+                                    </th>
+                                    <th>
+                                        <div>Data</div>
+                                    </th>
                                     <th>&nbsp;</th>
                                 </tr>
                                 </thead>
@@ -392,10 +425,12 @@
                                     <tr>
                                         <td>{{ eventfile.id }}</td>
                                         <td>{{ eventfile.file.title }}</td>
-                                        <td><a href="{{ MEDIA_URL }}{{ eventfile.file.file_ref }}" target="_blank">{{ eventfile.file.file_basename }}</a></td>
+                                        <td><a href="{{ MEDIA_URL }}{{ eventfile.file.file_ref }}"
+                                               target="_blank">{{ eventfile.file.file_basename }}</a></td>
                                         <td>{{ eventfile.date_created|date:"d-m-Y" }}</td>
 
-                                        <td><a href="/admin/cabinet/{{ event.id }}/event/{{ eventfile.id }}"><i class="icon-tasks"></i></a></td>
+                                        <td><a href="/admin/cabinet/{{ event.id }}/event/{{ eventfile.id }}"><i
+                                                class="icon-tasks"></i></a></td>
                                     </tr>
 
                                 {% endfor %}
@@ -472,22 +507,21 @@
             });
 
             $(".dTable2").dataTable({
-                bJQueryUI:!1
-                ,bAutoWidth:!1,
-                sPaginationType:"full_numbers",
-                sDom:'<"table-header"fl>t<"table-footer"ip>',
+                bJQueryUI: !1, bAutoWidth: !1,
+                sPaginationType: "full_numbers",
+                sDom: '<"table-header"fl>t<"table-footer"ip>',
                 "oLanguage": {
-                    "sSearch":"Cerca",
+                    "sSearch": "Cerca",
                     "sLengthMenu": "Mostra _MENU_ righe per pagina",
                     "sZeroRecords": "Nessun risultato trovato",
                     "sInfo": "Risultati da _START_ a _END_ di _TOTAL_ ",
                     "sInfoEmpty": "Mostrati da 0 a 0 di 0 records",
                     "sInfoFiltered": "(filtrati da _MAX_ records totali)",
-                    "oPaginate":{
-                        "sFirst":"Primo",
-                        "sLast":"Ultimo",
-                        "sNext":"Prossimo",
-                        "sPrevious":"Precedente"
+                    "oPaginate": {
+                        "sFirst": "Primo",
+                        "sLast": "Ultimo",
+                        "sNext": "Prossimo",
+                        "sPrevious": "Precedente"
 
                     }
                 }

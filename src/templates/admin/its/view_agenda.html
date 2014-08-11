@@ -1,0 +1,74 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static bootstrapped_goodies_tags %}
+{% block icon-detail %}<i class="icon-calendar"></i>{% endblock %}
+{% block content_title %}Agenda ITS{% endblock %}
+{% block content_subtitle %}<h5>lista di tutti gli eventi dell'agenda ITS</h5>{% endblock %}
+{% block object-tools %}
+    <ul class="object-tools form-inline pull-right inline">
+        <li>
+            <a href="/admin/campaigns/event/add?from_its=1" class="btn btn-blue">
+                <i class="icon-plus icon-white"></i> Aggiungi Evento ITS
+            </a>
+        </li>
+
+    </ul>
+
+{% endblock %}
+{% block content %}
+    <div class="container-fluid padded">
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Eventi</span>
+                    </div>
+                    <div class="box-content">
+                            <div id="calendar2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function() {
+            $(".active").removeClass("active");
+            $("#eventsMenu").addClass("active");
+            $.getJSON('/admin/its/rest/eventslist',function(data){
+                if(data.value=="OK"){
+                    var events=[];
+                    $.each(data.targets,function(i,e){
+                        events.push(e);
+                    });
+
+                    initCalendar(events);
+                }
+            });
+
+            function initCalendar(evts){
+                $("#calendar2").fullCalendar({
+                    header:{
+                        left:"prev,next",
+                        center: "title",
+                        right: "month,agendaWeek,agendaDay"
+                    },
+                    buttonText: {
+                        month: 'Mese',
+                        week: 'Settimana',
+                        day: 'Giorno'
+                    },
+                    editable: true,
+                    droppable: true,
+                    monthNames:['Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno', 'Luglio',
+                        'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre'],
+                    monthNamesShort:['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu',
+                        'Lug', 'Ago', 'Set', 'Ott', 'Nov', 'Dic'] ,
+                    dayNames: ['Domenica', 'Lunedì', 'Martedì', 'Mercoledì',
+                        'Giovedì', 'Venerdì', 'Sabato'],
+                    dayNamesShort:['Dom', 'Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab'],
+
+                    events: evts
+                });
+            }
+        });
+    </script>
+{% endblock %}

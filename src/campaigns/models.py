@@ -202,6 +202,7 @@ class EventType(models.Model):
         verbose_name = "Tipo Evento"
         verbose_name_plural = "Tipi Evento"
 
+
 class Event(models.Model):
     date = models.DateField(blank=False,null=False,verbose_name="Data")
     enddate = models.DateField(blank=True,null=True,verbose_name="Data di fine")
@@ -225,7 +226,6 @@ class Event(models.Model):
     #TODO drop this fk, not used anymore (after the population of the new field its_districtmanager)
     districtmanager = models.ForeignKey('campaigns.AreaIts', blank=True, null=True,
                                         verbose_name="District ITS Manager", on_delete=models.SET_NULL)
-    #TODO to add a FK to user for its district manager
     its_districtmanager = models.ForeignKey(User, blank=True, null=True,
                                             verbose_name="District ITS Manager", on_delete=models.SET_NULL,
                                             related_name='my_its_events')
@@ -261,10 +261,11 @@ class Event(models.Model):
         verbose_name = 'Evento'
         verbose_name_plural = 'Eventi'
 
-    #TODO add two properties is_its and is_consultant_led
     @property
     def is_its(self):
-        return is_its_util(self.owner)
+        if not self.owner:
+            return False
+        return is_its_util(self.owner) and not self.is_public
 
     @property
     def is_consultant_led(self):

@@ -165,7 +165,8 @@ urlpatterns = patterns('',
     url(r'^admin/rest/counter','campaigns.views.view_rest_counter'),
 
     url(r'^admin/cabinet/', include('cabinet.urls')),
-
+    url(r'^admin/its/agenda', 'campaigns.views_its.its.view_agenda'),
+    url(r'^admin/its/rest/eventslist', 'campaigns.views_its.its.view_eventlist_rest'),
     # Uncomment the admin/doc line below to enable admin documentation:
     #url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
