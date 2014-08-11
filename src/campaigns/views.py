@@ -2,9 +2,11 @@
 # -*- coding: utf-8 -*-
 
 from django.contrib import messages
+from django.contrib.auth.models import User
 from django.contrib.messages import get_messages
+from backend.utils import get_its_users, is_controller, can_handle_events, is_its
 from campaigns.models import Campaign, Newsletter, Event, Image, NewsletterTemplate,NewsletterAttachment, NewsletterTarget, NewsletterSchedulation, EventSignup, EventPayment, AreaIts, AreaManager, Channel, Theme, Goal , PointOfSaleType, EventCoupon,EventType
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import *
 from django.http import HttpResponseRedirect, HttpResponse
 from django.core.context_processors import csrf
@@ -608,7 +610,6 @@ def view_export_signup_by_event(request,eventid):
     wb = xlwt.Workbook()
     ws = wb.add_sheet('Foglio 1')
 
-
     ws.write(0, 0, 'Staff')
     ws.write(0, 1, 'Omaggio')
     ws.write(0, 2, 'Pagante')
@@ -682,13 +683,26 @@ def view_export_signup_by_event(request,eventid):
     wb.save(response)
     return response
 
-@staff_member_required
+
+# @staff_member_required
+# @user_passes_test(is_controller)
 def view_add_event(request):
     c = {}
+    from_its = False
+    if request.GET.get('from_its'):
+        from_its = True
+    if not can_handle_events(request.user, new=True, from_its=from_its):
+        messages.error(request, 'Non si hanno privilegi sufficienti per aggiungere un evento pubblico')
+        if is_its(request.user):
+                return redirect('/admin/its/agenda/')
+        else:
+            return redirect('/admin')
     c.update(csrf(request))
     form = EventForm()
     campaigns = Campaign.objects.all()
     district = AreaIts.objects.all()
+    its_users = get_its_users()
+    consultants = Contact.objects.filter(type='C')
     areamanager = AreaManager.objects.all()
     eventtype = EventType.objects.filter(selectable=True)
     channel = Channel.objects.all()
@@ -706,21 +720,39 @@ def view_add_event(request):
                         destination.write(chunk)
                 new_event.emailattachment = my_file.name
                 new_event.save()
-            if request.POST.has_key('_addanother'):
+            if '_addanother' in request.POST:
                 form = EventForm()
             else:
                 messages.success(request, 'Aggiunto Evento \"' + new_event.date.strftime("%d-%m-%Y") + '\"')
                 return HttpResponseRedirect('/admin/campaigns/event')
-    c = {'form': form,'province':province,'campaigns':campaigns,'district':district,'areamanager':areamanager,'eventtype':eventtype,'channel':channel,'theme':theme,'pointofsaletype':pointofsaletype}
+    c = {'form': form, 'province': province, 'campaigns': campaigns,
+         'its_users': its_users, 'consultants': consultants, 'from_its': from_its,
+         'district':district,'areamanager':areamanager,'eventtype': eventtype,
+         'channel':channel,'theme':theme,'pointofsaletype': pointofsaletype}
     return render_to_response('admin/campaigns/view_add_event.html', c, context_instance=RequestContext(request))
 
 
-@staff_member_required
+# @staff_member_required
+# @user_passes_test(is_controller)
 def view_event_details(request, id):
+    # print str(get_messages(request))
+    from_its = False
+    if request.GET.get('from_its'):
+        from_its = True
+
     event = get_object_or_404(Event, id=id)
+    if not can_handle_events(request.user, e=event, from_its=from_its):
+        messages.error(request, "Non si hanno privilegi sufficienti per modificare l'evento {}".format(event.title))
+        if is_its(request.user):
+                return redirect('/admin/its/agenda/')
+        else:
+            return redirect('/admin')
+
     form = EventForm()
     campaigns = Campaign.objects.all()
     district = AreaIts.objects.all()
+    its_users = get_its_users()
+    consultants = Contact.objects.filter(type='C')
     areamanager = AreaManager.objects.all()
     eventtype = EventType.objects.filter(selectable=True)
     channel = Channel.objects.all()
@@ -743,11 +775,17 @@ def view_event_details(request, id):
             if request.POST.get("deleteFile") == "on":
                 new_event.emailattachment = None
                 new_event.save()
-            messages.success(request,
-                             'Evento \"' + new_event.date.strftime("%d-%m-%Y") + '\" aggiornato correttamente!')
+            messages.success(request, 'Evento \"' + new_event.date.strftime("%d-%m-%Y") + '\" aggiornato correttamente!')
+            if from_its and is_its(request.user):
+                return HttpResponseRedirect('/admin/its/agenda/')
             return HttpResponseRedirect('/admin/campaigns/event/'+id)
     return render_to_response('admin/campaigns/view_event_details.html',
-                              {'event': event, 'form': form,'campaigns':campaigns,'province':province,'district':district,'areamanager':areamanager,'eventtype':eventtype,'channel':channel,'theme':theme,'pointofsaletype':pointofsaletype, 'eventfiles':eventfiles},
+                              {'event': event, 'from_its': from_its, 'form': form,
+                               'campaigns': campaigns,'province': province, 'district': district,
+                               'its_users': its_users, 'consultants': consultants,
+                               'areamanager': areamanager, 'eventtype': eventtype,
+                               'channel': channel, 'theme': theme, 'pointofsaletype': pointofsaletype,
+                               'eventfiles': eventfiles},
                               context_instance=RequestContext(request))
 
 @staff_member_required
@@ -780,27 +818,16 @@ def view_event_import(request):
                         work = Work.objects.all()
 
                         if len(categoria.strip()) > 2 and not Sector.objects.filter(name=categoria.strip()):
-                            print "Categoria non presente"
                             new_categoria = Sector(name=categoria.strip().capitalize(),
                                                    description=categoria.strip().capitalize())
                             new_categoria.save()
-                        else:
-                            print "Categoria presente"
                         if len(categoria.strip()) > 2 and len(qualifica.strip()) > 2 and not Work.objects.filter(
                                 name=qualifica.strip()):
-                            print "Qualifica non presente"
                             my_categoria = Sector.objects.filter(name=categoria.strip().capitalize())[0]
-                            print "My CATEGORIA: "
-                            print my_categoria
                             if my_categoria:
                                 new_qualifica = Work(name=qualifica.strip().capitalize(),
                                                      description=qualifica.strip().capitalize(), sector=my_categoria)
                                 new_qualifica.save()
-                                print "SALVATO!!"
-                            else:
-                                print "ERRORE: Categoria non trovata"
-                        else:
-                            print "QUALIFICA PRESENTE"
                         indirizzo = sheet.cell(row_index, 5).value.capitalize() if sheet.cell(row_index,
                                                                                               5).value != "" else ""
                         cap = str(int(sheet.cell(row_index, 6).value)) if str(
@@ -812,8 +839,6 @@ def view_event_import(request):
                         tel = sheet.cell(row_index, 13).value.strip() if sheet.cell(row_index,
                                                                                     13).value.strip() != "" else ""
 
-                        print "CAP: " + cap + " " + cognome + " " + nome + " " + prov + " " + tel + " Email: " + email
-
                         province = Province.objects.filter(code=prov)[0] if Province.objects.filter(code=prov) else None
                         relatore = False
                         staff = False
@@ -822,7 +847,6 @@ def view_event_import(request):
                         nota = ""
                         if not Contact.objects.filter(name=nome, surname=cognome, street=indirizzo, city=citta, zip=cap,
                                                       email=email, phone_number=tel):
-                            print "CONTATTO NON PRESENTE"
                             my_work = Work.objects.filter(name=qualifica.strip())[0] if len(
                                 qualifica.strip()) > 2 and len(categoria.strip()) > 2 else None
                             code = str(uuid.uuid4()).replace("-","")[0:16]
@@ -830,24 +854,19 @@ def view_event_import(request):
                             my_contact = Contact(name=nome, surname=cognome, street=indirizzo, province=province,
                                                  city=citta, zip=cap, email=email, phone_number=tel, work=my_work, code = code)
                             my_contact.save()
-                        else:
-                            print "CONTATTO PRESENTE"
+
                         if len(indirizzo.strip()) > 2 and indirizzo.lower() != "enervit" and indirizzo.lower() != "relatore":
                             print indirizzo
                         else:
                             if indirizzo.lower() == "enervit" and sheet.cell(row_index, 0).value == 1:
-                                print "STAFF"
                                 staff = True
                             elif indirizzo.lower() == "relatore" and sheet.cell(row_index, 0).value == 1:
-                                print "RELATORE"
                                 staff = True
                                 relatore = True
                         if sheet.cell(row_index, 0).value != 1 and sheet.cell(row_index, 1).value == 1:
-                            print "OMAGGIO"
                             omaggio = True
                             nota = sheet.cell(row_index, 16).value if sheet.cell(row_index, 16).value != "" else  None
                         elif sheet.cell(row_index, 0).value != 1 and sheet.cell(row_index, 2).value == 1:
-                            print "PAGANTE"
                             pagante = True
                         event = Event.objects.filter(id=form.cleaned_data['event'])[0]
                         print event
@@ -861,8 +880,6 @@ def view_event_import(request):
                             signup.save()
 
                         newsletters = Newsletter.objects.all().filter(event=event)
-                        print "Newsletters: "
-                        print newsletters
                         for ns in newsletters:
                             if not NewsletterTarget.objects.filter(newsletter=ns, contact=contact):
                                 target = NewsletterTarget(newsletter=ns, contact=contact)
@@ -872,8 +889,6 @@ def view_event_import(request):
                         if pagante:
                             type = str(sheet.cell(row_index, 14).value) if str(
                                 sheet.cell(row_index, 14).value) != "" else  None
-                            print "###TYPE"
-                            print type
                             way = sheet.cell(row_index, 15).value.capitalize() if sheet.cell(row_index,
                                                                                              15).value != "" else  None
                             executor = sheet.cell(row_index, 17).value.capitalize() if sheet.cell(row_index,
@@ -891,13 +906,7 @@ def view_event_import(request):
                                                                                          23).value != "" else ""
                             province = Province.objects.filter(code=prov)[0] if Province.objects.filter(
                                 code=prov) else None
-                            print "CONTACT: "
-                            print contact
-                            print "EVENT: "
-                            print event
-                            print EventPayment.objects.filter(event=event, contact=contact)
                             if not EventPayment.objects.filter(event=event, contact=contact):
-                                print "PAYMENT"
                                 payment = EventPayment(event=event, contact=contact, type=type, way=way, executor=executor,
                                                   street=street, zip=cap, city=citta, province=province, code=code,
                                                   vat=vat)
@@ -911,30 +920,31 @@ def view_event_import(request):
                               context_instance=RequestContext(request))
 
 
-
-
-
+# use following properties of event in target dictionary:
+# color
+# backgroundColor
+# borderColor
+#http://arshaw.com/fullcalendar/docs/event_data/Event_Object/
 def view_eventlist_rest(request):
     events = Event.objects.all()
     import json
     targets_json = []
-    for i in range(0,len(events)):
-        target = {}
-        target['id'] = events[i].id
-        target['start'] = str(events[i].date)
-        target['end'] = str(events[i].enddate)
-        if events[i].enddate is None:
+    for e in events:
+        target = {'id': e.id, 'start': str(e.date), 'end': str(e.enddate)}
+        if e.enddate is None:
             target['end'] = target['start']
-        target['title'] = events[i].description
-        if events[i].title:
-            target['title'] = events[i].title
-        target['campaign'] = events[i].campaign.name
-        target['url'] = '/admin/campaigns/event/'+str(events[i].id)
+        target['title'] = e.description
+        if e.title:
+            target['title'] = e.title
+        target['campaign'] = e.campaign.name
+        target['url'] = '/admin/campaigns/event/'+str(e.id)
+        if e.is_its:
+            target['url'] += '?from_its=1'
+            target['backgroundColor'] = 'red'
+            target['color'] = 'white'
+            target['borderColor'] = 'yellow'
         targets_json.append(target)
-    response_data = {}
-    response_data['value'] = 'OK'
-    response_data['message'] = 'lista'
-    response_data['targets'] = targets_json
+    response_data = {'value': 'OK', 'message': 'lista', 'targets': targets_json}
     return HttpResponse(json.dumps(response_data), mimetype="application/json")
 
 @staff_member_required

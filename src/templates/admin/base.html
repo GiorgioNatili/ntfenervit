@@ -1,4 +1,4 @@
-{% load admin_static bootstrapped_goodies_tags %}{% load url from future %}
+{% load admin_static bootstrapped_goodies_tags access_control%}{% load url from future %}
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="{{ LANGUAGE_CODE|default:"en-us" }}"
       {% if LANGUAGE_BIDI %}dir="rtl"{% endif %}>
@@ -111,6 +111,33 @@
                 </a>
             </li>
 
+            {% if user|is_its%}
+            <li id="itsArea" class="dark-nav ">
+
+                <span class="glow"></span>
+
+                <a class="accordion-toggle collapsed " data-toggle="collapse" href="#areaItsXXyy">
+                    <i class="icon-briefcase icon-2x"></i>
+                    <span>Area ITS<i class="icon-caret-down"></i>
+                    </span>
+                </a>
+
+                <ul id="areaItsXXyy" class="collapse ">
+                    <li class="">
+                        <a href="/admin/its/agenda">
+                            <i class="icon-calendar"></i> Agenda ITS
+                        </a>
+                    </li>
+                    <li class="">
+                        <a href="/admin/campaigns/event/add?from_its=1">
+                            <i class="icon-plus-sign-alt"></i> Aggiungi Evento
+                        </a>
+                    </li>
+
+                </ul>
+
+            </li>
+{% endif %}
 
             <li id="contactsMenu" class="dark-nav">
 
@@ -546,7 +573,6 @@
 <!-- END Content -->
 
 <!-- END MAIN CONTENT -->
-
 
 </body>
 </html>

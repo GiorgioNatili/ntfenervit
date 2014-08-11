@@ -404,12 +404,6 @@ def _submit_valid_forms(forms, request, survey):
                         answer.save()
                 answs = Answer.objects.filter(submission=submission_)
                 total_score, survey_score = get_scores(answs, contact)
-                # for ans in answs:
-                #     survey_score += ans.question.score
-                #     if str(ans.value).lower() == str(ans.question.correct_answer).lower():
-                #         contact.participation_ranking = contact.participation_ranking + ans.question.score
-                #         total_score += ans.question.score
-                #         contact.save()
                 submission_.status = Submission.COMPLETED
                 submission_.save()
 
@@ -484,13 +478,18 @@ def survey_detail(request, slug):
     the form, redirects to the results page, displays messages, or whatever
     makes sense based on the survey, the user, and the user's entries. """
     survey = _get_survey_or_404(slug, request)
+    print 'here'
     if not survey.is_open and survey.can_have_public_submissions():
+        print '_survey_results_redirect'
         return _survey_results_redirect(request, survey)
     need_login = (survey.is_open
                   and survey.require_login
                   and not request.user.is_authenticated())
+    print 'before '+str(need_login)
     if _can_show_form(request, survey):
+        print '_can_show_form'
         if request.method == 'POST':
+            print 'POST'
             return _survey_submit(request, survey)
         else:
             #create submission with status opened, it will be filtered out in reports
@@ -524,11 +523,15 @@ def survey_detail(request, slug):
                 submission_.save()
         forms = forms_for_survey(survey, request)
     elif need_login:
+        print 'need_login'
         forms = ()
     elif survey.can_have_public_submissions():
+        print '_survey_results_redirect'
         return _survey_results_redirect(request, survey)
     else:  # Survey is closed with private results.
+        print 'else'
         forms = ()
+    print 'show form'
     return _survey_show_form(request, survey, forms)
 
 

@@ -11,7 +11,7 @@
         }
     </style>
 {% endblock %}
-{% load i18n admin_static bootstrapped_goodies_tags %}
+{% load i18n admin_static bootstrapped_goodies_tags access_control %}
 {% block icon-detail %}<i class="icon-plus-sign-alt"></i>{% endblock %}
 {% block content_title %}Nuovo Evento{% endblock %}
 {% block content_subtitle %}<h5>aggiungi un nuovo evento compilando il seguente form</h5>{% endblock %}
@@ -43,6 +43,7 @@
                             {% endif %}
 
                             <h3 style="text-align: center;">Attributi Principali</h3>
+                            <input type="hidden" name="owner" value="{{ user.id }}"/>
                             <div class="row-fluid"> <!-- contenitore form -->
                                 <!-- primo tab -->
                                 <div class="span6">
@@ -86,7 +87,7 @@
                                         </li>
                                         <li>
                                             <label>Area Manager</label>
-                                            <select class="chzn-select" name="districtmanager" >
+                                            <select class="chzn-select" name="areamanager" >
                                                 <option>---</option>
                                                 {% for pos in areamanager %}
                                                     <option value="{{ pos.id }}" {% if pos.id == form.instance.areamanager.id %} selected="selected"{% endif %}>{{ pos }}</option>
@@ -103,11 +104,36 @@
                                             {{ form.title.errors }}
                                             <input type="text" id="title" name="title" id="title" placeholder="Titolo" class="validate[required]" value="{{ form.instance.title|default_if_none:"" }}"/>
                                         </li>
+{#                                        <li>#}
+{#                                            <label>Formatore</label>#}
+{#                                            {{ form.trainer.errors }}#}
+{#                                            <input type="text" name="trainer" id="trainer" placeholder="Formatore" value="{{ form.instance.trainer|default_if_none:"" }}"/>#}
+{##}
+{#                                        </li>#}
                                         <li>
-                                            <label>Formatore</label>
-                                            {{ form.trainer.errors }}
-                                            <input type="text" name="trainer" id="trainer" placeholder="Formatore" value="{{ form.instance.trainer|default_if_none:"" }}"/>
+                                            <label>ITS</label>
+                                            <select class="chzn-select" name="its_districtmanager" >
+                                                <option>---</option>
+                                                {% if user|is_its%}
+                                                    {% for pos in its_users %}
+                                                    <option value="{{ pos.id }}" {% if pos.id == user.id %} selected="selected"{% endif %}>{{ pos.first_name }} {{ pos.last_name }} ({{ pos.email }})</option>
+                                                {% endfor %}
+                                                    {% else %}
+                                                    {% for pos in its_users %}
+                                                    <option value="{{ pos.id }}" {% if pos.id == form.instance.its_districtmanager.id %} selected="selected"{% endif %}>{{ pos.first_name }} {{ pos.last_name }} ({{ pos.email }})</option>
+                                                {% endfor %}
+                                                {% endif %}
 
+                                            </select>
+                                        </li>
+                                        <li>
+                                            <label>Consulente</label>
+                                            <select class="chzn-select" name="consultant" >
+                                                <option>---</option>
+                                                {% for c in consultants %}
+                                                    <option value="{{ c.code }}" {% if c.code == form.instance.consultant.code %} selected="selected"{% endif %}>{{ c }} ({{ c.email }})</option>
+                                                {% endfor %}
+                                            </select>
                                         </li>
 
                                         <li>
@@ -129,15 +155,7 @@
                                                 {% endfor %}
                                             </select>
                                         </li>
-                                        <li>
-                                            <label>ITS</label>
-                                            <select class="chzn-select" name="areamanager" >
-                                                <option>---</option>
-                                                {% for pos in district %}
-                                                    <option value="{{ pos.id }}" {% if pos.id == form.instance.districtmanager.id %} selected="selected"{% endif %}>{{ pos }}</option>
-                                                {% endfor %}
-                                            </select>
-                                        </li>
+
                                     </ul>
                                 </div>
                             </div> <!-- contenitore form -->
@@ -231,7 +249,7 @@
                                     </ul>
                                 </div>
                             </div>
-
+                            {% if not from_its %}
                            <h3 style="text-align: center;">Informazione Pubbliche</h3>
                             <div class="row-fluid">
                                 <div class="span6">
@@ -255,10 +273,17 @@
                                             <input type="checkbox" class="icheck" id="is_public" name="is_public" />
                                             <label for="is_public" class="" style="margin-right:10px;">Evento Pubblico (visibile lato frontend)</label>
                                         </li>
+
                                         <li>
                                             <input type="checkbox" class="icheck" id="signups_enabled" name="signups_enabled" />
                                             <label for="signups_enabled" class="" style="margin-right:10px;">Iscrizioni lato frontend abilitate</label>
                                         </li>
+
+                                        <li>
+                                            <input checked type="checkbox" class="icheck" id="visible_for_its" name="visible_for_its" />
+                                            <label for="visible_for_its" class="" style="margin-right:10px;">Pubblica evento sulle agende ITS</label>
+                                        </li>
+
                                         <li id="emailAttachments">
                                             <label>Allegato in Email di conferma</label>
                                             <input type="file" name="emailattachment" />
@@ -266,6 +291,7 @@
                                     </ul>
                                 </div>
                             </div>
+                            {% endif %}
 
                             <h3 style="text-align: center;">Informazioni di Chiusura</h3>
                             <div class="row-fluid">

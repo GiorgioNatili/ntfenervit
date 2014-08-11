@@ -36,8 +36,8 @@ def user_list(request):
                              context_instance=RequestContext(request))
 
 @user_passes_test(lambda u:u.is_superuser)
-def user_details(request,id):
-    user = get_object_or_404(User,id=id)
+def user_details(request, id):
+    user = get_object_or_404(User, id=id)
     contact = None
     gruppo = None
     print user.groups.all()
