@@ -55,8 +55,8 @@ print 'associated '+str(ciacci) + ' to ' + str(e44)
 traino = Contact()
 traino.type = 'C'
 traino.status = 'I'
-traino.name = 'MANILA'
-traino.surname = 'CIACCI'
+traino.name = 'TRAINO'
+traino.surname = 'TRAINO'
 traino.email = ''
 traino.code = 'CCCMNL00XX00E999'
 traino.save()
@@ -78,8 +78,8 @@ e23.consultant = baccolini
 e41.consultant = baccolini
 e23.save()
 e41.save()
-print 'associated '+str(traino) + ' to ' + str(e23)
-print 'associated '+str(traino) + ' to ' + str(e41)
+print 'associated '+str(baccolini) + ' to ' + str(e23)
+print 'associated '+str(baccolini) + ' to ' + str(e41)
 iader = Contact()
 iader.type = 'C'
 iader.status = 'I'
@@ -91,7 +91,7 @@ iader.save()
 print 'created '+str(iader)
 e40.consultant = iader
 e40.save()
-print 'associated '+str(traino) + ' to ' + str(e40)
+print 'associated '+str(iader) + ' to ' + str(e40)
 
 carnevali = Contact()
 carnevali.type = 'C'
@@ -104,7 +104,7 @@ carnevali.save()
 print 'created '+str(carnevali)
 e43.consultant = carnevali
 e43.save()
-print 'associated '+str(traino) + ' to ' + str(e43)
+print 'associated '+str(carnevali) + ' to ' + str(e43)
 barry = Contact()
 barry.type = 'C'
 barry.status = 'I'
@@ -116,4 +116,4 @@ barry.save()
 print 'created '+str(barry)
 e60.consultant = barry
 e60.save()
-print 'associated '+str(traino) + ' to ' + str(e60)
+print 'associated '+str(barry) + ' to ' + str(e60)
