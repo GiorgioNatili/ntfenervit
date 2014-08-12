@@ -90,6 +90,10 @@ urlpatterns = patterns('',
     url(r'^admin/campaigns/eventtype/add/$', 'campaigns.views.view_add_eventtype'),
     url(r'^admin/campaigns/eventtype/(\d+)$', 'campaigns.views.view_eventtype_details'),
 
+    url(r'^admin/campaigns/productgroup/$', 'campaigns.views.view_productgroup'),
+    url(r'^admin/campaigns/productgroup/add/$', 'campaigns.views.view_add_productgroup'),
+    url(r'^admin/campaigns/productgroup/(\d+)$', 'campaigns.views.view_productgroup_details'),
+
 
     url(r'^admin/coupons/', include('coupon.urls')),
 

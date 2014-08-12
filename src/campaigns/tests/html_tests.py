@@ -9,6 +9,7 @@ from django.test import TestCase
 from django.test.client import Client
 
 from django.contrib.auth.models import User
+from campaigns.models import ProductGroup
 
 
 class BaseHTMLTestCase(TestCase):
@@ -74,7 +75,7 @@ class BaseHTMLTestCase(TestCase):
 
 
 class EventTypeHTMLTestCase(BaseHTMLTestCase):
-    fixtures = ['initial_data', 'users_tests.json', 'contacts_tests.json', 'events_tests.json']
+    fixtures = ['initial_data', 'users_tests.json']
 
     def setUp(self):
         self.admin = User.objects.get(pk=1)
@@ -185,3 +186,126 @@ class EventTypeHTMLTestCase(BaseHTMLTestCase):
         result = self._get_list_from_element(doc, "form#event_form > div.row-fluid > div.span6 > ul > li > select[name='eventtype'] > option", attr="object.text")
         result_expected = ['---', 'SEMINARIO', 'ONE-TO-ONE', 'FORMAZIONE A PUNTO VENDITA', 'INFORMAZIONE MEDICA']
         self.assertItemsEqual(result, result_expected)
+
+
+class ProductGroupHTMLTestCase(BaseHTMLTestCase):
+    fixtures = ['initial_data', 'users_tests.json']
+
+    def setUp(self):
+        self.admin = User.objects.get(pk=1)
+        self.is_logged_in = self.client.login(username=self.admin.username, password="devel02")
+        self.eventType_id_Seminario = 1
+
+    def test01_ProductGroup_list(self):
+        '''Check for ProductGroup list view'''
+        doc = self._get_elem_from_url("/admin/campaigns/productgroup/")
+
+        # Make sure header is generated as expected
+        headers = self._get_list_from_element(doc, selector="#dataTables > table > thead > tr > th > div", attr="object.text")
+        expected_headers = ['Livello', 'Descrizione', 'Percentuale sell in', 'Valore sell in']
+        self.assertEqual(headers, expected_headers)
+
+        # Make sure number of row returned is as expected
+        rows = self._get_elements(doc, selector="#dataTables > table > tbody > tr")
+        self.assertEqual(len(rows), 5, "Expected ProductGroup list to contain 5 entries but got %d" % len(rows))
+
+        # Look for first and last row and check for the data
+        for row in rows:
+            cells = row.getchildren()
+            id = cells[0].text
+            if id == "1":
+                row_text = self._get_list_from_element(row, attr="object.text")
+                expected_row_text = ['1', '10 SNACK', '30,0 %', '9,95 ', None]
+                self.assertEqual(row_text, expected_row_text)
+            elif id == "5":
+                row_text = self._get_list_from_element(row, attr="object.text")
+                expected_row_text = ['5', u'8 OMEGA 240, 6 MAQUI, 60 SNACK, 12 FROLLINI, VARIE PER 150€', '10,0 %', '698,30 ', None]
+                self.assertEqual(row_text, expected_row_text)
+
+    def test02_ProductGroup_edit(self):
+        '''Test Editing existing ProductGroup'''
+        url = "/admin/campaigns/productgroup/%d" % 1
+
+        # Check initial data
+        doc = self._get_elem_from_url(url)
+        result = self._get_list_from_element(doc, "form#company_form > div > div.span6 > ul > li > input", attr="value")
+        expected_result = ['10 SNACK', '0,3', '9,95']
+        self.assertEqual(result, expected_result)
+
+        # Make sure update succeeds and redirect expected URL
+        csrf_token=self._get_list_from_element(doc, "form#company_form > input[name='csrfmiddlewaretoken']", attr="value")
+        self.assertEqual(len(csrf_token),1,"Expected to find csrfmiddlewaretoken")
+        post_data = {
+            "description": "10 SNACK 2oVKaPEr0E",
+            "sell_in_alloc": "0,22",
+            "sell_in_amount": "330,0",
+            "csrfmiddlewaretoken": csrf_token[0]
+        }
+
+        resp = self.client.post(url, post_data)
+        self.assertEqual(resp.status_code, 302)
+        self.assertRegexpMatches(resp.get("location"), r'\/admin\/campaigns\/productgroup$')
+
+        # Check updated data
+        doc = self._get_elem_from_url(url)
+        result = self._get_list_from_element(doc, "form#company_form > div > div.span6 > ul > li > input", attr="value")
+        expected_result = [post_data["description"], post_data["sell_in_alloc"], post_data["sell_in_amount"]]
+        self.assertEqual(result, expected_result)
+
+    def test03_ProductGroup_add(self):
+        '''Test Adding a new ProductGroup'''
+        url = "/admin/campaigns/productgroup/add/"
+
+        # Create post data with the csrf_token
+        doc = self._get_elem_from_url(url)
+        csrf_token=self._get_list_from_element(doc, "form#company_form > input[name='csrfmiddlewaretoken']", attr="value")
+        self.assertEqual(len(csrf_token),1,"Expected to find csrfmiddlewaretoken")
+        post_data = {
+            "description": "TEST product group wT344FySHo",
+            "sell_in_alloc": "0,33",
+            "sell_in_amount": "440,00 ",
+            "csrfmiddlewaretoken": csrf_token[0]
+        }
+
+        # Make sure post works
+        resp = self.client.post(url, post_data)
+        self.assertEqual(resp.status_code, 302)
+        self.assertRegexpMatches(resp.get("location"), r'\/admin\/campaigns\/productgroup$')
+
+        # Check that it has been added
+        doc = self._get_elem_from_url("/admin/campaigns/productgroup/")
+
+        # Make sure number of row returned is as expected
+        # Check that only 5 records are left
+        self.assertEqual(ProductGroup.objects.all().count(), 6)
+        rows = self._get_elements(doc, selector="#dataTables > table > tbody > tr")
+        self.assertEqual(len(rows), 6, "Expected ProductGroup list to contain 6 entries but got %d" % len(rows))
+
+        # Look for the row added and make sure it is there
+        added_id = None
+        for row in rows:
+            cells = row.getchildren()
+            title = cells[1].text
+            if title == post_data['description']:
+                added_id = cells[0].text
+                row_text = self._get_list_from_element(row, attr="object.text")
+                expected_row_text = [added_id, post_data["description"], '33,0 %', post_data["sell_in_amount"], None]
+                self.assertEqual(row_text, expected_row_text)
+        self.assertIsNotNone(added_id, "Expected the row to be added.")
+
+        # Now delete it
+        url = "/admin/campaigns/productgroup/%s" % added_id
+        doc = self._get_elem_from_url(url)
+        csrf_token=self._get_list_from_element(doc, "form#company_form > input[name='csrfmiddlewaretoken']", attr="value")
+        self.assertEqual(len(csrf_token),1,"Expected to find csrfmiddlewaretoken")
+        post_data = {
+            "action": "delete",
+            "csrfmiddlewaretoken": csrf_token[0]
+        }
+
+        resp = self.client.post(url, post_data)
+        self.assertEqual(resp.status_code, 302)
+        self.assertRegexpMatches(resp.get("location"), r'\/admin\/campaigns\/productgroup$')
+
+        # Check that only 5 records are left
+        self.assertEqual(ProductGroup.objects.all().count(), 5)
