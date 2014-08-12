@@ -6,7 +6,7 @@ Note for Production Migration
 *schema migration
 
     python src/manage.py migrate contacts 0001 --fake
-    python src/manage.py migrate contacts 0002
+    python src/manage.py migrate contacts
     
 ## Campaigns app migration for several added fields in Event and EventType
 
