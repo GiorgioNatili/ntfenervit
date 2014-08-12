@@ -1,9 +1,9 @@
 __author__ = 'dominik'
-
-from contacts.models import Contact
-from campaigns.models import Event
 import sys
 sys.path.append('../../src')
+from contacts.models import Contact
+from campaigns.models import Event
+
 # events with trainer field filled.
 # to verify in production the ids (should be the same)
 # events = Event.objects.exclude(trainer__isnull=True).exclude(trainer__exact='')

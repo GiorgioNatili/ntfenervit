@@ -1,8 +1,7 @@
-from campaigns.models import Event
-from django.contrib.auth.models import Group, User
 import sys
 sys.path.append('../../src')
-__author__ = 'dominik'
+from campaigns.models import Event
+from django.contrib.auth.models import Group, User
 
 a = Event.objects.exclude(districtmanager__isnull=True)
 #TODO create its staff users for every AreaITS
