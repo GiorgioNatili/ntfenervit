@@ -62,5 +62,5 @@ carnevali.email = ''
 carnevali.code = 'CRVSTF00XX00E999A'
 carnevali.save()
 
-e43.consultant = iader
+e43.consultant = carnevali
 e43.save()
