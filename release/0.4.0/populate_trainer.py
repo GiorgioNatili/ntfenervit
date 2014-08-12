@@ -43,7 +43,7 @@ ciacci.status = 'I'
 ciacci.name = 'MANILA'
 ciacci.surname = 'CIACCI'
 ciacci.email = ''
-ciacci.code = 'CCCMNL00XX00E999V'
+ciacci.code = 'CCCMNL00XX00E999'
 ciacci.save()
 print 'created '+str(ciacci)
 e21.consultant = ciacci
@@ -58,7 +58,7 @@ traino.status = 'I'
 traino.name = 'MANILA'
 traino.surname = 'CIACCI'
 traino.email = ''
-traino.code = 'CCCMNL00XX00E999V'
+traino.code = 'CCCMNL00XX00E999'
 traino.save()
 print 'created '+str(traino)
 e22.consultant = traino
@@ -71,7 +71,7 @@ baccolini.status = 'I'
 baccolini.name = 'FEDERICA'
 baccolini.surname = 'BACCOLINI'
 baccolini.email = ''
-baccolini.code = 'BCCFDC00XX00E999Y'
+baccolini.code = 'BCCFDC00XX00E999'
 baccolini.save()
 print 'created '+str(baccolini)
 e23.consultant = baccolini
@@ -86,7 +86,7 @@ iader.status = 'I'
 iader.name = 'IADER'
 iader.surname = 'FABBRI'
 iader.email = ''
-iader.code = 'FBRIDR00XX00E999Z'
+iader.code = 'FBRIDR00XX00E999'
 iader.save()
 print 'created '+str(iader)
 e40.consultant = iader
@@ -99,7 +99,7 @@ carnevali.status = 'I'
 carnevali.name = 'STEFANO'
 carnevali.surname = 'CARNEVALI'
 carnevali.email = ''
-carnevali.code = 'CRVSTF00XX00E999A'
+carnevali.code = 'CRVSTF00XX00E999'
 carnevali.save()
 print 'created '+str(carnevali)
 e43.consultant = carnevali
@@ -111,7 +111,7 @@ barry.status = 'I'
 barry.name = 'BARRY'
 barry.surname = 'SEARS'
 barry.email = ''
-barry.code = 'SRSBRR00XW00E001G'
+barry.code = 'SRSBRR00XW00E001'
 barry.save()
 print 'created '+str(barry)
 e60.consultant = barry
