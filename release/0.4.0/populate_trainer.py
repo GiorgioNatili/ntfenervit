@@ -58,7 +58,7 @@ traino.status = 'I'
 traino.name = 'TRAINO'
 traino.surname = 'TRAINO'
 traino.email = ''
-traino.code = 'CCCMNL00XX00E999'
+traino.code = 'TQRNXL00ZX00E999'
 traino.save()
 print 'created '+str(traino)
 e22.consultant = traino
