@@ -1,6 +1,7 @@
 from campaigns.models import Event
 from django.contrib.auth.models import Group, User
-
+import sys
+sys.path.append('../../src')
 __author__ = 'dominik'
 
 a = Event.objects.exclude(districtmanager__isnull=True)
