@@ -126,5 +126,53 @@
         "fields": {
             "description": "STUDIO MEDICO"
         }
+    },
+
+
+
+    {
+        "pk": 1,
+        "model": "campaigns.productgroup",
+        "fields": {
+            "description": "10 SNACK",
+            "sell_in_alloc": 0.3,
+            "sell_in_amount": 9.95
+        }
+    },
+    {
+        "pk": 2,
+        "model": "campaigns.productgroup",
+        "fields": {
+            "description": "1 OMEGA 120, 6 SNACK, 2 FROLLINI",
+            "sell_in_alloc": 0.2,
+            "sell_in_amount": 38.57
+        }
+    },
+    {
+        "pk": 3,
+        "model": "campaigns.productgroup",
+        "fields": {
+            "description": "2 OMEGA 3 DA 120 CPS, 12 SNACK, 4 FROLLINI, VARIE PER 20€",
+            "sell_in_alloc": 0.2,
+            "sell_in_amount": 87.14
+        }
+    },
+    {
+        "pk": 4,
+        "model": "campaigns.productgroup",
+        "fields": {
+            "description": "6 OMEGA 240, 4 MAQUI, 30 SNACK, 8 FROLLINI, VARIE PER 100€",
+            "sell_in_alloc": 0.2,
+            "sell_in_amount": 487.25
+        }
+    },
+    {
+        "pk": 5,
+        "model": "campaigns.productgroup",
+        "fields": {
+            "description": "8 OMEGA 240, 6 MAQUI, 60 SNACK, 12 FROLLINI, VARIE PER 150€",
+            "sell_in_alloc": 0.1,
+            "sell_in_amount": 698.30
+        }
     }
 ]

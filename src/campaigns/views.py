@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.messages import get_messages
 from backend.utils import get_its_users, is_controller, can_handle_events, is_its
-from campaigns.models import Campaign, Newsletter, Event, Image, NewsletterTemplate,NewsletterAttachment, NewsletterTarget, NewsletterSchedulation, EventSignup, EventPayment, AreaIts, AreaManager, Channel, Theme, Goal , PointOfSaleType, EventCoupon,EventType
+from campaigns.models import Campaign, Newsletter, Event, Image, NewsletterTemplate,NewsletterAttachment, NewsletterTarget, NewsletterSchedulation, EventSignup, EventPayment, AreaIts, AreaManager, Channel, Theme, Goal , PointOfSaleType, EventCoupon, EventType, ProductGroup
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import *
 from django.http import HttpResponseRedirect, HttpResponse
@@ -1576,11 +1576,6 @@ def view_eventtype_details(request, id):
 ##### EVENTCOUPON  ############
 ###############################
 
-
-
-
-
-
 from django.views.decorators.csrf import csrf_exempt
 @csrf_exempt
 def view_eventcoupon_restgenerate(request):
@@ -1601,6 +1596,58 @@ def view_eventcoupon_restgenerate(request):
     else:
         response_data['value'] = 'NAK'
     return HttpResponse(json.dumps(response_data), mimetype="application/json")
+
+###############################
+##### PRODUCTGROUP  ###########
+###############################
+class ProductGroupForm(ModelForm):
+    sell_in_alloc = forms.DecimalField(localize=True, label='Percentuale sell in')
+    sell_in_amount = forms.DecimalField(localize=True, label='Valore sell in')
+    class Meta:
+        model = ProductGroup
+
+
+@user_passes_test(lambda u:u.is_superuser)
+def view_productgroup(request):
+    productgroups = ProductGroup.objects.all()
+    return render_to_response('admin/campaigns/view_productgroup.html', {'productgroups': productgroups},
+                              context_instance=RequestContext(request))
+
+@user_passes_test(lambda u:u.is_superuser)
+def view_productgroup_details(request, id):
+
+    if id is None:
+        action = "add"
+        productgroup = None
+    else:
+        productgroup = get_object_or_404(ProductGroup, id=id)
+        action = "edit"
+
+    if request.method == 'POST':
+        if request.POST.get("action") == "delete":
+            messages.success(request, 'Tipologia \"' + productgroup.description +'\" cancellato!')
+            productgroup.delete()
+            return HttpResponseRedirect('/admin/campaigns/productgroup')
+        else:
+            form = ProductGroupForm(request.POST, instance=productgroup)
+            if form.is_valid():
+                new_type = form.save(commit=False)
+                new_type.save()
+                messages.success(request, 'Tipologia \"' +new_type.description +'\" aggiornata correttamente!')
+                return HttpResponseRedirect('/admin/campaigns/productgroup')
+    else:
+        if action == "add":
+            form = ProductGroupForm()
+        else:
+            form = ProductGroupForm(instance=productgroup)
+
+    return render_to_response('admin/campaigns/view_productgroup_details.html',{'productgroup':productgroup,'form':form,'action': action},
+                              context_instance=RequestContext(request))
+
+@user_passes_test(lambda u:u.is_superuser)
+def view_add_productgroup(request):
+    return view_productgroup_details(request, None)
+
 
 ########################
 ### REST ###############

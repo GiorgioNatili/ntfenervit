@@ -329,3 +329,16 @@ class Campaign(models.Model):
         verbose_name = "Campagna"
         verbose_name_plural = "Campagne"
 
+
+class ProductGroup(models.Model):
+    description = models.CharField(max_length=200, blank=True, null=True, verbose_name='Descrizione')
+    sell_in_alloc = models.FloatField(blank=False, verbose_name='Percentuale sell in')
+    sell_in_amount = models.FloatField(blank=False, verbose_name='Valore sell in')
+
+    @property
+    def sell_in_alloc_percent(self):
+        return self.sell_in_alloc * 100
+
+    class Meta:
+        verbose_name = "Gruppo di prodotto"
+        verbose_name_plural = "Gruppi di prodotti"
