@@ -1,6 +1,6 @@
 __author__ = 'dominik'
 import sys
-sys.path.append('../../src')
+sys.path.append('/var/www/test')
 from contacts.models import Contact
 from campaigns.models import Event
 

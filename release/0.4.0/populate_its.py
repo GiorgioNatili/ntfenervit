@@ -1,5 +1,5 @@
 import sys
-sys.path.append('../../src')
+sys.path.append('/var/www/test')
 from campaigns.models import Event
 from django.contrib.auth.models import Group, User
 
