@@ -700,7 +700,7 @@ def view_add_event(request):
     c.update(csrf(request))
     form = EventForm()
     campaigns = Campaign.objects.all()
-    district = AreaIts.objects.all()
+    # district = AreaIts.objects.all()
     its_users = get_its_users()
     consultants = Contact.objects.filter(type='C')
     areamanager = AreaManager.objects.all()
@@ -727,7 +727,8 @@ def view_add_event(request):
                 return HttpResponseRedirect('/admin/campaigns/event')
     c = {'form': form, 'province': province, 'campaigns': campaigns,
          'its_users': its_users, 'consultants': consultants, 'from_its': from_its,
-         'district':district,'areamanager':areamanager,'eventtype': eventtype,
+         # 'district':district,
+         'areamanager':areamanager,'eventtype': eventtype,
          'channel':channel,'theme':theme,'pointofsaletype': pointofsaletype}
     return render_to_response('admin/campaigns/view_add_event.html', c, context_instance=RequestContext(request))
 
@@ -750,7 +751,7 @@ def view_event_details(request, id):
 
     form = EventForm()
     campaigns = Campaign.objects.all()
-    district = AreaIts.objects.all()
+    # district = AreaIts.objects.all()
     its_users = get_its_users()
     consultants = Contact.objects.filter(type='C')
     areamanager = AreaManager.objects.all()
@@ -781,7 +782,8 @@ def view_event_details(request, id):
             return HttpResponseRedirect('/admin/campaigns/event/'+id)
     return render_to_response('admin/campaigns/view_event_details.html',
                               {'event': event, 'from_its': from_its, 'form': form,
-                               'campaigns': campaigns,'province': province, 'district': district,
+                               'campaigns': campaigns, 'province': province,
+                               # 'district': district,
                                'its_users': its_users, 'consultants': consultants,
                                'areamanager': areamanager, 'eventtype': eventtype,
                                'channel': channel, 'theme': theme, 'pointofsaletype': pointofsaletype,

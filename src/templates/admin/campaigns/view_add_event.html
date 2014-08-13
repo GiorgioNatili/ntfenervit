@@ -104,12 +104,6 @@
                                             {{ form.title.errors }}
                                             <input type="text" id="title" name="title" id="title" placeholder="Titolo" class="validate[required]" value="{{ form.instance.title|default_if_none:"" }}"/>
                                         </li>
-{#                                        <li>#}
-{#                                            <label>Formatore</label>#}
-{#                                            {{ form.trainer.errors }}#}
-{#                                            <input type="text" name="trainer" id="trainer" placeholder="Formatore" value="{{ form.instance.trainer|default_if_none:"" }}"/>#}
-{##}
-{#                                        </li>#}
                                         <li>
                                             <label>ITS</label>
                                             <select class="chzn-select" name="its_districtmanager" >
@@ -129,7 +123,7 @@
                                         <li>
                                             <label>Consulente</label>
                                             <select class="chzn-select" name="consultant" >
-                                                <option>---</option>
+                                                <option value="">---</option>
                                                 {% for c in consultants %}
                                                     <option value="{{ c.code }}" {% if c.code == form.instance.consultant.code %} selected="selected"{% endif %}>{{ c }} ({{ c.email }})</option>
                                                 {% endfor %}

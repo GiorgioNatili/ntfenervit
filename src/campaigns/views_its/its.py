@@ -33,6 +33,9 @@ def view_eventlist_rest(request):
             target['color'] = 'white'
             target['borderColor'] = 'yellow'
         elif e.its_districtmanager == user:
+            # these events appears on the its_districtmanager user agenda
+            # but they were created by admins
+            # and assigned to them as public events
             target['color'] = 'black'
             target['borderColor'] = 'red'
             target['backgroundColor'] = 'orange'
