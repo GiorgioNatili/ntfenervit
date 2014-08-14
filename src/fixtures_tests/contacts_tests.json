@@ -74,7 +74,8 @@
             "owner": 3,
             "company_ranking": 0,
             "email": "user.one@example.com",
-            "action_subdivision": []
+            "action_subdivision": [],
+            "type": "C"
         }
     }
 ]

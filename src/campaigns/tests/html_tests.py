@@ -309,3 +309,85 @@ class ProductGroupHTMLTestCase(BaseHTMLTestCase):
 
         # Check that only 5 records are left
         self.assertEqual(ProductGroup.objects.all().count(), 5)
+
+
+class ITSReportHTMLTestCase(BaseHTMLTestCase):
+    fixtures = ['initial_data', 'users_tests.json', 'contacts_tests.json', 'events_tests.json']
+
+    def setUp(self):
+        self.admin = User.objects.get(pk=1)
+        self.is_logged_in = self.client.login(username=self.admin.username, password="devel02")
+
+    def test01_rpt_contacts(self):
+        '''Testing Report: Stima Contatti Lordi'''
+        url = "/admin/its/report"
+        doc = self._get_elem_from_url(url)
+
+        result = self._get_list_from_element(doc, "#rpt-contacts > tbody > tr > td", attr="object.text")
+        result_expected = [
+            'SEMINARIO', '40,0', '154',
+            'ONE-TO-ONE', '8,0', '111',
+            'FORMAZIONE A PUNTO VENDITA', '3,0', '105',
+            'INFORMAZIONE MEDICA', '8,0', '77',
+            'PORTALE ENS', '1,0', '61'
+        ]
+        self.assertEqual(result, result_expected)
+
+    def test02_rpt_contacts(self):
+        '''Testing Report: Sintesi Numero Consumatori'''
+        url = "/admin/its/report"
+        doc = self._get_elem_from_url(url)
+
+        result = self._get_list_from_element(doc, "#rpt-sales > tbody > tr > td", attr="object.text")
+        result_expected = [
+            'SEMINARIO','20,0%','6.160',
+            'ONE-TO-ONE','30,0%','888',
+            'FORMAZIONE A PUNTO VENDITA','30,0%','315',
+            'INFORMAZIONE MEDICA','40,0%','616',
+            'PORTALE ENS','3,8%','61',
+            None, None,
+            'CONSUMATORI NETTI','1.842','22,91%'
+        ]
+        self.assertEqual(result, result_expected)
+
+    def test03_rpt_revenue(self):
+        '''Testing Report: Stima Fatturati'''
+        url = "/admin/its/report"
+        doc = self._get_elem_from_url(url)
+
+        result = self._get_list_from_element(doc, "#rpt-revenue > tbody > tr > td", attr="object.text")
+        result_expected = [
+            '1','30,0%','9,95','5.497',
+            '2','20,0%','38,57','14.206',
+            '3','20,0%','87,14','32.095',
+            '4','20,0%','487,25','179.463',
+            '5','10,0%','698,30','128.598',
+            None,None
+        ]
+
+        self.assertEqual(result, result_expected)
+
+    def test04_rpt_producgroup(self):
+        '''Testing Report: Stima Contatti Lordi (Reference Table)'''
+        url = "/admin/its/report"
+        doc = self._get_elem_from_url(url)
+
+        result = self._get_list_from_element(doc, "#rpt-productgroup > tbody > tr > td", attr="object.text")
+        result_expected = [
+            '1','10 SNACK',
+            '2','1 OMEGA 120, 6 SNACK, 2 FROLLINI',
+            '3',u'2 OMEGA 3 DA 120 CPS, 12 SNACK, 4 FROLLINI, VARIE PER 20€',
+            '4',u'6 OMEGA 240, 4 MAQUI, 30 SNACK, 8 FROLLINI, VARIE PER 100€',
+            '5',u'8 OMEGA 240, 6 MAQUI, 60 SNACK, 12 FROLLINI, VARIE PER 150€'
+        ]
+
+        self.assertEqual(result, result_expected)
+
+    def test05_rpt_contacts_qs(self):
+        '''Testing Report: Stima Contatti Lordi'''
+        url = "/admin/its/report?year=2013"
+        doc = self._get_elem_from_url(url)
+
+        result = self._get_list_from_element(doc, "#rpt-contacts > tbody > tr > td", attr="object.text")
+        result_expected = ['PORTALE ENS', '1,0', None]
+        self.assertEqual(result, result_expected)
