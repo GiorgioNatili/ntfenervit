@@ -18,33 +18,43 @@
 {% block content %}
 
     <div class="container-fluid padded">
-    <ul class="object-tools form-inline pull-right inline">
-        <li>
-            <a href="/admin/campaigns/event/eventsignups/{{ event.id }}" class="btn btn-blue">
-                <i class="icon-ok icon-white"></i> Iscrizioni
-            </a>
-        </li>
-        <li>
-            <a href="/admin/campaigns/eventpresence/{{ event.id }}" class="btn btn-blue">
-                <i class="icon-ok icon-white"></i> Registro Presenze
-            </a>
-        </li>
-        <li>
-            <a href="/admin/cabinet/{{ event.id }}/event/add" class="btn btn-blue" id="btn-add-files">
-                <i class="icon-plus icon-white"></i> Aggiungi Files
-            </a>
-        </li>
-        <li>
-            <a href="/admin/campaigns/eventsignup/add" class="btn btn-blue">
-                <i class="icon-plus icon-white"></i> Aggiungi Partecipante
-            </a>
-        </li>
-        <li>
-            <a href="/admin/coupons/couponbyevent/{{ event.id }}" class="btn btn-green">
-                <i class="icon-barcode icon-white"></i> Gestione Omaggi
-            </a>
-        </li>
-    </ul>
+    {% if from_its %}
+        <ul class="object-tools form-inline pull-right inline">
+            <li>
+                <a href="/admin/cabinet/{{ event.id }}/event/add" class="btn btn-blue" id="btn-add-files">
+                    <i class="icon-plus icon-white"></i> Aggiungi Files
+                </a>
+            </li>
+        </ul>
+    {% else %}
+        <ul class="object-tools form-inline pull-right inline">
+            <li>
+                <a href="/admin/campaigns/event/eventsignups/{{ event.id }}" class="btn btn-blue">
+                    <i class="icon-ok icon-white"></i> Iscrizioni
+                </a>
+            </li>
+            <li>
+                <a href="/admin/campaigns/eventpresence/{{ event.id }}" class="btn btn-blue">
+                    <i class="icon-ok icon-white"></i> Registro Presenze
+                </a>
+            </li>
+            <li>
+                <a href="/admin/cabinet/{{ event.id }}/event/add" class="btn btn-blue" id="btn-add-files">
+                    <i class="icon-plus icon-white"></i> Aggiungi Files
+                </a>
+            </li>
+            <li>
+                <a href="/admin/campaigns/eventsignup/add" class="btn btn-blue">
+                    <i class="icon-plus icon-white"></i> Aggiungi Partecipante
+                </a>
+            </li>
+            <li>
+                <a href="/admin/coupons/couponbyevent/{{ event.id }}" class="btn btn-green">
+                    <i class="icon-barcode icon-white"></i> Gestione Omaggi
+                </a>
+            </li>
+        </ul>
+    {% endif %}
     <div class="row-fluid">
     <div class="span12">
     <div class="box">
@@ -70,6 +80,7 @@
     {% endif %}
     <h3 style="text-align: center;">Attributi Principali</h3>
     <input type="hidden" name="owner" value="{{ event.owner.id }}"/>
+
     <div class="row-fluid"> <!-- contenitore form -->
         <!-- primo tab -->
         <div class="span6">
@@ -231,58 +242,60 @@
             </ul>
         </div>
     </div>
-
-    <h3 style="text-align: center;">Iscrizione</h3>
-
-    <div class="row-fluid">
-        <div class="span6">
-            <ul class="padded separate-sections">
-                <li>
-                    <label>Quota di partecipazione</label>
-                    {{ form.money.errors }}
-                    <input type="text" id="money" name="money" id="money" placeholder="Quota di partecipazione"
-                           class="validate[required]" value="{{ event.money }}"/>
-                </li>
-                <li>
-                    <label>Modalità di pagamento</label>
-                    {{ form.payment.errors }}
-                    <textarea form="event_form" rows="4" cols="50" name="payment" class="validate[required]"
-                              data-prompt-position="topLeft"
-                              placeholder="Modalità di Pagamento">{{ event.payment }}</textarea>
-                </li>
-                <li>
-                    <label>Data inizio sconto</label>
-                    {{ form.salestartdate.errors }}
-                    <input id="salestartdate" type="text" name="salestartdate" data-prompt-position="topLeft"
-                           placeholder="Data di inizio sconto" value="{{ event.salestartdate|date:'d/m/Y' }}"/>
-                </li>
-            </ul>
-        </div>
-        <div class="span6">
-            <ul class="padded separate-sections">
-                <li>
-                    <label>Termini di Iscrizione</label>
-                    {{ form.money_description.errors }}
-                    <textarea form="event_form" rows="4" cols="50" name="money_description" class="validate[required]"
-                              data-prompt-position="topLeft"
-                              placeholder="Termini di iscrizione">{{ event.money_description }}</textarea>
-                </li>
-                <li>
-                    <label>Quota scontata di partecipazione</label>
-                    {{ form.salevalue.errors }}
-                    <input type="text" id="salevalue" name="salevalue" placeholder="Quota di partecipazione scontata"
-                           value="{{ event.salevalue|default_if_none:"" }}"/>
-                </li>
-                <li>
-                    <label>Data fine sconto</label>
-                    {{ form.saleenddate.errors }}
-                    <input id="saleenddate" type="text" name="saleenddate" data-prompt-position="topLeft"
-                           placeholder="Data di fine sconto" value="{{ event.saleenddate|date:'d/m/Y' }}"/>
-                </li>
-            </ul>
-        </div>
-    </div>
     {% if not from_its %}
+        <h3 style="text-align: center;">Iscrizione</h3>
+
+        <div class="row-fluid">
+            <div class="span6">
+                <ul class="padded separate-sections">
+                    <li>
+                        <label>Quota di partecipazione</label>
+                        {{ form.money.errors }}
+                        <input type="text" id="money" name="money" id="money" placeholder="Quota di partecipazione"
+                               class="validate[required]" value="{{ event.money }}"/>
+                    </li>
+                    <li>
+                        <label>Modalità di pagamento</label>
+                        {{ form.payment.errors }}
+                        <textarea form="event_form" rows="4" cols="50" name="payment" class="validate[required]"
+                                  data-prompt-position="topLeft"
+                                  placeholder="Modalità di Pagamento">{{ event.payment }}</textarea>
+                    </li>
+                    <li>
+                        <label>Data inizio sconto</label>
+                        {{ form.salestartdate.errors }}
+                        <input id="salestartdate" type="text" name="salestartdate" data-prompt-position="topLeft"
+                               placeholder="Data di inizio sconto" value="{{ event.salestartdate|date:'d/m/Y' }}"/>
+                    </li>
+                </ul>
+            </div>
+            <div class="span6">
+                <ul class="padded separate-sections">
+                    <li>
+                        <label>Termini di Iscrizione</label>
+                        {{ form.money_description.errors }}
+                        <textarea form="event_form" rows="4" cols="50" name="money_description"
+                                  class="validate[required]"
+                                  data-prompt-position="topLeft"
+                                  placeholder="Termini di iscrizione">{{ event.money_description }}</textarea>
+                    </li>
+                    <li>
+                        <label>Quota scontata di partecipazione</label>
+                        {{ form.salevalue.errors }}
+                        <input type="text" id="salevalue" name="salevalue"
+                               placeholder="Quota di partecipazione scontata"
+                               value="{{ event.salevalue|default_if_none:"" }}"/>
+                    </li>
+                    <li>
+                        <label>Data fine sconto</label>
+                        {{ form.saleenddate.errors }}
+                        <input id="saleenddate" type="text" name="saleenddate" data-prompt-position="topLeft"
+                               placeholder="Data di fine sconto" value="{{ event.saleenddate|date:'d/m/Y' }}"/>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
         <h3 style="text-align: center;">Informazioni Pubbliche</h3>
 
         <div class="row-fluid">

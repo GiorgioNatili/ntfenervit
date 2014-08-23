@@ -245,7 +245,7 @@ class Event(models.Model):
     theme = models.ForeignKey('campaigns.Theme',blank=True,null=True,verbose_name="Tema Evento",on_delete=models.SET_NULL)
 
     #TODO drop this field  - will be replaced by consultant (after population of consultant)
-    trainer = models.CharField(max_length=250,blank=True,null=True,verbose_name="Relatore")
+    trainer = models.CharField(max_length=250,blank=True, null=True, verbose_name="Relatore")
     #TODO to plan a task for populate consultant
     consultant = models.ForeignKey('contacts.Contact', blank=True, null=True, verbose_name="Relatore")
 
