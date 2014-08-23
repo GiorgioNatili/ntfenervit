@@ -6,6 +6,7 @@ from django.shortcuts import render_to_response
 from django.http import HttpResponse
 from django.contrib.auth.decorators import user_passes_test
 
+from .report_helper import ListOfYear, ConsumerReport, RevenueReport
 
 @user_passes_test(is_its)
 def view_agenda(request):
@@ -44,3 +45,37 @@ def view_eventlist_rest(request):
     response_data = {'value': 'OK', 'message': 'lista', 'targets': targets_json}
     return HttpResponse(json.dumps(response_data), mimetype="application/json")
 
+
+
+
+
+##################
+### ITS Report ###
+##################
+
+@user_passes_test(is_its)
+def view_report(request):
+
+    # Read year params
+    list_year = ListOfYear()
+    if len(list_year.rows) == 0:
+        return render_to_response(
+            'admin/its/view_report_nodata.html', {},
+            context_instance=RequestContext(request)
+        )
+
+    years = [ col[0] for col in list_year.rows ]
+    try:
+        year = int(request.GET.get('year'))
+    except:
+        year = years[0]
+
+    params = {
+        "years": years,
+        "year": int(year)
+    }
+    params["rpt_consumer"] = ConsumerReport(year)
+    params["rpt_revenue"] = RevenueReport(params["rpt_consumer"].total_sales)
+
+    return render_to_response('admin/its/view_report.html', params,
+                              context_instance=RequestContext(request))

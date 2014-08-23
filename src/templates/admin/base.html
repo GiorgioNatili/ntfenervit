@@ -111,7 +111,7 @@
                 </a>
             </li>
 
-            {% if user|is_its%}
+            {% if user|is_its %}
             <li id="itsArea" class="dark-nav ">
 
                 <span class="glow"></span>
@@ -123,21 +123,26 @@
                 </a>
 
                 <ul id="areaItsXXyy" class="collapse ">
-                    <li class="">
+                    <li>
                         <a href="/admin/its/agenda">
                             <i class="icon-calendar"></i> Agenda ITS
                         </a>
                     </li>
-                    <li class="">
+                    <li>
                         <a href="/admin/campaigns/event/add?from_its=1">
                             <i class="icon-plus-sign-alt"></i> Aggiungi Evento
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/admin/its/report">
+                            <i class="icon-bar-chart"></i> Report
                         </a>
                     </li>
 
                 </ul>
 
             </li>
-{% endif %}
+            {% endif %}
 
             <li id="contactsMenu" class="dark-nav">
 

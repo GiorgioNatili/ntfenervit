@@ -1,5 +1,13 @@
 [
     {
+        "pk": 4,
+        "model": "auth.group",
+        "fields": {
+            "name": "ITS",
+            "permissions": []
+        }
+    },
+    {
         "pk": 1,
         "model": "auth.user",
         "fields": {
@@ -10,7 +18,7 @@
             "is_superuser": true,
             "is_staff": true,
             "last_login": "2014-07-05T16:05:46Z",
-            "groups": [],
+            "groups": [4],
             "user_permissions": [],
             "password": "pbkdf2_sha256$10000$YobV9PVVjMBq$VAqLO4vNHckoIGsQMmwMexkfUBFee7bXeiK9vDU+RaQ=",
             "email": "enervitdev@example.com",
@@ -28,7 +36,7 @@
             "is_superuser": false,
             "is_staff": true,
             "last_login": "2014-07-03T16:46:52Z",
-            "groups": [],
+            "groups": [4],
             "user_permissions": [],
             "password": "pbkdf2_sha256$10000$YobV9PVVjMBq$VAqLO4vNHckoIGsQMmwMexkfUBFee7bXeiK9vDU+RaQ=",
             "email": "staff.user@example.com",
