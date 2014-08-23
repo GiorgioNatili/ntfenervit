@@ -8,10 +8,23 @@ from django.contrib.auth.decorators import user_passes_test
 
 from .report_helper import ListOfYear, ConsumerReport, RevenueReport
 
+
 @user_passes_test(is_its)
 def view_agenda(request):
     return render_to_response('admin/its/view_agenda.html', {},
                               context_instance=RequestContext(request))
+
+
+@user_passes_test(is_its)
+def view_eventlist(request):
+    user = request.user
+    events = Event.objects.filter(Q(owner=user) | Q(its_districtmanager=user))
+    #monkey patching for differentiate events not owned but assigned to
+    for e in events:
+        e.not_owned = True if not user == e.owner else False
+    return render_to_response('admin/its/view_event.html', {'events': events},
+                              context_instance=RequestContext(request))
+
 
 
 def view_eventlist_rest(request):
@@ -46,9 +59,6 @@ def view_eventlist_rest(request):
     return HttpResponse(json.dumps(response_data), mimetype="application/json")
 
 
-
-
-
 ##################
 ### ITS Report ###
 ##################
@@ -64,17 +74,13 @@ def view_report(request):
             context_instance=RequestContext(request)
         )
 
-    years = [ col[0] for col in list_year.rows ]
+    years = [col[0] for col in list_year.rows]
     try:
         year = int(request.GET.get('year'))
     except:
         year = years[0]
 
-    params = {
-        "years": years,
-        "year": int(year)
-    }
-    params["rpt_consumer"] = ConsumerReport(year)
+    params = {"years": years, "year": int(year), "rpt_consumer": ConsumerReport(year)}
     params["rpt_revenue"] = RevenueReport(params["rpt_consumer"].total_sales)
 
     return render_to_response('admin/its/view_report.html', params,

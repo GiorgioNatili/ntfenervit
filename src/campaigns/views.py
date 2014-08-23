@@ -5,20 +5,22 @@ from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.messages import get_messages
 from backend.utils import get_its_users, is_controller, can_handle_events, is_its
-from campaigns.models import Campaign, Newsletter, Event, Image, NewsletterTemplate,NewsletterAttachment, NewsletterTarget, NewsletterSchedulation, EventSignup, EventPayment, AreaIts, AreaManager, Channel, Theme, Goal , PointOfSaleType, EventCoupon, EventType, ProductGroup
+from campaigns.models import Campaign, Newsletter, Event, Image, NewsletterTemplate, NewsletterAttachment, \
+    NewsletterTarget, NewsletterSchedulation, EventSignup, EventPayment, AreaIts, AreaManager, Channel, Theme, Goal, \
+    PointOfSaleType, EventCoupon, EventType, ProductGroup
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import *
 from django.http import HttpResponseRedirect, HttpResponse
 from django.core.context_processors import csrf
 from django.contrib.admin.views.decorators import staff_member_required
-from django.forms import ModelForm,forms
+from django.forms import ModelForm, forms
 from django import forms
 import json
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from django.conf import settings
 from django.forms.models import inlineformset_factory
-from contacts.models import Contact, Sector, Division, SubDivision, Work , Province
+from contacts.models import Contact, Sector, Division, SubDivision, Work, Province
 from django.conf import settings
 
 from django.utils.encoding import smart_str, smart_unicode
@@ -46,7 +48,7 @@ def upload_photos(request):
 @staff_member_required
 def recent_photos(request):
     images = [
-        {"thumb": obj.upload.url, "image": settings.ROOT_URL+obj.upload.url}
+        {"thumb": obj.upload.url, "image": settings.ROOT_URL + obj.upload.url}
         for obj in Image.objects.filter(is_image=True).order_by("-date_created")[:20]
     ]
     return HttpResponse(json.dumps(images), mimetype="application/json")
@@ -56,24 +58,30 @@ class CampaignForm(ModelForm):
     class Meta:
         model = Campaign
 
+
 class NewsletterTargetForm(ModelForm):
     class Meta:
         model = NewsletterTarget
+
 
 class NewsletterForm(ModelForm):
     class Meta:
         model = Newsletter
 
-NewsletterAttachmentFormSet = inlineformset_factory(Newsletter,NewsletterAttachment,fields=('file',),can_delete=True,max_num=3)
+
+NewsletterAttachmentFormSet = inlineformset_factory(Newsletter, NewsletterAttachment, fields=('file',), can_delete=True,
+                                                    max_num=3)
 
 
 class EventForm(ModelForm):
     class Meta:
         model = Event
 
+
 class NewsletterTemplateForm(ModelForm):
     class Meta:
         model = NewsletterTemplate
+
 
 class NewsletterSchedulationForm(ModelForm):
     class Meta:
@@ -94,38 +102,47 @@ class SingleSendForm(forms.Form):
     contact = forms.EmailField()
     newsletter = forms.IntegerField()
 
+
 class AreeItsForm(ModelForm):
     class Meta:
         model = AreaIts
+
 
 class AreeManagerForm(ModelForm):
     class Meta:
         model = AreaManager
 
+
 class ThemeForm(ModelForm):
     class Meta:
         model = Theme
+
 
 class GoalForm(ModelForm):
     class Meta:
         model = Goal
 
+
 class ChannelForm(ModelForm):
     class Meta:
         model = Channel
+
 
 class PointOfSaleTypeForm(ModelForm):
     class Meta:
         model = PointOfSaleType
 
+
 class EventTypeForm(ModelForm):
     class Meta:
         model = EventType
 
-#TODO TO prune because not used any longer
+
+# TODO TO prune because not used any longer
 class EventCouponForm(ModelForm):
     class Meta:
         model = EventCoupon
+
 
 ##########################
 ####  CAMPAIGN CRUD ######
@@ -170,10 +187,11 @@ def view_campaign_details(request, id):
             new_campaign = form.save(commit=False)
             new_campaign.save()
             messages.success(request, 'Campagna \"' + new_campaign.name + '\" aggiornata correttamente!')
-            return HttpResponseRedirect('/admin/campaigns/campaign/'+id)
+            return HttpResponseRedirect('/admin/campaigns/campaign/' + id)
     return render_to_response('admin/campaigns/view_campaign_details.html',
-                              {'campaign': campaign,'newsletter':newsletter, 'events':events,'form': form},
+                              {'campaign': campaign, 'newsletter': newsletter, 'events': events, 'form': form},
                               context_instance=RequestContext(request))
+
 
 ##########################
 ####  NEWSLETTER CRUD ####
@@ -192,7 +210,7 @@ def view_add_newsletter(request):
     c = {}
     c.update(csrf(request))
     form = NewsletterForm()
-    attachments = NewsletterAttachmentFormSet(instance = Newsletter())
+    attachments = NewsletterAttachmentFormSet(instance=Newsletter())
     campaigns = Campaign.objects.all()
     events = Event.objects.all()
     ntemplates = NewsletterTemplate.objects.all()
@@ -201,7 +219,7 @@ def view_add_newsletter(request):
         form = NewsletterForm(request.POST)
         if form.is_valid():
             new_newsletter = form.save()
-            attachments = NewsletterAttachmentFormSet(request.POST,request.FILES,instance=new_newsletter)
+            attachments = NewsletterAttachmentFormSet(request.POST, request.FILES, instance=new_newsletter)
             if attachments:
                 attachments.save()
             if request.POST.has_key('_addanother'):
@@ -213,12 +231,12 @@ def view_add_newsletter(request):
                     eventSignups = EventSignup.objects.all().filter(event=event)
                     print eventSignups
                     for es in eventSignups:
-                        if not NewsletterTarget.objects.filter(newsletter=new_newsletter,contact=es.contact):
-                            target = NewsletterTarget(newsletter = new_newsletter, contact=es.contact)
+                        if not NewsletterTarget.objects.filter(newsletter=new_newsletter, contact=es.contact):
+                            target = NewsletterTarget(newsletter=new_newsletter, contact=es.contact)
                             target.save()
                 messages.success(request, 'Aggiunta newsletter \"' + new_newsletter.name + '\"')
                 return HttpResponseRedirect('/admin/campaigns/newsletter')
-    c = {'form': form,'campaigns':campaigns,'ntemplates':ntemplates,'attachments':attachments,'events':events}
+    c = {'form': form, 'campaigns': campaigns, 'ntemplates': ntemplates, 'attachments': attachments, 'events': events}
     return render_to_response('admin/campaigns/view_add_newsletter.html', c, context_instance=RequestContext(request))
 
 
@@ -226,7 +244,7 @@ def view_add_newsletter(request):
 def view_newsletter_details(request, id):
     newsletter = get_object_or_404(Newsletter, id=id)
     form = NewsletterForm()
-    attachments = NewsletterAttachmentFormSet(instance = newsletter)
+    attachments = NewsletterAttachmentFormSet(instance=newsletter)
     campaigns = Campaign.objects.all()
     events = Event.objects.all()
     ntemplates = NewsletterTemplate.objects.all()
@@ -249,23 +267,26 @@ def view_newsletter_details(request, id):
                 eventSignups = EventSignup.objects.all().filter(event=event)
                 print eventSignups
                 for es in eventSignups:
-                    if not NewsletterTarget.objects.filter(newsletter=new_newsletter,contact=es.contact):
+                    if not NewsletterTarget.objects.filter(newsletter=new_newsletter, contact=es.contact):
                         target = NewsletterTarget(newsletter=new_newsletter, contact=es.contact)
                         target.save()
 
             messages.success(request, 'Newsletter \"' + new_newsletter.name + '\" aggiornata correttamente!')
-            return HttpResponseRedirect('/admin/campaigns/newsletter/'+id)
+            return HttpResponseRedirect('/admin/campaigns/newsletter/' + id)
     return render_to_response('admin/campaigns/view_newsletter_details.html',
-                              {'newsletter': newsletter, 'form': form,'campaigns':campaigns,'ntemplates':ntemplates,'attachments':attachments,'events':events,'task':task},
+                              {'newsletter': newsletter, 'form': form, 'campaigns': campaigns, 'ntemplates': ntemplates,
+                               'attachments': attachments, 'events': events, 'task': task},
                               context_instance=RequestContext(request))
 
 
 @staff_member_required
 def send_single_newsletter(request):
-     newsletters = Newsletter.objects.all()
-     contacts = Contact.objects.all()
-     form = SingleSendForm()
-     return render_to_response('admin/campaigns/view_newsletter_singlesend.html',{'form':form,'newsletters':newsletters,'contacts':contacts}, context_instance=RequestContext(request))
+    newsletters = Newsletter.objects.all()
+    contacts = Contact.objects.all()
+    form = SingleSendForm()
+    return render_to_response('admin/campaigns/view_newsletter_singlesend.html',
+                              {'form': form, 'newsletters': newsletters, 'contacts': contacts},
+                              context_instance=RequestContext(request))
 
 
 def send_single_email(request):
@@ -325,22 +346,20 @@ def send_single_email(request):
         </html>
         """
 
-
-
     if contact:
         object = smart_str(object).replace("[[NOME]]", smart_str(contact.name.capitalize()))
-        object = smart_str(object).replace("[[COGNOME]]",smart_str(contact.surname.capitalize()))
-        object = smart_str(object).replace("[[EMAIL]]",smart_str(contact.email.lower()))
+        object = smart_str(object).replace("[[COGNOME]]", smart_str(contact.surname.capitalize()))
+        object = smart_str(object).replace("[[EMAIL]]", smart_str(contact.email.lower()))
     msg = MIMEMultipart('alternative')
     msg['Subject'] = subject
     msg['From'] = settings.EMAIL_FROM
-    part1 = MIMEText(object,'html')
+    part1 = MIMEText(object, 'html')
     msg.attach(part1)
     attachments = NewsletterAttachment.objects.all().filter(newsletter=newsletter)
     if attachments:
         i = 0
         while i < len(attachments):
-            path = "/var/www/yellowpage/media/"+str(attachments[i].file)
+            path = "/var/www/yellowpage/media/" + str(attachments[i].file)
             ctype, encoding = mimetypes.guess_type(path)
             if ctype is None or encoding is not None:
                 ctype = 'application/octet-stream'
@@ -363,26 +382,26 @@ def send_single_email(request):
                 attach.set_payload(fp.read())
                 fp.close()
                 encoders.encode_base64(attach)
-            attach.add_header('Content-Disposition', 'attachment', filename=str(path).replace("/var/www/yellowpage/media/attachments/", ""))
+            attach.add_header('Content-Disposition', 'attachment',
+                              filename=str(path).replace("/var/www/yellowpage/media/attachments/", ""))
             msg.attach(attach)
             i += 1
-    s = smtplib.SMTP_SSL(settings.EMAIL_HOST,settings.EMAIL_PORT,'enervit.com')
+    s = smtplib.SMTP_SSL(settings.EMAIL_HOST, settings.EMAIL_PORT, 'enervit.com')
     s.set_debuglevel(1)
-    s.login(settings.EMAIL_HOST_USER,settings.EMAIL_HOST_PASSWORD)
-    s.sendmail(settings.EMAIL_FROM,to,msg.as_string())
+    s.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
+    s.sendmail(settings.EMAIL_FROM, to, msg.as_string())
     response_data = {}
     response_data['value'] = 'OK'
     return HttpResponse(json.dumps(response_data), mimetype="application/json")
 
 
 @staff_member_required
-def test_newsletter(request,id):
+def test_newsletter(request, id):
     newsletter = get_object_or_404(Newsletter, id=id)
 
     import smtplib
     from email.mime.multipart import MIMEMultipart
     from email import encoders
-    from email.message import Message
     from email.mime.audio import MIMEAudio
     from email.mime.base import MIMEBase
     from email.mime.image import MIMEImage
@@ -446,13 +465,13 @@ def test_newsletter(request,id):
     msg = MIMEMultipart('alternative')
     msg['Subject'] = subject
     msg['From'] = settings.EMAIL_FROM
-    part1 = MIMEText(object,'html')
+    part1 = MIMEText(object, 'html')
     msg.attach(part1)
     attachments = NewsletterAttachment.objects.all().filter(newsletter=newsletter)
     if attachments:
         i = 0
         while i < len(attachments):
-            path = "/var/www/yellowpage/media/"+str(attachments[i].file)
+            path = "/var/www/yellowpage/media/" + str(attachments[i].file)
             ctype, encoding = mimetypes.guess_type(path)
             if ctype is None or encoding is not None:
                 ctype = 'application/octet-stream'
@@ -475,22 +494,24 @@ def test_newsletter(request,id):
                 attach.set_payload(fp.read())
                 fp.close()
                 encoders.encode_base64(attach)
-            attach.add_header('Content-Disposition', 'attachment', filename=str(path).replace("/var/www/yellowpage/media/attachments/", ""))
+            attach.add_header('Content-Disposition', 'attachment',
+                              filename=str(path).replace("/var/www/yellowpage/media/attachments/", ""))
             msg.attach(attach)
             i += 1
-    s = smtplib.SMTP_SSL(settings.EMAIL_HOST,settings.EMAIL_PORT,'enervit.com')
+    s = smtplib.SMTP_SSL(settings.EMAIL_HOST, settings.EMAIL_PORT, 'enervit.com')
     s.set_debuglevel(1)
-    s.login(settings.EMAIL_HOST_USER,settings.EMAIL_HOST_PASSWORD)
-    s.sendmail(settings.EMAIL_FROM,to,msg.as_string())
+    s.login(settings.EMAIL_HOST_USER, settings.EMAIL_HOST_PASSWORD)
+    s.sendmail(settings.EMAIL_FROM, to, msg.as_string())
     response_data = {}
     response_data['value'] = 'OK'
     return HttpResponse(json.dumps(response_data), mimetype="application/json")
 
 
 @staff_member_required
-def sendmassive_newsletter(request,id):
+def sendmassive_newsletter(request, id):
     newsletter = get_object_or_404(Newsletter, id=id)
     import time
+
     time.sleep(15)
     response_data = {}
     response_data['value'] = 'OK'
@@ -506,7 +527,6 @@ def view_unsubscribe(request):
                               context_instance=RequestContext(request))
 
 
-
 ##########################################
 ##### NEWSLETTERSCHEDULATION CRUD ########
 ##########################################
@@ -516,6 +536,8 @@ def tasks_newsletter(request):
     schedulations = NewsletterSchedulation.objects.all()
     return render_to_response('admin/campaigns/view_newsletter_schedulations.html', {'schedulations': schedulations},
                               context_instance=RequestContext(request))
+
+
 @staff_member_required
 def add_schedule_newsletter(request):
     c = {}
@@ -532,12 +554,13 @@ def add_schedule_newsletter(request):
             else:
                 messages.success(request, 'Aggiunta schedulazione')
                 return HttpResponseRedirect('/admin/campaigns/newsletter/tasks')
-    c = {'form': form,'newsletters':newsletters}
-    return render_to_response('admin/campaigns/view_add_newsletterschedulation.html', c, context_instance=RequestContext(request))
+    c = {'form': form, 'newsletters': newsletters}
+    return render_to_response('admin/campaigns/view_add_newsletterschedulation.html', c,
+                              context_instance=RequestContext(request))
 
 
 @staff_member_required
-def schedule_newsletter_details(request,id):
+def schedule_newsletter_details(request, id):
     schedule = get_object_or_404(NewsletterSchedulation, id=id)
     form = NewsletterSchedulationForm()
     newsletters = Newsletter.objects.all().filter(status="W")
@@ -549,36 +572,35 @@ def schedule_newsletter_details(request,id):
             messages.success(request, 'Aggiunta schedulazione')
             return HttpResponseRedirect('/admin/campaigns/newsletter/tasks')
     return render_to_response('admin/campaigns/view_newsletterschedulation_details.html',
-                              {'newsletters': newsletters, 'form': form,'schedule':schedule},
+                              {'newsletters': newsletters, 'form': form, 'schedule': schedule},
                               context_instance=RequestContext(request))
 
+
 @staff_member_required
-def schedule_newsletter_delete(request,id):
+def schedule_newsletter_delete(request, id):
     schedule = get_object_or_404(NewsletterSchedulation, id=id)
     schedule.delete()
     messages.success(request, 'Rimossa schedulazione')
     return HttpResponseRedirect('/admin/campaigns/newsletter/tasks')
 
 
-
 ##########################
 ##### EVENT CRUD ########
 #########################
-
-
-
 @staff_member_required
 def view_events(request):
     events = Event.objects.all()
-    print get_messages(request)
+    #print get_messages(request)
     return render_to_response('admin/campaigns/view_event.html', {'events': events},
                               context_instance=RequestContext(request))
+
 
 @staff_member_required
 def view_signups(request):
     events = Event.objects.all()
     return render_to_response('admin/campaigns/view_event_signups.html', {'events': events},
                               context_instance=RequestContext(request))
+
 
 @staff_member_required
 def view_signup_by_event(request, eventid):
@@ -588,21 +610,24 @@ def view_signup_by_event(request, eventid):
     signups = EventSignup.objects.all().filter(event=event)
     return render_to_response('admin/campaigns/view_signup_by_event.html', {'signups': signups, 'payments': payments},
                               context_instance=RequestContext(request))
+
+
 @staff_member_required
-def view_signup_details(request,signupid):
+def view_signup_details(request, signupid):
     signup = EventSignup.objects.all().filter(id=signupid)[0]
     payment = None
     if signup.pagante:
-        payments = EventPayment.objects.all().filter(contact=signup.contact,event=signup.event)
-        if len(payments)>0:
-            payment=payments[0]
+        payments = EventPayment.objects.all().filter(contact=signup.contact, event=signup.event)
+        if len(payments) > 0:
+            payment = payments[0]
             print payment
     print signup
-    return render_to_response('admin/campaigns/view_signup_details.html', {'signup': signup,'payment':payment},
+    return render_to_response('admin/campaigns/view_signup_details.html', {'signup': signup, 'payment': payment},
                               context_instance=RequestContext(request))
 
+
 @staff_member_required
-def view_export_signup_by_event(request,eventid):
+def view_export_signup_by_event(request, eventid):
     response = HttpResponse(mimetype="application/ms-excel")
     event = Event.objects.all().filter(id=eventid)[0]
     response['Content-Disposition'] = 'attachment; filename=esportazione_evento-' + event.__unicode__() + '.xls'
@@ -642,44 +667,44 @@ def view_export_signup_by_event(request,eventid):
         staff = ""
         if iscrizione.staff == True:
             staff = "1"
-        ws.write(row,0,staff)
+        ws.write(row, 0, staff)
         omaggio = ""
-        if iscrizione.omaggio==True:
+        if iscrizione.omaggio == True:
             omaggio = "1"
-        ws.write(row,1,omaggio)
+        ws.write(row, 1, omaggio)
         pagante = ""
-        if iscrizione.pagante==True:
+        if iscrizione.pagante == True:
             pagante = "1"
-        ws.write(row,2,pagante)
-        ws.write(row,3,iscrizione.contact.surname.capitalize())
-        ws.write(row,4,iscrizione.contact.name.capitalize())
-        ws.write(row,5,iscrizione.contact.street)
-        ws.write(row,6,iscrizione.contact.zip)
-        ws.write(row,7,iscrizione.contact.city)
+        ws.write(row, 2, pagante)
+        ws.write(row, 3, iscrizione.contact.surname.capitalize())
+        ws.write(row, 4, iscrizione.contact.name.capitalize())
+        ws.write(row, 5, iscrizione.contact.street)
+        ws.write(row, 6, iscrizione.contact.zip)
+        ws.write(row, 7, iscrizione.contact.city)
         if iscrizione.contact.province:
-            ws.write(row,8,iscrizione.contact.province.code)
-            ws.write(row,9,iscrizione.contact.province.region.name)
-        ws.write(row,10,iscrizione.contact.email)
+            ws.write(row, 8, iscrizione.contact.province.code)
+            ws.write(row, 9, iscrizione.contact.province.region.name)
+        ws.write(row, 10, iscrizione.contact.email)
         if iscrizione.contact.work:
-            ws.write(row,11,iscrizione.contact.work.name.capitalize())
-            ws.write(row,12,iscrizione.contact.work.sector.name.capitalize())
-        ws.write(row,13,iscrizione.contact.phone_number)
+            ws.write(row, 11, iscrizione.contact.work.name.capitalize())
+            ws.write(row, 12, iscrizione.contact.work.sector.name.capitalize())
+        ws.write(row, 13, iscrizione.contact.phone_number)
         if EventPayment.objects.filter(event=event, contact=iscrizione.contact):
             payment = EventPayment.objects.filter(event=event, contact=iscrizione.contact)[0]
-            ws.write(row,14,payment.type)
-            ws.write(row,15,payment.way)
-            ws.write(row,16,payment.note)
-            ws.write(row,17,payment.executor)
-            ws.write(row,18,payment.street)
-            ws.write(row,19,payment.zip)
-            ws.write(row,20,payment.city)
+            ws.write(row, 14, payment.type)
+            ws.write(row, 15, payment.way)
+            ws.write(row, 16, payment.note)
+            ws.write(row, 17, payment.executor)
+            ws.write(row, 18, payment.street)
+            ws.write(row, 19, payment.zip)
+            ws.write(row, 20, payment.city)
             if payment.province:
-                ws.write(row,21,payment.province.code)
-            ws.write(row,22,payment.vat)
-            ws.write(row,23,payment.code)
+                ws.write(row, 21, payment.province.code)
+            ws.write(row, 22, payment.vat)
+            ws.write(row, 23, payment.code)
         else:
-            ws.write(row,16,iscrizione.note)
-        row +=1
+            ws.write(row, 16, iscrizione.note)
+        row += 1
     wb.save(response)
     return response
 
@@ -694,7 +719,7 @@ def view_add_event(request):
     if not can_handle_events(request.user, new=True, from_its=from_its):
         messages.error(request, 'Non si hanno privilegi sufficienti per aggiungere un evento pubblico')
         if is_its(request.user):
-                return redirect('/admin/its/agenda/')
+            return redirect('/admin/its/agenda/')
         else:
             return redirect('/admin')
     c.update(csrf(request))
@@ -728,8 +753,8 @@ def view_add_event(request):
     c = {'form': form, 'province': province, 'campaigns': campaigns,
          'its_users': its_users, 'consultants': consultants, 'from_its': from_its,
          # 'district':district,
-         'areamanager':areamanager,'eventtype': eventtype,
-         'channel':channel,'theme':theme,'pointofsaletype': pointofsaletype}
+         'areamanager': areamanager, 'eventtype': eventtype,
+         'channel': channel, 'theme': theme, 'pointofsaletype': pointofsaletype}
     return render_to_response('admin/campaigns/view_add_event.html', c, context_instance=RequestContext(request))
 
 
@@ -745,7 +770,7 @@ def view_event_details(request, id):
     if not can_handle_events(request.user, e=event, from_its=from_its):
         messages.error(request, "Non si hanno privilegi sufficienti per modificare l'evento {}".format(event.title))
         if is_its(request.user):
-                return redirect('/admin/its/agenda/')
+            return redirect('/admin/its/agenda/')
         else:
             return redirect('/admin')
 
@@ -776,10 +801,11 @@ def view_event_details(request, id):
             if request.POST.get("deleteFile") == "on":
                 new_event.emailattachment = None
                 new_event.save()
-            messages.success(request, 'Evento \"' + new_event.date.strftime("%d-%m-%Y") + '\" aggiornato correttamente!')
+            messages.success(request,
+                             'Evento \"' + new_event.date.strftime("%d-%m-%Y") + '\" aggiornato correttamente!')
             if from_its and is_its(request.user):
                 return HttpResponseRedirect('/admin/its/agenda/')
-            return HttpResponseRedirect('/admin/campaigns/event/'+id)
+            return HttpResponseRedirect('/admin/campaigns/event/' + id)
     return render_to_response('admin/campaigns/view_event_details.html',
                               {'event': event, 'from_its': from_its, 'form': form,
                                'campaigns': campaigns, 'province': province,
@@ -789,6 +815,7 @@ def view_event_details(request, id):
                                'channel': channel, 'theme': theme, 'pointofsaletype': pointofsaletype,
                                'eventfiles': eventfiles},
                               context_instance=RequestContext(request))
+
 
 @staff_member_required
 def view_event_import(request):
@@ -851,13 +878,15 @@ def view_event_import(request):
                                                       email=email, phone_number=tel):
                             my_work = Work.objects.filter(name=qualifica.strip())[0] if len(
                                 qualifica.strip()) > 2 and len(categoria.strip()) > 2 else None
-                            code = str(uuid.uuid4()).replace("-","")[0:16]
+                            code = str(uuid.uuid4()).replace("-", "")[0:16]
                             print code
                             my_contact = Contact(name=nome, surname=cognome, street=indirizzo, province=province,
-                                                 city=citta, zip=cap, email=email, phone_number=tel, work=my_work, code = code)
+                                                 city=citta, zip=cap, email=email, phone_number=tel, work=my_work,
+                                                 code=code)
                             my_contact.save()
 
-                        if len(indirizzo.strip()) > 2 and indirizzo.lower() != "enervit" and indirizzo.lower() != "relatore":
+                        if len(
+                                indirizzo.strip()) > 2 and indirizzo.lower() != "enervit" and indirizzo.lower() != "relatore":
                             print indirizzo
                         else:
                             if indirizzo.lower() == "enervit" and sheet.cell(row_index, 0).value == 1:
@@ -872,13 +901,14 @@ def view_event_import(request):
                             pagante = True
                         event = Event.objects.filter(id=form.cleaned_data['event'])[0]
                         print event
-                        contact = Contact.objects.filter(name=nome, surname=cognome, street=indirizzo, city=citta, zip=cap,
-                                                         email=email, phone_number=tel)[0]
+                        contact = \
+                            Contact.objects.filter(name=nome, surname=cognome, street=indirizzo, city=citta, zip=cap,
+                                                   email=email, phone_number=tel)[0]
 
                         if not EventSignup.objects.filter(event=event, contact=contact, staff=staff, omaggio=omaggio,
                                                           pagante=pagante, relatore=relatore):
                             signup = EventSignup(event=event, contact=contact, staff=staff, omaggio=omaggio,
-                                                 pagante=pagante, note=nota,relatore=relatore)
+                                                 pagante=pagante, note=nota, relatore=relatore)
                             signup.save()
 
                         newsletters = Newsletter.objects.all().filter(event=event)
@@ -909,11 +939,11 @@ def view_event_import(request):
                             province = Province.objects.filter(code=prov)[0] if Province.objects.filter(
                                 code=prov) else None
                             if not EventPayment.objects.filter(event=event, contact=contact):
-                                payment = EventPayment(event=event, contact=contact, type=type, way=way, executor=executor,
-                                                  street=street, zip=cap, city=citta, province=province, code=code,
-                                                  vat=vat)
+                                payment = EventPayment(event=event, contact=contact, type=type, way=way,
+                                                       executor=executor,
+                                                       street=street, zip=cap, city=citta, province=province, code=code,
+                                                       vat=vat)
                                 payment.save()
-
 
             events = Event.objects.all()
             return render_to_response('admin/campaigns/view_registro.html', {'events': events},
@@ -930,6 +960,7 @@ def view_event_import(request):
 def view_eventlist_rest(request):
     events = Event.objects.all()
     import json
+
     targets_json = []
     for e in events:
         target = {'id': e.id, 'start': str(e.date), 'end': str(e.enddate)}
@@ -939,7 +970,7 @@ def view_eventlist_rest(request):
         if e.title:
             target['title'] = e.title
         target['campaign'] = e.campaign.name
-        target['url'] = '/admin/campaigns/event/'+str(e.id)
+        target['url'] = '/admin/campaigns/event/' + str(e.id)
         if e.is_its:
             target['url'] += '?from_its=1'
             target['backgroundColor'] = 'red'
@@ -949,12 +980,11 @@ def view_eventlist_rest(request):
     response_data = {'value': 'OK', 'message': 'lista', 'targets': targets_json}
     return HttpResponse(json.dumps(response_data), mimetype="application/json")
 
+
 @staff_member_required
 def view_calendar(request):
     return render_to_response('admin/campaigns/view_event_calendar.html', {},
                               context_instance=RequestContext(request))
-
-
 
 
 #####################################
@@ -965,7 +995,8 @@ def view_calendar(request):
 def view_newslettertemplate(request):
     newslettertemplates = NewsletterTemplate.objects.all()
     print get_messages(request)
-    return render_to_response('admin/campaigns/view_newslettertemplate.html', {'newslettertemplates': newslettertemplates},
+    return render_to_response('admin/campaigns/view_newslettertemplate.html',
+                              {'newslettertemplates': newslettertemplates},
                               context_instance=RequestContext(request))
 
 
@@ -984,7 +1015,8 @@ def view_add_newslettertemplate(request):
                 messages.success(request, 'Aggiunto template \"' + new_template.name + '\"')
                 return HttpResponseRedirect('/admin/campaigns/newslettertemplate')
     c = {'form': form}
-    return render_to_response('admin/campaigns/view_add_newslettertemplate.html', c, context_instance=RequestContext(request))
+    return render_to_response('admin/campaigns/view_add_newslettertemplate.html', c,
+                              context_instance=RequestContext(request))
 
 
 @staff_member_required
@@ -998,14 +1030,17 @@ def view_newslettertemplate_details(request, id):
             new_event.save()
             messages.success(request,
                              'Template \"' + new_event.name + '\" aggiornato correttamente!')
-            return HttpResponseRedirect('/admin/campaigns/newslettertemplate/'+id)
-    return render_to_response('admin/campaigns/view_newslettertemplate_details.html', {'newslettertemplate': newslettertemplate, 'form': form},
+            return HttpResponseRedirect('/admin/campaigns/newslettertemplate/' + id)
+    return render_to_response('admin/campaigns/view_newslettertemplate_details.html',
+                              {'newslettertemplate': newslettertemplate, 'form': form},
                               context_instance=RequestContext(request))
+
 
 @staff_member_required
 def view_newslettertemplate_rest(request):
     sector = request.GET.get('id', '')
     from django.core import serializers
+
     json_subcat = serializers.serialize("json", NewsletterTemplate.objects.filter(id=sector))
     return HttpResponse(json_subcat, mimetype="application/javascript")
 
@@ -1019,27 +1054,30 @@ def view_newslettertarget(request):
     return render_to_response('admin/campaigns/view_newslettertarget.html', {'newsletters': newsletters},
                               context_instance=RequestContext(request))
 
-def view_newslettertarget_add(request,nl):
+
+def view_newslettertarget_add(request, nl):
     c = {}
     newsletter = get_object_or_404(Newsletter, id=nl)
     c.update(csrf(request))
     contacts = Contact.objects.all()
     targets = NewsletterTarget.objects.all().filter(newsletter=newsletter)
-    c = {'contacts':contacts,'targets':targets,'newsletter':newsletter}
+    c = {'contacts': contacts, 'targets': targets, 'newsletter': newsletter}
     return render_to_response('admin/campaigns/view_newslettertarget_add.html', c,
                               context_instance=RequestContext(request))
+
 
 def view_newslettertarget_add_rest(request):
     contactId = request.GET.get('contact', '')
     newsletterId = request.GET.get('newsletter', '')
     contact = get_object_or_404(Contact, email=contactId)
     newsletter = get_object_or_404(Newsletter, id=newsletterId)
-    if not NewsletterTarget.objects.filter(contact=contact,newsletter=newsletter):
-        target = NewsletterTarget(contact=contact,newsletter=newsletter)
+    if not NewsletterTarget.objects.filter(contact=contact, newsletter=newsletter):
+        target = NewsletterTarget(contact=contact, newsletter=newsletter)
         print target
         target.save()
 
     import json
+
     response_data = {}
     response_data['value'] = 'OK'
     response_data['contact'] = contactId
@@ -1048,24 +1086,27 @@ def view_newslettertarget_add_rest(request):
 
 
 def view_newslettertarget_remove_rest(request):
-    targetId = request.GET.get('target','')
+    targetId = request.GET.get('target', '')
     target = get_object_or_404(NewsletterTarget, id=targetId)
     target.delete()
     import json
+
     response_data = {}
     response_data['value'] = 'OK'
     response_data['message'] = 'Cancellato'
     return HttpResponse(json.dumps(response_data), mimetype="application/json")
 
+
 def view_newslettertarget_list_rest(request):
     newsletterId = request.GET.get('newsletter', '')
     targets = NewsletterTarget.objects.all().filter(newsletter=newsletterId)
     import json
+
     targets_json = []
-    for i in range(0,len(targets)):
+    for i in range(0, len(targets)):
         target = {}
         target['id'] = targets[i].id
-        target['contact'] = targets[i].contact.name + " "+targets[i].contact.surname
+        target['contact'] = targets[i].contact.name + " " + targets[i].contact.surname
         target['email'] = targets[i].contact.email
         if targets[i].contact.work is not None:
             target['work'] = targets[i].contact.work.name
@@ -1073,7 +1114,7 @@ def view_newslettertarget_list_rest(request):
             target['work'] = ""
         action_subdivisions = []
         for sub in targets[i].contact.action_subdivision.all():
-               action_subdivisions.append(sub.name)
+            action_subdivisions.append(sub.name)
         target['action_subdivision'] = action_subdivisions
         anagrafic_subdivisions = []
         for sub in targets[i].contact.anagrafic_subdivision.all():
@@ -1086,12 +1127,12 @@ def view_newslettertarget_list_rest(request):
             target['province'] = ""
         targets_json.append(target)
 
-
     response_data = {}
     response_data['value'] = 'OK'
     response_data['message'] = 'lista'
     response_data['targets'] = targets_json
     return HttpResponse(json.dumps(response_data), mimetype="application/json")
+
 
 ################################
 ### EVENTSIGNUP CRUD ##########
@@ -1102,6 +1143,7 @@ def view_registro(request):
     events = Event.objects.all()
     return render_to_response('admin/campaigns/view_registro.html', {'events': events},
                               context_instance=RequestContext(request))
+
 
 @staff_member_required
 def view_presence(request, event):
@@ -1143,6 +1185,7 @@ def view_presence_rest(request):
     npagante = EventSignup.objects.all().filter(event=event, pagante=True).count()
     ppagante = EventSignup.objects.all().filter(event=event, pagante=True, presence=True).count()
     import json
+
     response_data = {}
     response_data['value'] = 'OK'
     response_data['presence'] = attr
@@ -1199,49 +1242,50 @@ def view_export_presence(request, id_event):
         presenza = ""
         if iscrizione.presence == True:
             presenza = '1'
-        ws.write(row,0,presenza)
+        ws.write(row, 0, presenza)
         staff = ""
         if iscrizione.staff == True:
             staff = "1"
-        ws.write(row,1,staff)
+        ws.write(row, 1, staff)
         omaggio = ""
-        if iscrizione.omaggio==True:
+        if iscrizione.omaggio == True:
             omaggio = "1"
-        ws.write(row,2,omaggio)
+        ws.write(row, 2, omaggio)
         pagante = ""
-        if iscrizione.pagante==True:
+        if iscrizione.pagante == True:
             pagante = "1"
-        ws.write(row,3,pagante)
-        ws.write(row,4,iscrizione.contact.surname.capitalize())
-        ws.write(row,5,iscrizione.contact.name.capitalize())
-        ws.write(row,6,iscrizione.contact.street)
-        ws.write(row,7,iscrizione.contact.zip)
-        ws.write(row,8,iscrizione.contact.city)
+        ws.write(row, 3, pagante)
+        ws.write(row, 4, iscrizione.contact.surname.capitalize())
+        ws.write(row, 5, iscrizione.contact.name.capitalize())
+        ws.write(row, 6, iscrizione.contact.street)
+        ws.write(row, 7, iscrizione.contact.zip)
+        ws.write(row, 8, iscrizione.contact.city)
         if iscrizione.contact.province:
-            ws.write(row,9,iscrizione.contact.province.code)
-            ws.write(row,10,iscrizione.contact.province.region.name)
-        ws.write(row,11,iscrizione.contact.email)
+            ws.write(row, 9, iscrizione.contact.province.code)
+            ws.write(row, 10, iscrizione.contact.province.region.name)
+        ws.write(row, 11, iscrizione.contact.email)
         if iscrizione.contact.work:
-            ws.write(row,12,iscrizione.contact.work.name.capitalize())
-            ws.write(row,13,iscrizione.contact.work.sector.name.capitalize())
-        ws.write(row,14,iscrizione.contact.phone_number)
+            ws.write(row, 12, iscrizione.contact.work.name.capitalize())
+            ws.write(row, 13, iscrizione.contact.work.sector.name.capitalize())
+        ws.write(row, 14, iscrizione.contact.phone_number)
         if EventPayment.objects.filter(event=event, contact=iscrizione.contact):
             payment = EventPayment.objects.filter(event=event, contact=iscrizione.contact)[0]
-            ws.write(row,15,payment.type)
-            ws.write(row,16,payment.way)
-            ws.write(row,17,payment.note)
-            ws.write(row,18,payment.executor)
-            ws.write(row,19,payment.street)
-            ws.write(row,20,payment.city)
-            ws.write(row,21,payment.city)
-            ws.write(row,22,payment.province.code)
-            ws.write(row,23,payment.vat)
-            ws.write(row,24,payment.code)
+            ws.write(row, 15, payment.type)
+            ws.write(row, 16, payment.way)
+            ws.write(row, 17, payment.note)
+            ws.write(row, 18, payment.executor)
+            ws.write(row, 19, payment.street)
+            ws.write(row, 20, payment.city)
+            ws.write(row, 21, payment.city)
+            ws.write(row, 22, payment.province.code)
+            ws.write(row, 23, payment.vat)
+            ws.write(row, 24, payment.code)
         else:
-            ws.write(row,17,iscrizione.note)
-        row +=1
+            ws.write(row, 17, iscrizione.note)
+        row += 1
     wb.save(response)
     return response
+
 
 @staff_member_required
 def view_add_eventsignup(request):
@@ -1256,23 +1300,24 @@ def view_add_eventsignup(request):
             new_signup = form.save()
             if request.POST.has_key('_addanother'):
                 form = EventSignupForm()
-            messages.success(request, 'Aggiunto partecipante \"' + new_signup.contact.name +' '+new_signup.contact.surname+ '\"')
-    c = {'form': form,'events':events,'contacts':contacts}
+            messages.success(request,
+                             'Aggiunto partecipante \"' + new_signup.contact.name + ' ' + new_signup.contact.surname + '\"')
+    c = {'form': form, 'events': events, 'contacts': contacts}
     return render_to_response('admin/campaigns/view_add_eventsignup.html', c, context_instance=RequestContext(request))
-
 
 
 ###########################
 ##### AREE ITS ############
 ###########################
 
-@user_passes_test(lambda u:u.is_superuser)
+@user_passes_test(lambda u: u.is_superuser)
 def view_areeits(request):
     areeits = AreaIts.objects.all()
     return render_to_response('admin/campaigns/view_areeits.html', {'areeits': areeits},
                               context_instance=RequestContext(request))
 
-@user_passes_test(lambda u:u.is_superuser)
+
+@user_passes_test(lambda u: u.is_superuser)
 def view_add_areeits(request):
     print request
     c = {}
@@ -1292,7 +1337,7 @@ def view_add_areeits(request):
     return render_to_response('admin/campaigns/view_add_areeits.html', c, context_instance=RequestContext(request))
 
 
-@user_passes_test(lambda u:u.is_superuser)
+@user_passes_test(lambda u: u.is_superuser)
 def view_areeits_details(request, id):
     areaits = get_object_or_404(AreaIts, id=id)
     form = AreeItsForm()
@@ -1304,7 +1349,7 @@ def view_areeits_details(request, id):
             new_area.save()
             messages.success(request, 'Area \"' + new_area.description + '\" aggiornata correttamente!')
             return HttpResponseRedirect('/admin/campaigns/areaits')
-    return render_to_response('admin/campaigns/view_areeits_details.html',{'areaits':areaits,'form':form},
+    return render_to_response('admin/campaigns/view_areeits_details.html', {'areaits': areaits, 'form': form},
                               context_instance=RequestContext(request))
 
 
@@ -1312,13 +1357,14 @@ def view_areeits_details(request, id):
 ##### AREE MANAGER ############
 ###############################
 
-@user_passes_test(lambda u:u.is_superuser)
+@user_passes_test(lambda u: u.is_superuser)
 def view_areemanager(request):
     areemanager = AreaManager.objects.all()
     return render_to_response('admin/campaigns/view_areemanager.html', {'areemanager': areemanager},
                               context_instance=RequestContext(request))
 
-@user_passes_test(lambda u:u.is_superuser)
+
+@user_passes_test(lambda u: u.is_superuser)
 def view_add_areemanager(request):
     c = {}
     c.update(csrf(request))
@@ -1329,15 +1375,15 @@ def view_add_areemanager(request):
             new_area = form.save()
             if request.POST.has_key('_addanother'):
                 form = AreeManagerForm()
-                messages.success(request, 'Aggiunta area \"' + new_area.name +' '+new_area.surname+ '\"')
+                messages.success(request, 'Aggiunta area \"' + new_area.name + ' ' + new_area.surname + '\"')
             else:
-                messages.success(request, 'Aggiunta area \"' + new_area.name +' '+new_area.surname+ '\"')
+                messages.success(request, 'Aggiunta area \"' + new_area.name + ' ' + new_area.surname + '\"')
                 return HttpResponseRedirect('/admin/campaigns/areamanager')
     c = {'form': form}
     return render_to_response('admin/campaigns/view_add_areemanager.html', c, context_instance=RequestContext(request))
 
 
-@user_passes_test(lambda u:u.is_superuser)
+@user_passes_test(lambda u: u.is_superuser)
 def view_areemanager_details(request, id):
     area = get_object_or_404(AreaManager, id=id)
     form = AreeManagerForm()
@@ -1347,22 +1393,25 @@ def view_areemanager_details(request, id):
         if form.is_valid():
             new_area = form.save(commit=False)
             new_area.save()
-            messages.success(request, 'Area \"' + new_area.name +' '+new_area.surname+ '\" aggiornata correttamente!')
+            messages.success(request,
+                             'Area \"' + new_area.name + ' ' + new_area.surname + '\" aggiornata correttamente!')
             return HttpResponseRedirect('/admin/campaigns/areamanager')
-    return render_to_response('admin/campaigns/view_areemanager_details.html',{'areamanager':area,'form':form},
+    return render_to_response('admin/campaigns/view_areemanager_details.html', {'areamanager': area, 'form': form},
                               context_instance=RequestContext(request))
+
 
 ###############################
 ##### THEME ###################
 ###############################
 
-@user_passes_test(lambda u:u.is_superuser)
+@user_passes_test(lambda u: u.is_superuser)
 def view_theme(request):
     themes = Theme.objects.all()
     return render_to_response('admin/campaigns/view_theme.html', {'themes': themes},
                               context_instance=RequestContext(request))
 
-@user_passes_test(lambda u:u.is_superuser)
+
+@user_passes_test(lambda u: u.is_superuser)
 def view_add_theme(request):
     c = {}
     c.update(csrf(request))
@@ -1373,15 +1422,15 @@ def view_add_theme(request):
             new_theme = form.save()
             if request.POST.has_key('_addanother'):
                 form = ThemeForm()
-                messages.success(request, 'Aggiunto tema \"' + new_theme.description+ '\"')
+                messages.success(request, 'Aggiunto tema \"' + new_theme.description + '\"')
             else:
-                messages.success(request, 'Aggiunto tema \"' + new_theme.description+ '\"')
+                messages.success(request, 'Aggiunto tema \"' + new_theme.description + '\"')
                 return HttpResponseRedirect('/admin/campaigns/theme')
     c = {'form': form}
     return render_to_response('admin/campaigns/view_add_theme.html', c, context_instance=RequestContext(request))
 
 
-@user_passes_test(lambda u:u.is_superuser)
+@user_passes_test(lambda u: u.is_superuser)
 def view_theme_details(request, id):
     theme = get_object_or_404(Theme, id=id)
     form = ThemeForm()
@@ -1391,9 +1440,9 @@ def view_theme_details(request, id):
         if form.is_valid():
             new_theme = form.save(commit=False)
             new_theme.save()
-            messages.success(request, 'Tema \"' +new_theme.description +'\" aggiornato correttamente!')
+            messages.success(request, 'Tema \"' + new_theme.description + '\" aggiornato correttamente!')
             return HttpResponseRedirect('/admin/campaigns/theme')
-    return render_to_response('admin/campaigns/view_theme_details.html',{'theme':theme,'form':form},
+    return render_to_response('admin/campaigns/view_theme_details.html', {'theme': theme, 'form': form},
                               context_instance=RequestContext(request))
 
 
@@ -1401,13 +1450,14 @@ def view_theme_details(request, id):
 ##### GOAL ###################
 ###############################
 
-@user_passes_test(lambda u:u.is_superuser)
+@user_passes_test(lambda u: u.is_superuser)
 def view_goal(request):
     goals = Goal.objects.all()
     return render_to_response('admin/campaigns/view_goal.html', {'goals': goals},
                               context_instance=RequestContext(request))
 
-@user_passes_test(lambda u:u.is_superuser)
+
+@user_passes_test(lambda u: u.is_superuser)
 def view_add_goal(request):
     c = {}
     c.update(csrf(request))
@@ -1418,15 +1468,15 @@ def view_add_goal(request):
             new_goal = form.save()
             if request.POST.has_key('_addanother'):
                 form = GoalForm()
-                messages.success(request, 'Aggiunto obiettivo \"' + new_goal.description+ '\"')
+                messages.success(request, 'Aggiunto obiettivo \"' + new_goal.description + '\"')
             else:
-                messages.success(request, 'Aggiunto obiettivo \"' + new_goal.description+ '\"')
+                messages.success(request, 'Aggiunto obiettivo \"' + new_goal.description + '\"')
                 return HttpResponseRedirect('/admin/campaigns/goal')
     c = {'form': form}
     return render_to_response('admin/campaigns/view_add_goal.html', c, context_instance=RequestContext(request))
 
 
-@user_passes_test(lambda u:u.is_superuser)
+@user_passes_test(lambda u: u.is_superuser)
 def view_goal_details(request, id):
     goal = get_object_or_404(Goal, id=id)
     form = GoalForm()
@@ -1436,9 +1486,9 @@ def view_goal_details(request, id):
         if form.is_valid():
             new_goal = form.save(commit=False)
             new_goal.save()
-            messages.success(request, 'Obiettivo \"' +new_goal.description +'\" aggiornato correttamente!')
+            messages.success(request, 'Obiettivo \"' + new_goal.description + '\" aggiornato correttamente!')
             return HttpResponseRedirect('/admin/campaigns/goal')
-    return render_to_response('admin/campaigns/view_goal_details.html',{'goal':goal,'form':form},
+    return render_to_response('admin/campaigns/view_goal_details.html', {'goal': goal, 'form': form},
                               context_instance=RequestContext(request))
 
 
@@ -1446,13 +1496,14 @@ def view_goal_details(request, id):
 ##### CHANNEL #################
 ###############################
 
-@user_passes_test(lambda u:u.is_superuser)
+@user_passes_test(lambda u: u.is_superuser)
 def view_channel(request):
     channels = Channel.objects.all()
     return render_to_response('admin/campaigns/view_channel.html', {'channels': channels},
                               context_instance=RequestContext(request))
 
-@user_passes_test(lambda u:u.is_superuser)
+
+@user_passes_test(lambda u: u.is_superuser)
 def view_add_channel(request):
     c = {}
     c.update(csrf(request))
@@ -1463,15 +1514,15 @@ def view_add_channel(request):
             new_channel = form.save()
             if request.POST.has_key('_addanother'):
                 form = ChannelForm()
-                messages.success(request, 'Aggiunto canale \"' + new_channel.description+ '\"')
+                messages.success(request, 'Aggiunto canale \"' + new_channel.description + '\"')
             else:
-                messages.success(request, 'Aggiunto canale \"' + new_channel.description+ '\"')
+                messages.success(request, 'Aggiunto canale \"' + new_channel.description + '\"')
                 return HttpResponseRedirect('/admin/campaigns/channel')
     c = {'form': form}
     return render_to_response('admin/campaigns/view_add_channel.html', c, context_instance=RequestContext(request))
 
 
-@user_passes_test(lambda u:u.is_superuser)
+@user_passes_test(lambda u: u.is_superuser)
 def view_channel_details(request, id):
     channel = get_object_or_404(Channel, id=id)
     form = ChannelForm()
@@ -1481,9 +1532,9 @@ def view_channel_details(request, id):
         if form.is_valid():
             new_channel = form.save(commit=False)
             new_channel.save()
-            messages.success(request, 'Canale \"' +new_channel.description +'\" aggiornato correttamente!')
+            messages.success(request, 'Canale \"' + new_channel.description + '\" aggiornato correttamente!')
             return HttpResponseRedirect('/admin/campaigns/channel')
-    return render_to_response('admin/campaigns/view_channel_details.html',{'channel':channel,'form':form},
+    return render_to_response('admin/campaigns/view_channel_details.html', {'channel': channel, 'form': form},
                               context_instance=RequestContext(request))
 
 
@@ -1491,13 +1542,14 @@ def view_channel_details(request, id):
 ##### POINTOFSALETYPE #########
 ###############################
 
-@user_passes_test(lambda u:u.is_superuser)
+@user_passes_test(lambda u: u.is_superuser)
 def view_pointofsaletype(request):
     pos = PointOfSaleType.objects.all()
     return render_to_response('admin/campaigns/view_pos.html', {'poses': pos},
                               context_instance=RequestContext(request))
 
-@user_passes_test(lambda u:u.is_superuser)
+
+@user_passes_test(lambda u: u.is_superuser)
 def view_add_pointofsaletype(request):
     c = {}
     c.update(csrf(request))
@@ -1508,15 +1560,15 @@ def view_add_pointofsaletype(request):
             new_pos = form.save()
             if request.POST.has_key('_addanother'):
                 form = PointOfSaleTypeForm()
-                messages.success(request, 'Aggiunta nuova tipologia punto vendita \"' + new_pos.description+ '\"')
+                messages.success(request, 'Aggiunta nuova tipologia punto vendita \"' + new_pos.description + '\"')
             else:
-                messages.success(request, 'Aggiunta nuova tipologia punto vendita \"' + new_pos.description+ '\"')
+                messages.success(request, 'Aggiunta nuova tipologia punto vendita \"' + new_pos.description + '\"')
                 return HttpResponseRedirect('/admin/campaigns/pointofsaletype')
     c = {'form': form}
     return render_to_response('admin/campaigns/view_add_pos.html', c, context_instance=RequestContext(request))
 
 
-@user_passes_test(lambda u:u.is_superuser)
+@user_passes_test(lambda u: u.is_superuser)
 def view_pointofsaletype_details(request, id):
     pos = get_object_or_404(PointOfSaleType, id=id)
     form = PointOfSaleTypeForm()
@@ -1526,9 +1578,9 @@ def view_pointofsaletype_details(request, id):
         if form.is_valid():
             new_pos = form.save(commit=False)
             new_pos.save()
-            messages.success(request, 'Tipologia \"' +new_pos.description +'\" aggiornata correttamente!')
+            messages.success(request, 'Tipologia \"' + new_pos.description + '\" aggiornata correttamente!')
             return HttpResponseRedirect('/admin/campaigns/pointofsaletype')
-    return render_to_response('admin/campaigns/view_pos_details.html',{'pos':pos,'form':form},
+    return render_to_response('admin/campaigns/view_pos_details.html', {'pos': pos, 'form': form},
                               context_instance=RequestContext(request))
 
 
@@ -1536,13 +1588,14 @@ def view_pointofsaletype_details(request, id):
 ##### EVENT TYPE   ############
 ###############################
 
-@user_passes_test(lambda u:u.is_superuser)
+@user_passes_test(lambda u: u.is_superuser)
 def view_eventtype(request):
     eventtypes = EventType.objects.all()
     return render_to_response('admin/campaigns/view_eventtype.html', {'eventtypes': eventtypes},
                               context_instance=RequestContext(request))
 
-@user_passes_test(lambda u:u.is_superuser)
+
+@user_passes_test(lambda u: u.is_superuser)
 def view_add_eventtype(request):
     if request.method == 'POST':
         form = EventTypeForm(request.POST)
@@ -1550,16 +1603,17 @@ def view_add_eventtype(request):
             new_type = form.save()
             if request.POST.has_key('_addanother'):
                 form = EventTypeForm()
-                messages.success(request, 'Aggiunta nuova tipologia evento \"' + new_type.description+ '\"')
+                messages.success(request, 'Aggiunta nuova tipologia evento \"' + new_type.description + '\"')
             else:
-                messages.success(request, 'Aggiunta nuova tipologia evento \"' + new_type.description+ '\"')
+                messages.success(request, 'Aggiunta nuova tipologia evento \"' + new_type.description + '\"')
                 return HttpResponseRedirect('/admin/campaigns/eventtype')
     else:
         form = EventTypeForm()
-    return render_to_response('admin/campaigns/view_add_eventtype.html', {'form': form}, context_instance=RequestContext(request))
+    return render_to_response('admin/campaigns/view_add_eventtype.html', {'form': form},
+                              context_instance=RequestContext(request))
 
 
-@user_passes_test(lambda u:u.is_superuser)
+@user_passes_test(lambda u: u.is_superuser)
 def view_eventtype_details(request, id):
     eventtype = get_object_or_404(EventType, id=id)
     form = EventTypeForm(instance=eventtype)
@@ -1569,9 +1623,9 @@ def view_eventtype_details(request, id):
         if form.is_valid():
             new_type = form.save(commit=False)
             new_type.save()
-            messages.success(request, 'Tipologia \"' +new_type.description +'\" aggiornata correttamente!')
+            messages.success(request, 'Tipologia \"' + new_type.description + '\" aggiornata correttamente!')
             return HttpResponseRedirect('/admin/campaigns/eventtype')
-    return render_to_response('admin/campaigns/view_eventtype_details.html',{'eventtype':eventtype,'form':form},
+    return render_to_response('admin/campaigns/view_eventtype_details.html', {'eventtype': eventtype, 'form': form},
                               context_instance=RequestContext(request))
 
 ###############################
@@ -1579,18 +1633,21 @@ def view_eventtype_details(request, id):
 ###############################
 
 from django.views.decorators.csrf import csrf_exempt
+
+
 @csrf_exempt
 def view_eventcoupon_restgenerate(request):
     import json
+
     response_data = {}
     if request.method == 'POST':
         id = request.POST.get("event_id")
-        event = get_object_or_404(Event,id=id)
+        event = get_object_or_404(Event, id=id)
         codes = request.POST.getlist("codes[]")
 
         for code in codes:
             if not EventCoupon.objects.filter(coupon=code):
-                omaggio = EventCoupon(event=event,coupon=code,used=False)
+                omaggio = EventCoupon(event=event, coupon=code, used=False)
                 omaggio.save()
             else:
                 print "coupon esistente"
@@ -1599,25 +1656,27 @@ def view_eventcoupon_restgenerate(request):
         response_data['value'] = 'NAK'
     return HttpResponse(json.dumps(response_data), mimetype="application/json")
 
+
 ###############################
 ##### PRODUCTGROUP  ###########
 ###############################
 class ProductGroupForm(ModelForm):
     sell_in_alloc = forms.DecimalField(localize=True, label='Percentuale sell in')
     sell_in_amount = forms.DecimalField(localize=True, label='Valore sell in')
+
     class Meta:
         model = ProductGroup
 
 
-@user_passes_test(lambda u:u.is_superuser)
+@user_passes_test(lambda u: u.is_superuser)
 def view_productgroup(request):
     productgroups = ProductGroup.objects.all()
     return render_to_response('admin/campaigns/view_productgroup.html', {'productgroups': productgroups},
                               context_instance=RequestContext(request))
 
-@user_passes_test(lambda u:u.is_superuser)
-def view_productgroup_details(request, id):
 
+@user_passes_test(lambda u: u.is_superuser)
+def view_productgroup_details(request, id):
     if id is None:
         action = "add"
         productgroup = None
@@ -1627,7 +1686,7 @@ def view_productgroup_details(request, id):
 
     if request.method == 'POST':
         if request.POST.get("action") == "delete":
-            messages.success(request, 'Tipologia \"' + productgroup.description +'\" cancellato!')
+            messages.success(request, 'Tipologia \"' + productgroup.description + '\" cancellato!')
             productgroup.delete()
             return HttpResponseRedirect('/admin/campaigns/productgroup')
         else:
@@ -1635,7 +1694,7 @@ def view_productgroup_details(request, id):
             if form.is_valid():
                 new_type = form.save(commit=False)
                 new_type.save()
-                messages.success(request, 'Tipologia \"' +new_type.description +'\" aggiornata correttamente!')
+                messages.success(request, 'Tipologia \"' + new_type.description + '\" aggiornata correttamente!')
                 return HttpResponseRedirect('/admin/campaigns/productgroup')
     else:
         if action == "add":
@@ -1643,10 +1702,12 @@ def view_productgroup_details(request, id):
         else:
             form = ProductGroupForm(instance=productgroup)
 
-    return render_to_response('admin/campaigns/view_productgroup_details.html',{'productgroup':productgroup,'form':form,'action': action},
+    return render_to_response('admin/campaigns/view_productgroup_details.html',
+                              {'productgroup': productgroup, 'form': form, 'action': action},
                               context_instance=RequestContext(request))
 
-@user_passes_test(lambda u:u.is_superuser)
+
+@user_passes_test(lambda u: u.is_superuser)
 def view_add_productgroup(request):
     return view_productgroup_details(request, None)
 
@@ -1658,12 +1719,15 @@ def view_add_productgroup(request):
 def view_rest_counter(request):
     campaigns = Campaign.objects.all()
     from contacts.models import Contact
+
     contacts = Contact.objects.all()
     events = Event.objects.all()
     from survey.models import Survey
+
     surveys = Survey.objects.all()
     newsletters = Newsletter.objects.all()
     import json
+
     response_data = {}
     response_data['value'] = 'OK'
     response_data['campaigns_counter'] = len(campaigns)
@@ -1684,9 +1748,10 @@ def view_404(request):
     return response
 
 
-
 from forms import CampaignSearchForm, NewsletterSearchForm, EventSearchForm
 import xlwt
+
+
 @staff_member_required
 def search_campaign(request):
     form = CampaignSearchForm(request.GET)
@@ -1698,14 +1763,15 @@ def search_campaign(request):
         else:
             results = form.search()
     campaigns = None
-    if len(results)>0:
+    if len(results) > 0:
         campaigns = Campaign.objects.all().filter(pk__in=[r.pk for r in results])
 
     return render_to_response('admin/search/search_campaign.html', {
-        'search_query' : "",
-        'campaigns' : campaigns,
-        'form' : form,
-        },context_instance=RequestContext(request))
+        'search_query': "",
+        'campaigns': campaigns,
+        'form': form,
+    }, context_instance=RequestContext(request))
+
 
 @staff_member_required
 def search_campaign_export(request):
@@ -1714,15 +1780,13 @@ def search_campaign_export(request):
     wb = xlwt.Workbook()
     ws = wb.add_sheet('Foglio 1')
     ws.write(0, 0, 'Identificativo')
-    ws.write(0,1,'Nome')
+    ws.write(0, 1, 'Nome')
     ws.write(0, 2, 'Descrizione')
     ws.write(0, 3, 'Data di Inizio')
     ws.write(0, 4, 'Data di Fine')
     ws.write(0, 5, 'Status')
     ws.write(0, 6, 'Newsletter')
     ws.write(0, 7, 'Eventi')
-
-
 
     form = CampaignSearchForm(request.GET)
     results = []
@@ -1732,39 +1796,40 @@ def search_campaign_export(request):
         else:
             results = form.search()
     contacts = []
-    if len(results)>0:
+    if len(results) > 0:
         campaign = Campaign.objects.all().filter(pk__in=[r.pk for r in results])
         row = 1
         for c in campaign:
-            ws.write(row,0,c.id)
-            ws.write(row,1,c.name)
-            ws.write(row,2,c.description)
-            ws.write(row,3,c.startdate.strftime("%d/%m/%Y"))
-            ws.write(row,4,c.enddate.strftime("%d/%m/%Y"))
+            ws.write(row, 0, c.id)
+            ws.write(row, 1, c.name)
+            ws.write(row, 2, c.description)
+            ws.write(row, 3, c.startdate.strftime("%d/%m/%Y"))
+            ws.write(row, 4, c.enddate.strftime("%d/%m/%Y"))
             if c.status == 'A':
-                ws.write(row,5,"Attiva")
+                ws.write(row, 5, "Attiva")
             if c.status == 'N':
-                ws.write(row,5,"Non Attiva")
+                ws.write(row, 5, "Non Attiva")
             if c.status == 'C':
-                ws.write(row,5,"Conclusa")
+                ws.write(row, 5, "Conclusa")
             if c.status == 'D':
-                ws.write(row,5,"Cancellata")
+                ws.write(row, 5, "Cancellata")
             newsletter = ""
             for nl in Newsletter.objects.all().filter(campaign=c):
-                newsletter += nl.name +" - "
-            ws.write(row,6,newsletter)
-            event =""
+                newsletter += nl.name + " - "
+            ws.write(row, 6, newsletter)
+            event = ""
             for ev in Event.objects.all().filter(campaign=c):
                 desc = ""
                 if ev.title:
                     desc = ev.title
                 else:
                     desc = ev.description
-                event += desc +" - "
-            ws.write(row,7,event)
-            row +=1
+                event += desc + " - "
+            ws.write(row, 7, event)
+            row += 1
     wb.save(response)
     return response
+
 
 @staff_member_required
 def search_newsletter(request):
@@ -1778,20 +1843,21 @@ def search_newsletter(request):
         else:
             results = form.search()
     newsletters = None
-    if len(results)>0:
+    if len(results) > 0:
         valid_results = []
         for r in results:
             if r != None and r.model_name == 'newsletter':
-               valid_results.append(r.object)
-        newsletters = valid_results#Newsletter.objects.all().filter(id__in=[r.id for r in valid_results])
+                valid_results.append(r.object)
+        newsletters = valid_results  #Newsletter.objects.all().filter(id__in=[r.id for r in valid_results])
 
     return render_to_response('admin/search/search_newsletter.html', {
-        'search_query' : "",
-        'newsletters' : newsletters,
-        'form' : form,
+        'search_query': "",
+        'newsletters': newsletters,
+        'form': form,
         'events': events,
         'campaigns': campaigns,
-        },context_instance=RequestContext(request))
+    }, context_instance=RequestContext(request))
+
 
 @staff_member_required
 def search_newsletter_export(request):
@@ -1800,7 +1866,7 @@ def search_newsletter_export(request):
     wb = xlwt.Workbook()
     ws = wb.add_sheet('Foglio 1')
     ws.write(0, 0, 'Identificativo')
-    ws.write(0,1,'Nome')
+    ws.write(0, 1, 'Nome')
     ws.write(0, 2, 'Descrizione')
     ws.write(0, 3, 'Data di Inizio')
     ws.write(0, 4, 'Data di Fine')
@@ -1815,36 +1881,36 @@ def search_newsletter_export(request):
             results = form.search()[:request.GET.get('max_results')]
         else:
             results = form.search()
-    if len(results)>0:
-        valid_results=[]
+    if len(results) > 0:
+        valid_results = []
         for r in results:
             if r != None and r.model_name == 'newsletter':
                 valid_results.append(r.object)
         row = 1
         for c in valid_results:
-            ws.write(row,0,c.id)
-            ws.write(row,1,c.name)
-            ws.write(row,2,c.description)
-            ws.write(row,3,c.startdate.strftime("%d/%m/%Y"))
-            ws.write(row,4,c.enddate.strftime("%d/%m/%Y"))
-            ws.write(row,5,c.campaign.name)
-            event =""
+            ws.write(row, 0, c.id)
+            ws.write(row, 1, c.name)
+            ws.write(row, 2, c.description)
+            ws.write(row, 3, c.startdate.strftime("%d/%m/%Y"))
+            ws.write(row, 4, c.enddate.strftime("%d/%m/%Y"))
+            ws.write(row, 5, c.campaign.name)
+            event = ""
             if c.event.title:
                 event = c.event.title
             else:
                 event = c.event.description
-            ws.write(row,6,event)
+            ws.write(row, 6, event)
             if c.status == 'D':
-                ws.write(row,7,"Bozza")
+                ws.write(row, 7, "Bozza")
             if c.status == 'W':
-                ws.write(row,7,"In Attesa di Invio")
+                ws.write(row, 7, "In Attesa di Invio")
             if c.status == 'S':
-                ws.write(row,5,"Invio in Corso")
+                ws.write(row, 5, "Invio in Corso")
             if c.status == 'F':
-                ws.write(row,7,"Inviata")
+                ws.write(row, 7, "Inviata")
             if c.status == 'C':
-                ws.write(row,7,"Cancellata")
-            row +=1
+                ws.write(row, 7, "Cancellata")
+            row += 1
     wb.save(response)
     return response
 
@@ -1868,7 +1934,7 @@ def search_event(request):
         else:
             results = form.search()
     events = None
-    if len(results)>0:
+    if len(results) > 0:
         valid_results = []
         for r in results:
             if r != None and r.model_name == 'event':
@@ -1876,18 +1942,19 @@ def search_event(request):
         events = valid_results
 
     return render_to_response('admin/search/search_event.html', {
-        'search_query' : "",
-        'events' : events,
-        'form' : form,
-        'its':its,
-        'areamanagers':areamanagers,
-        'themes':themes,
-        'pointofsaletypes':pointofsaletypes,
-        'eventtypes':eventtypes,
-        'channels':channels,
-        'campaigns':campaigns,
-        'provinces' :province,
-        },context_instance=RequestContext(request))
+        'search_query': "",
+        'events': events,
+        'form': form,
+        'its': its,
+        'areamanagers': areamanagers,
+        'themes': themes,
+        'pointofsaletypes': pointofsaletypes,
+        'eventtypes': eventtypes,
+        'channels': channels,
+        'campaigns': campaigns,
+        'provinces': province,
+    }, context_instance=RequestContext(request))
+
 
 @staff_member_required
 def search_event_export(request):
@@ -1896,7 +1963,7 @@ def search_event_export(request):
     wb = xlwt.Workbook()
     ws = wb.add_sheet('Foglio 1')
     ws.write(0, 0, 'Identificativo')
-    ws.write(0,1,'Titolo')
+    ws.write(0, 1, 'Titolo')
     ws.write(0, 2, 'Descrizione')
     ws.write(0, 3, 'Tipo Evento')
     ws.write(0, 4, 'Canale')
@@ -1922,33 +1989,33 @@ def search_event_export(request):
             results = form.search()[:request.GET.get('max_results')]
         else:
             results = form.search()
-    if len(results)>0:
-        valid_results=[]
+    if len(results) > 0:
+        valid_results = []
         for r in results:
             if r != None and r.model_name == 'event':
                 valid_results.append(r.object)
         row = 1
         for c in valid_results:
-            ws.write(row,0,c.id)
-            ws.write(row,1,c.title)
-            ws.write(row,2,c.description)
-            ws.write(row,3,c.eventtype)
-            ws.write(row,4,c.channel)
-            ws.write(row,5,c.theme)
-            ws.write(row,6,c.date.strftime("%d/%m/%Y"))
+            ws.write(row, 0, c.id)
+            ws.write(row, 1, c.title)
+            ws.write(row, 2, c.description)
+            ws.write(row, 3, c.eventtype)
+            ws.write(row, 4, c.channel)
+            ws.write(row, 5, c.theme)
+            ws.write(row, 6, c.date.strftime("%d/%m/%Y"))
             if c.enddate:
-                ws.write(row,7,c.enddate.strftime("%d/%m/%Y"))
-            ws.write(row,8,c.campaign.name)
-            ws.write(row,9,c.place)
-            ws.write(row,10,c.province)
-            ws.write(row,11,c.pointofsale)
-            ws.write(row,12,c.pointofsaledescription)
-            ws.write(row,13,c.typepointofsale)
-            ws.write(row,14,c.trainer)
-            ws.write(row,15,c.districtmanager)
-            ws.write(row,16,c.areamanager)
-            signups = EventSignup.objects.all().filter(event=c,presence=True)
-            ws.write(row,17,len(signups))
-            row +=1
+                ws.write(row, 7, c.enddate.strftime("%d/%m/%Y"))
+            ws.write(row, 8, c.campaign.name)
+            ws.write(row, 9, c.place)
+            ws.write(row, 10, c.province)
+            ws.write(row, 11, c.pointofsale)
+            ws.write(row, 12, c.pointofsaledescription)
+            ws.write(row, 13, c.typepointofsale)
+            ws.write(row, 14, c.trainer)
+            ws.write(row, 15, c.districtmanager)
+            ws.write(row, 16, c.areamanager)
+            signups = EventSignup.objects.all().filter(event=c, presence=True)
+            ws.write(row, 17, len(signups))
+            row += 1
     wb.save(response)
     return response
