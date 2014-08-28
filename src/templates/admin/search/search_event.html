@@ -41,8 +41,8 @@
                                             <label>ITS</label>
                                             <select class="chzn-select" name="districtmanager" >
                                                 <option value="" selected="selected">---</option>
-                                                {% for w in its %}
-                                                    <option value="{{ w }}">{{ w }}</option>
+                                                {% for pos in its %}
+                                                    <option value="{{ pos.id }}">{{ pos.first_name }} {{ pos.last_name }} {% if pos.email %}({{ pos.email }}){% endif %}</option>
                                                 {% endfor %}
                                             </select>
                                         </li>

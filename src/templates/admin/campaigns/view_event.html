@@ -53,7 +53,7 @@
                                         <td>{% if event.title %}{{ event.title }}{% else %}{{ event.description }}{% endif %}</td>
                                         <td>{{ event.campaign }}</td>
                                         <td>{{ event.is_public|yesno:"Si,No" }}</td>
-                                        <td><a href="/admin/campaigns/event/{{event.id }}"><i class="icon-tasks"></i></a></td>
+                                        <td><a href="/admin/campaigns/event/{{event.id }}{{ event.from_its }}"><i class="icon-tasks"></i></a></td>
                                     </tr>
                                 {% endfor %}
                                 </tbody>

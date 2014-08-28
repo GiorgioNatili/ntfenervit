@@ -13,7 +13,7 @@
 {% endblock %}
 {% load i18n admin_static bootstrapped_goodies_tags access_control %}
 {% block icon-detail %}<i class="icon-plus-sign-alt"></i>{% endblock %}
-{% block content_title %}Nuovo Evento{% endblock %}
+{% block content_title %}Nuovo Evento {% if from_its %}ITS{% endif %}{% endblock %}
 {% block content_subtitle %}<h5>aggiungi un nuovo evento compilando il seguente form</h5>{% endblock %}
 {% block content %}
 
@@ -23,7 +23,7 @@
 
                 <div class="box">
                     <div class="box-header">
-                        <span class="title">Evento</span>
+                        <span class="title">Evento {% if from_its %}ITS{% endif %}</span>
                     </div>
                     <div class="box-content">
                         <form class="fill-up validatable" enctype="multipart/form-data" method="post" id="event_form">
@@ -34,7 +34,7 @@
                                     <ul>
                                         {% for field, errors in form.errors.items %}
                                             {% for error in errors %}
-                                                <li>{{ error }}</li>
+                                                <li>{{ field }} - {{ error }}</li>
                                             {% endfor %}
 
                                         {% endfor %}
@@ -64,7 +64,7 @@
                                             {{ form.description.errors }}
                                             <textarea form="event_form" rows="4" cols="50" name="description" class="validate[required]" data-prompt-position="topLeft" placeholder="Descrizione" >{{ form.instance.description|default_if_none:"" }}</textarea>
                                         </li>
-
+                                        {% if not from_its %}
                                         <li>
                                             <label>Campagna:</label>
                                             {{ form.campaign.errors }}
@@ -76,6 +76,7 @@
                                                 {% endfor %}
                                             </select>
                                         </li>
+                                        {% endif %}
                                         <li>
                                             <label>Canale</label>
                                             <select class="chzn-select" name="channel" >
@@ -88,7 +89,7 @@
                                         <li>
                                             <label>Area Manager</label>
                                             <select class="chzn-select" name="areamanager" >
-                                                <option>---</option>
+                                                <option value="">---</option>
                                                 {% for pos in areamanager %}
                                                     <option value="{{ pos.id }}" {% if pos.id == form.instance.areamanager.id %} selected="selected"{% endif %}>{{ pos }}</option>
                                                 {% endfor %}
@@ -111,10 +112,10 @@
                                                 {% if user|is_its%}
                                                     {% for pos in its_users %}
                                                     <option value="{{ pos.id }}" {% if pos.id == user.id %} selected="selected"{% endif %}>{{ pos.first_name }} {{ pos.last_name }} ({{ pos.email }})</option>
-                                                {% endfor %}
-                                                    {% else %}
+                                                    {% endfor %}
+                                                {% else %}
                                                     {% for pos in its_users %}
-                                                    <option value="{{ pos.id }}" {% if pos.id == form.instance.its_districtmanager.id %} selected="selected"{% endif %}>{{ pos.first_name }} {{ pos.last_name }} ({{ pos.email }})</option>
+                                                    <option value="{{ pos.id }}" {% if pos.id == form.instance.its_districtmanager.id %} selected="selected"{% endif %}>{{ pos.first_name }} {{ pos.last_name }} {% if pos.email %}({{ pos.email }}){% endif %}</option>
                                                 {% endfor %}
                                                 {% endif %}
 

@@ -273,16 +273,17 @@ class Event(models.Model):
 
 
 class EventSignup(models.Model):
-    event = models.ForeignKey('campaigns.Event',blank=False,null=False,verbose_name="Evento")
-    contact = models.ForeignKey('contacts.Contact',blank=False,null=False,verbose_name="Contatto")
-    relatore = models.BooleanField(verbose_name="Staff",default=False)
-    relatore_payment = models.CharField(verbose_name="Costo relatore",max_length=100,blank=True,null=True)
-    staff = models.BooleanField(verbose_name="Staff",default=False)
-    omaggio = models.BooleanField(verbose_name="Omaggio",default=False)
-    pagante = models.BooleanField(verbose_name="Pagante",default=False)
-    note = models.CharField(verbose_name="Note",max_length=250,blank=True,null=True)
-    presence = models.BooleanField(verbose_name="Presente",default=False)
+    event = models.ForeignKey('campaigns.Event',blank=False, null=False,verbose_name="Evento")
+    contact = models.ForeignKey('contacts.Contact',blank=False, null=False,verbose_name="Contatto")
+    relatore = models.BooleanField(verbose_name="Relatore", default=False)
+    relatore_payment = models.CharField(verbose_name="Costo relatore", max_length=100, blank=True,null=True)
+    staff = models.BooleanField(verbose_name="Staff", default=False)
+    omaggio = models.BooleanField(verbose_name="Omaggio", default=False)
+    pagante = models.BooleanField(verbose_name="Pagante", default=False)
+    note = models.CharField(verbose_name="Note",max_length=250, blank=True, null=True)
+    presence = models.BooleanField(verbose_name="Presente", default=False)
     coupon = models.ForeignKey('coupon.Coupon', null=True)
+
     def __unicode__(self):
         return '%s %s' % (self.event, self.contact)
 
