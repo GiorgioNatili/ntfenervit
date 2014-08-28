@@ -70,7 +70,7 @@
             <ul>
                 {% for field, errors in form.errors.items %}
                     {% for error in errors %}
-                        <li>{{ error }}</li>
+                        <li>{{ field }} - {{ error }}</li>
                     {% endfor %}
 
                 {% endfor %}
@@ -102,9 +102,9 @@
                               data-prompt-position="topLeft"
                               placeholder="Descrizione">{{ event.description }}</textarea>
                 </li>
-
+                {% if not from_its %}
                 <li>
-                    <label>Campagna</label>
+                    <label>Campagna:</label>
                     <select class="chzn-select" name="campaign">
                         {% for campaign in campaigns %}
                             <option value="{{ campaign.id }}" {% if campaign.id == event.campaign.id %}
@@ -112,6 +112,7 @@
                         {% endfor %}
                     </select>
                 </li>
+                {% endif %}
                 <li>
                     <label>Canale</label>
                     <select class="chzn-select" name="channel">
@@ -124,6 +125,7 @@
                 <li>
                     <label>Area Manager</label>
                     <select class="chzn-select" name="areamanager">
+                        <option value="">---</option>
                         {% for pos in areamanager %}
                             <option value="{{ pos.id }}" {% if pos.id == event.areamanager.id %}
                                     selected="selected"{% endif %}>{{ pos }}</option>
@@ -148,7 +150,7 @@
                         {% for pos in its_users %}
                             <option value="{{ pos.id }}" {% if pos.id == event.its_districtmanager.id %}
                                     selected="selected"{% endif %}>{{ pos.first_name }} {{ pos.last_name }}
-                                ({{ pos.email }})
+                                {% if pos.email %}({{ pos.email }}){% endif %}
                             </option>
                         {% endfor %}
 

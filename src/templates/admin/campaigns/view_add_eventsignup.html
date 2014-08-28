@@ -22,12 +22,23 @@
                 <div class="box">
                     <div class="box-header">
                         <span class="title">Partecipante</span>
-
                     </div>
                     <div class="box-content">
                         <form class="fill-up validatable" enctype="multipart/form-data" method="post" id="signup_form">
                             {% csrf_token %}
-
+                            <input type="hidden" value="0" name="coupon" />
+                            {% if form.errors %}
+                                <div class="alert alert-error">
+                                    Correggi i seguenti errori:
+                                    <ul>
+                                        {% for field, errors in form.errors.items %}
+                                            {% for error in errors %}
+                                                <li>{{ field }} - {{ error }}</li>
+                                            {% endfor %}
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
                             <div class="row-fluid"> <!-- contenitore form -->
                                 <!-- primo tab -->
                                 <div class="span6">
@@ -36,9 +47,10 @@
                                             <label>&nbsp;</label>
                                         </li>
                                         <li>
-                                            <label>Contatto</label>
+                                            <label for="contact">Contatto</label>
 
                                             <select class="chzn-select" name="contact" >
+                                                <option value="">---</option>
                                                 {% for ct in contacts %}
                                                     <option value="{{ ct.code }}" {% if ct.code == form.instance.contact.code %} selected="selected"{% endif %}>{{ ct.name }} {{ ct.surname }}{% if ct.email %} ({{ ct.email }}){% endif %}</option>
                                                 {% endfor %}
@@ -47,7 +59,7 @@
                                         <li>
                                             <input type="checkbox" class="icheck" id="relatore" name="relatore" />
                                             <label for="relatore" class="">Relatore</label>
-                                            <label>Costo Relatore</label>
+                                            <label for="relatore_payment">Costo Relatore</label>
                                             <input id="relatore_payment" type="text" data-prompt-position="topLeft" placeholder="Costo Relatore" value="{{ form.instance.relatore_payment|default_if_none:"" }}" name="relatore_payment" />
                                         </li>
                                     </ul>
@@ -62,23 +74,21 @@
                                             <label>Evento</label>
                                             <select class="chzn-select" name="event" >
                                                 {% for ev in events %}
-
                                                     <option value="{{ ev.id }}" {% if ev.id == form.instance.event.id %} selected="selected"{% endif %}>{% if ev.title %} {{ev.title}} {% else %}{{ ev.description }} {% endif %} {{ ev.date }}</option>
                                                 {% endfor %}
                                             </select>
                                         </li>
                                         <li>
-                                            <input type="checkbox" class="icheck" id="staff" name="staff" />
+                                            <input type="radio" class="icheck" id="staff" value="staff" name="tipo_partecipante" />
                                             <label for="staff" class="" style="margin-right:10px;">Staff</label>
-                                            <input type="checkbox" class="icheck" id="omaggio" name="omaggio" />
-                                            <label for="omaggio" style="margin-right:10px;" class="">Omaggio</label>
-                                            <input type="checkbox" class="icheck" id="pagante" name="pagante" />
-                                            <label for="pagante" class="">Pagante</label>
+                                            <input type="radio" class="icheck" value="omaggio" id="omaggio" name="tipo_partecipante" />
+                                            <label for="omaggio" style="margin-right:10px;">Omaggio</label>
+                                            <input type="radio" class="icheck" id="pagante" value="pagante" name="tipo_partecipante" />
+                                            <label for="pagante">Pagante</label>
                                         </li>
-                                        <li>
+
                                         <li>
                                             <textarea form="signup_form" rows="4" cols="50" name="note"  data-prompt-position="topLeft" placeholder="Note" >{{ form.instance.note|default_if_none:"" }}</textarea>
-
                                         </li>
 
                                     </ul>

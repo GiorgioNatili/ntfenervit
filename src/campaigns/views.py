@@ -1,36 +1,31 @@
 # Create your views here.
 # -*- coding: utf-8 -*-
 
+import json
+import uuid
+
 from django.contrib import messages
-from django.contrib.auth.models import User
 from django.contrib.messages import get_messages
-from backend.utils import get_its_users, is_controller, can_handle_events, is_its
-from campaigns.models import Campaign, Newsletter, Event, Image, NewsletterTemplate, NewsletterAttachment, \
-    NewsletterTarget, NewsletterSchedulation, EventSignup, EventPayment, AreaIts, AreaManager, Channel, Theme, Goal, \
-    PointOfSaleType, EventCoupon, EventType, ProductGroup
+from django.core.context_processors import csrf
+
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import *
 from django.http import HttpResponseRedirect, HttpResponse
-from django.core.context_processors import csrf
 from django.contrib.admin.views.decorators import staff_member_required
-from django.forms import ModelForm, forms
+from django.forms import ModelForm
 from django import forms
-import json
-from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from django.conf import settings
 from django.forms.models import inlineformset_factory
-from contacts.models import Contact, Sector, Division, SubDivision, Work, Province
 from django.conf import settings
-
-from django.utils.encoding import smart_str, smart_unicode
-
-from xlrd import open_workbook, cellname
-import xlwt
-import uuid
-
+from django.utils.encoding import smart_str
+from xlrd import open_workbook
 from django.contrib.auth.decorators import user_passes_test
-
+from django.views.decorators.csrf import csrf_exempt
+from backend.utils import get_its_users, can_handle_events, is_its
+from campaigns.models import Campaign, Newsletter, Event, Image, NewsletterTemplate, NewsletterAttachment, \
+    NewsletterTarget, NewsletterSchedulation, EventSignup, EventPayment, AreaIts, AreaManager, Channel, Theme, Goal, \
+    PointOfSaleType, EventCoupon, EventType, ProductGroup
+from contacts.models import Contact, Sector, Work, Province
 from cabinet.models import EventFile
 
 
@@ -89,8 +84,10 @@ class NewsletterSchedulationForm(ModelForm):
 
 
 class EventSignupForm(ModelForm):
+
     class Meta:
         model = EventSignup
+        exclude = ("coupon",)
 
 
 class ImportSignup(forms.Form):
@@ -295,7 +292,6 @@ def send_single_email(request):
     import smtplib
     from email.mime.multipart import MIMEMultipart
     from email import encoders
-    from email.message import Message
     from email.mime.audio import MIMEAudio
     from email.mime.base import MIMEBase
     from email.mime.image import MIMEImage
@@ -591,6 +587,9 @@ def schedule_newsletter_delete(request, id):
 def view_events(request):
     events = Event.objects.all()
     #print get_messages(request)
+    for e in events:
+        e.from_its = '?from_its=1' if e.is_its else ''
+
     return render_to_response('admin/campaigns/view_event.html', {'events': events},
                               context_instance=RequestContext(request))
 
@@ -1295,13 +1294,24 @@ def view_add_eventsignup(request):
     events = Event.objects.all()
     form = EventSignupForm()
     if request.method == 'POST':
+        print request.POST
+        request.POST['omaggio'] = False
+        request.POST['pagante'] = False
+        request.POST['staff'] = False
+        if 'tipo_partecipante' in request.POST:
+            request.POST[request.POST['tipo_partecipante']] = True
+        print request.POST
         form = EventSignupForm(request.POST)
         if form.is_valid():
             new_signup = form.save()
+            messages.success(request, 'Aggiunto partecipante {} {} '.format(new_signup.contact.name, new_signup.contact.surname))
             if request.POST.has_key('_addanother'):
                 form = EventSignupForm()
-            messages.success(request,
-                             'Aggiunto partecipante \"' + new_signup.contact.name + ' ' + new_signup.contact.surname + '\"')
+                c = {'form': form, 'events': events, 'contacts': contacts}
+                return render_to_response('admin/campaigns/view_add_eventsignup.html', c, context_instance=RequestContext(request))
+            return HttpResponseRedirect('/admin/campaigns/event')
+        else:
+            messages.error(request, "Errore nell'aggiunta di un partecipante")
     c = {'form': form, 'events': events, 'contacts': contacts}
     return render_to_response('admin/campaigns/view_add_eventsignup.html', c, context_instance=RequestContext(request))
 
@@ -1918,7 +1928,7 @@ def search_newsletter_export(request):
 @staff_member_required
 def search_event(request):
     form = EventSearchForm(request.GET)
-    its = AreaIts.objects.all()
+    its = get_its_users()
     areamanagers = AreaManager.objects.all()
     themes = Theme.objects.all()
     pointofsaletypes = PointOfSaleType.objects.all()
@@ -1937,7 +1947,7 @@ def search_event(request):
     if len(results) > 0:
         valid_results = []
         for r in results:
-            if r != None and r.model_name == 'event':
+            if r is not None and r.model_name == 'event':
                 valid_results.append(r.object)
         events = valid_results
 
