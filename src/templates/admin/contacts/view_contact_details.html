@@ -153,19 +153,22 @@
                                                 {% endfor  %}
                                             </select>
                                         </li>
+                                        <li>
+                                            <label>Rank di importanza aziendale</label>
+                                            <input type="text"  name="company_ranking" class="validate[required,custom[integer]" data-prompt-position="topLeft" placeholder="Rank di importanza aziendale" value="{{ contact.company_ranking }}"/>
+
+                                        </li>
+                                        <li>
+                                            <label>Rank di partecipazione</label>
+                                            <input type="text"  name="participation_ranking" class="validate[required,custom[integer]" data-prompt-position="topLeft" placeholder="Rank di partecipazione" value="{{ contact.participation_ranking }}"/>
+
+                                        </li>
                                     </ul>
                                 </div>
                                 <div class="span6">
                                     <ul class="padded separate-sections">
                                         <li>
                                             <label>Categoria contatto:</label>
-                                        </li>
-                                        <li>
-                                            <label style="display: inline;margin-right: 15px">Tipologia <i>(Normale o Consulente esterno per eventi)</i>:</label>
-                                            <select class="uniform" name="type" >
-                                                <option value="N" {% if contact.type == 'N' %}selected="selected"{% endif %}>Normale</option>
-                                                <option value="C" {% if contact.type == 'C' %}selected="selected"{% endif %}>Consulente (login non sarà abilitato)</option>
-                                            </select>
                                         </li>
                                         <li>
                                             <label>Divisione:</label>
@@ -185,15 +188,28 @@
                                             </select>
                                         </li>
                                         <li>
-                                            <label>Rank di importanza aziendale</label>
-                                            <input type="text"  name="company_ranking" class="validate[required,custom[integer]" data-prompt-position="topLeft" placeholder="Rank di importanza aziendale" value="{{ contact.company_ranking }}"/>
-
+                                            <label style="display: inline;margin-right: 15px">Tipologia <i>(Normale o Consulente esterno per eventi)</i>:</label>
+                                            <select id="contact_type" class="uniform" name="type" >
+                                                <option value="N" {% if contact.type == 'N' %}selected="selected"{% endif %}>Normale</option>
+                                                <option value="C" {% if contact.type == 'C' %}selected="selected"{% endif %}>Consulente (login non sarà abilitato)</option>
+                                            </select>
                                         </li>
-                                        <li>
-                                            <label>Rank di partecipazione</label>
-                                            <input type="text"  name="participation_ranking" class="validate[required,custom[integer]" data-prompt-position="topLeft" placeholder="Rank di partecipazione" value="{{ contact.participation_ranking }}"/>
+                                        <li id="list_its">
+                                            <label>ITS:</label>
+                                            <select class="chzn-select" id="its" name="its">
+                                                <option>---</option>
 
+                                                {% for pos in its_users %}
+                                                    <option value="{{ pos.id }}" {% if pos.id == itsrel.its.id %}
+                                                            selected="selected"{% endif %}>{{ pos.first_name }} {{ pos.last_name }}
+                                                        {% if pos.email %}({{ pos.email }}){% endif %}
+                                                    </option>
+                                                {% endfor %}
+
+                                            </select>
                                         </li>
+
+
                                     </ul>
                                 </div>
                             </div><!-- contenitore seconda parte -->
@@ -475,51 +491,51 @@
             </div>
 
             <div class="row-fluid">
-                      <div class="span6">
-                          <div class="box">
-                              <div class="box-header">
-                                  <span class="title">Sottomissioni questionari</span>
-                              </div>
-                              <div class="box-content">
-                                  <div id="submissionDataTables">
-                                      <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
-                                          <thead>
-                                          <tr>
-                                              <th>
-                                                  <div>Id</div>
-                                              </th>
-                                              <th>
-                                                  <div>Questionario</div>
-                                              </th>
-                                              <th>
-                                                  <div>Risposto il</div>
-                                              </th>
-                                              <th>
-                                                  <div>Punteggio</div>
-                                              </th>
-                                              <th>
-                                                  <div>&nbsp;</div>
-                                              </th>
-                                          </tr>
-                                          </thead>
-                                          <tbody>
-                                          {% for nl in submissions %}
-                                              <tr>
-                                                  <td>{{ nl.survey.id }}</td>
-                                                  <td>{{ nl.survey.title }}</td>
-                                                  <td>{{ nl.submitted_at|date:"d-m-Y H:i" }}</td>
-                                                  <td>{{ nl.score }} / {{ nl.total_score }}</td>
-                                                  <td><a href="/admin/survey/report/details/{{ nl.id }}"><i
-                                                          class="icon-tasks"></i></a></td>
-                                              </tr>
+                <div class="span6">
+                    <div class="box">
+                        <div class="box-header">
+                          <span class="title">Sottomissioni questionari</span>
+                        </div>
+                        <div class="box-content">
+                          <div id="submissionDataTables">
+                              <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
+                                  <thead>
+                                      <tr>
+                                          <th>
+                                              <div>Id</div>
+                                          </th>
+                                          <th>
+                                              <div>Questionario</div>
+                                          </th>
+                                          <th>
+                                              <div>Risposto il</div>
+                                          </th>
+                                          <th>
+                                              <div>Punteggio</div>
+                                          </th>
+                                          <th>
+                                              <div>&nbsp;</div>
+                                          </th>
+                                      </tr>
+                                  </thead>
+                                  <tbody>
+                                  {% for nl in submissions %}
+                                      <tr>
+                                          <td>{{ nl.survey.id }}</td>
+                                          <td>{{ nl.survey.title }}</td>
+                                          <td>{{ nl.submitted_at|date:"d-m-Y H:i" }}</td>
+                                          <td>{{ nl.score }} / {{ nl.total_score }}</td>
+                                          <td><a href="/admin/survey/report/details/{{ nl.id }}"><i
+                                                  class="icon-tasks"></i></a></td>
+                                      </tr>
 
-                                          {% endfor %}
-                                          </tbody>
-                                      </table>
-                                  </div>
-                              </div>
+                                  {% endfor %}
+                                  </tbody>
+                              </table>
                           </div>
-                  </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -681,6 +697,19 @@
             });
 
             /*
+             Show or hide ITS dropdown
+             */
+            function showHideConsultantITS() {
+                var contact_type = $("#contact_type option:selected").val();
+                if (contact_type === "C") {
+                    $("#list_its").show();
+                } else {
+                    $("#list_its").hide();
+                }
+            }
+            $("#contact_type").on("change", showHideConsultantITS);
+
+            /*
              Files Section
             */
             $("#addCertFile, #addRefFile").on("click", function (e) {
@@ -788,6 +817,8 @@
                 setFormStatus(hash);
 
                 google.maps.visualRefresh = true;
+
+                showHideConsultantITS();
             });
 
         });

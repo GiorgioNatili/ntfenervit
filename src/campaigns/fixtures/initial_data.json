@@ -174,5 +174,29 @@
             "sell_in_alloc": 0.1,
             "sell_in_amount": 698.30
         }
+    },
+
+
+
+    {
+        "pk": 1,
+        "model": "campaigns.district",
+        "fields": {
+            "description": "A - Nord-Ovest"
+        }
+    },
+    {
+        "pk": 2,
+        "model": "campaigns.district",
+        "fields": {
+            "description": "B - Centro/Nord-Est"
+        }
+    },
+    {
+        "pk": 3,
+        "model": "campaigns.district",
+        "fields": {
+            "description": "C - Centro-Sud"
+        }
     }
 ]

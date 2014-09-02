@@ -7,13 +7,14 @@ from django.template import *
 from django.http import HttpResponseRedirect, HttpResponse
 from django.core.context_processors import csrf
 from django.contrib.admin.views.decorators import staff_member_required
-from django.forms import ModelForm,forms
+from django.forms import ModelForm, forms
 from xlrd import open_workbook,cellname
 
-from campaigns.models import NewsletterTarget, EventSignup
+from campaigns.models import NewsletterTarget, EventSignup, ITSRelConsultant
 from survey.models import Submission, Answer
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import user_passes_test
+from backend.utils import get_its_users
 
 from cabinet.models import ContactRefFile, ContactCertFile
 
@@ -44,6 +45,7 @@ class WorkForm(ModelForm):
 
 
 class ContactForm(ModelForm):
+    its = forms.TextInput()
     class Meta:
         model = Contact
 
@@ -347,7 +349,17 @@ def view_add_contact(request):
 def view_contact_details(request, id):
     contact = get_object_or_404(Contact, code=id)
     owner = contact.owner_id
-    # print owner
+
+    # Lookup the ITS Relationship table.  If not found, return None
+    try:
+        itsrel = ITSRelConsultant.objects.get(consultant=contact)
+    except ITSRelConsultant.DoesNotExist:
+        itsrel = None
+    # Find ITS user
+
+
+    # Prepare data for dropdowns
+    its_users = get_its_users()
 
     refiles = ContactRefFile.objects.filter(contact=contact)
     certfiles = ContactCertFile.objects.filter(contact=contact)
@@ -391,6 +403,24 @@ def view_contact_details(request, id):
         form = ContactForm(request.POST, instance=contact)
         if form.is_valid():
             new_contact = form.save(commit=False)
+
+            # Update ITS Relationship table
+            if new_contact.type == "C":
+                # Check if ITS dropdown was selected with a valid ITS
+                its_id = request.POST.get("its")
+                if its_id != "---":
+                    # If ITS Relationship exists, updated it.  Create one otherwise
+                    if itsrel:
+                        itsrel.its = User.objects.get(pk=its_id)
+                    else:
+                        itsrel = ITSRelConsultant(consultant=contact, its_id=its_id)
+
+                    itsrel.save()
+            else:
+                # If resetting from Consultant to Normal, clear the ITS Relationship
+                if itsrel:
+                    itsrel.delete()
+
             if owner:
                 new_contact.owner = User.objects.all().filter(id=owner)[0]
                 print new_contact.status
@@ -414,6 +444,7 @@ def view_contact_details(request, id):
             'event_signup': event_signup,
             'newsletter_target':newsletter_target,
             'contact': contact,
+            'itsrel': itsrel,
             'provinces': provinces,
             'companies': companies,
             'sectors': sectors,
@@ -424,6 +455,7 @@ def view_contact_details(request, id):
             'subdivisions':subdivisions,
             'refiles': refiles,
             'certfiles': certfiles,
+            'its_users': its_users,
             'form': form
         },
         context_instance=RequestContext(request))

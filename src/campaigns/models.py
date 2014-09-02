@@ -1,10 +1,13 @@
+import datetime
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from redactor.fields import RedactorField
+
 from django.contrib.auth.models import User
+from contacts.models import Contact
+
 from backend.utils import is_its as is_its_util
 # Create your models here.
-import datetime
 
 CAMPAIGN_STATUS = (
     ('A', 'Attiva'),
@@ -343,3 +346,23 @@ class ProductGroup(models.Model):
     class Meta:
         verbose_name = "Gruppo di prodotto"
         verbose_name_plural = "Gruppi di prodotti"
+
+
+# ###########################
+# Estabilish the Relationship between
+# District > ITS > Consultant
+# ###########################
+
+class District(models.Model):
+    description = models.CharField(max_length=200, blank=True, null=True, verbose_name='Distretto')
+    district_manager = models.ForeignKey(User, null=True)
+
+
+class ITSRelDistrict(models.Model):
+    its = models.ForeignKey(User, primary_key=True)
+    district = models.ForeignKey(District)
+
+
+class ITSRelConsultant(models.Model):
+    consultant = models.ForeignKey(Contact)
+    its = models.ForeignKey(User)
