@@ -112,7 +112,7 @@ class Survey(models.Model):
         verbose_name = 'Questionario'
         verbose_name_plural = 'Questionari'
 
-
+#ToDo: [REF-AREAITS] Drop AreaITS model; Drop Event.districtmanager FK as it is replaced by Event.its_districtmanager
 class AreaIts(models.Model):
     description = models.CharField(max_length=250,blank=False,null=False,verbose_name="Nome Area")
 
@@ -226,7 +226,7 @@ class Event(models.Model):
     areamanager = models.ForeignKey('campaigns.AreaManager',blank=True,null=True,
                                     verbose_name="Area Manager",on_delete=models.SET_NULL)
 
-    #TODO drop this fk, not used anymore (after the population of the new field its_districtmanager)
+    #ToDo: [REF-AREAITS] Drop AreaITS model; Drop Event.districtmanager FK as it is replaced by Event.its_districtmanager
     districtmanager = models.ForeignKey('campaigns.AreaIts', blank=True, null=True,
                                         verbose_name="District ITS Manager", on_delete=models.SET_NULL)
     its_districtmanager = models.ForeignKey(User, blank=True, null=True,
@@ -357,6 +357,15 @@ class District(models.Model):
     description = models.CharField(max_length=200, blank=True, null=True, verbose_name='Distretto')
     district_manager = models.ForeignKey(User, null=True)
 
+    def district_manager_displayname(self):
+        dm = self.district_manager
+        if dm:
+            if dm.email:
+                return "%s %s (%s)" % (dm.first_name, dm.last_name, dm.email)
+            else:
+                return "%s %s" % (dm.first_name, dm.last_name)
+        else:
+            return None
 
 class ITSRelDistrict(models.Model):
     its = models.ForeignKey(User, primary_key=True)

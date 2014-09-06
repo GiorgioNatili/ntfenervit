@@ -7,7 +7,7 @@ from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template.context import RequestContext
 import xlwt
 
-from campaigns.models import Event, AreaIts
+from campaigns.models import Event
 from coupon.forms import CouponSetForm
 from coupon.models import Coupon, CouponSet
 from django.contrib import messages

@@ -1,0 +1,90 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static bootstrapped_goodies_tags %}
+{% block icon-detail %}<i class="icon-briefcase"></i>{% endblock %}
+{% block content_title %}Distretto{% endblock %}
+{% block content_subtitle %}
+    {% if action == "add" %}
+        <h5>Aggiungi un nuovo distretto</h5>
+    {% else %}
+        <h5>Visualizza e modifica gli attributi del distretto selezionato</h5>
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+
+    <div class="container-fluid padded">
+        <div class="row-fluid">
+            <div class="span12">
+
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Distretto</span>
+
+                    </div>
+                    <div class="box-content">
+                        <form class="fill-up validatable" enctype="multipart/form-data" method="post" id="company_form">
+                            {% csrf_token %}
+                            {% if form.errors %}
+                                <div class="alert alert-error">
+                                    Correggi i seguenti errori:
+                                    <ul>
+                                        {% for field, errors in form.errors.items %}
+                                            {% for error in errors %}
+                                                <li>{{ field }}: {{ error }}</li>
+                                            {% endfor %}
+
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+                            <div class="row-fluid"> <!-- contenitore form -->
+                                <!-- primo tab -->
+                                <div class="span6">
+                                    <ul class="padded separate-sections">
+
+                                        <li class="input">
+                                            {{ form.description }}
+                                        </li>
+
+                                        <li>
+                                            <label>District Manager</label>
+                                            <select class="chzn-select" name="district_manager">
+                                                <option>---</option>
+
+                                                {% for pos in its_users %}
+                                                    <option value="{{ pos.id }}" {% if pos.id == district_manager.id %}
+                                                            selected="selected"{% endif %}>{{ pos.first_name }} {{ pos.last_name }}
+                                                        {% if pos.email %}({{ pos.email }}){% endif %}
+                                                    </option>
+                                                {% endfor %}
+
+                                            </select>
+                                        </li>
+
+                                    </ul>
+                                </div>
+                            </div> <!-- contenitore form -->
+
+                            <div class="form-actions">
+                                {% if action == "edit" %}
+                                    <button type="submit" class="btn btn-blue" name="action" value="edit">Modifica</button>
+                                    <button type="submit" class="btn btn-red pull-right" name="action" value="delete" onclick="return confirmDelete()">Cancella</button>
+                                {% else %}
+                                    <button type="submit" class="btn btn-blue" name="action" value="add">Salva</button>
+                                {% endif %}
+                            </div>
+                        </form>
+                    </div>
+                </div> <!-- end box -->
+            </div> <!-- span 12 -->
+        </div><!-- row fluid -->
+    </div>
+
+    <script>
+        function confirmDelete() {
+            return confirm("Cancella questo distretto?");
+        }
+
+    </script>
+
+{% endblock %}

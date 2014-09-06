@@ -13,6 +13,7 @@ from django.contrib.auth.decorators import user_passes_test
 from django.forms import ModelForm,forms
 
 from contacts.models import Contact
+from campaigns.models import District, ITSRelDistrict
 
 class UserForm(ModelForm):
     class Meta:
@@ -31,37 +32,64 @@ def user_list(request):
            contact = Contact.objects.all().filter(owner=u)
            if len(contact)>0:
                contacts.append(contact[0])
-   print contacts
    return render_to_response('admin/backend/users_list.html', {"users":users,"contacts":contacts},
                              context_instance=RequestContext(request))
 
 @user_passes_test(lambda u:u.is_superuser)
 def user_details(request, id):
+    ITS_GROUP_ID = 4
     user = get_object_or_404(User, id=id)
     contact = None
     gruppo = None
-    print user.groups.all()
+
+    # Get the list of district and if current user is part of a district
+    districts = District.objects.all()
+    try:
+        district = ITSRelDistrict.objects.get(its_id=id)
+    except ITSRelDistrict.DoesNotExist:
+        district = None
+
     if len(user.groups.all())>0:
         gruppo = user.groups.all()[0]
     gruppi = Group.objects.all()
-    print gruppo
+
     if not user.is_staff:
         contact = Contact.objects.all().filter(owner=user)[0]
     form = UserForm()
     if request.method == 'POST':
-        print request.POST
         form = UserForm(request.POST, instance=user)
         if form.is_valid():
+
             new_user = form.save(commit=False)
             new_user.save()
+
+            print "### user form is valid.  Group: %s" % new_user.groups.all()[0].id
             if request.POST.get("gruppo") != '-1':
                 new_user.groups.clear()
                 gruppo = Group.objects.all().filter(id=request.POST.get("gruppo"))[0]
                 new_user.groups.add(gruppo)
             messages.success(request, 'Utente \"' + new_user.username + '\" aggiornato correttamente!')
+
+            # Saving district.  Check if user belong to ITS group
+            if len(new_user.groups.all())>0 and new_user.groups.all()[0].id == ITS_GROUP_ID:
+                post_district = request.POST.get("district")
+                print "### District %s to be saved" % post_district
+
+                if district:
+                    district.district_id = post_district
+                else:
+                    district = ITSRelDistrict(its=new_user, district_id=post_district)
+
+                district.save()
+            else:
+                print "### Clearing district"
+                if district:
+                    district.delete()
+
             return HttpResponseRedirect('/admin/backend/utenti')
+
     return render_to_response('admin/backend/view_user_details.html',
-                              {'usr': user, 'form': form,'contact':contact,'ugruppo':gruppo,"gruppi":gruppi},
+                              {'usr': user, 'form': form,'contact':contact,'ugruppo':gruppo,"gruppi":gruppi,"districts": districts, "district": district, "its_group_id": ITS_GROUP_ID},
                               context_instance=RequestContext(request))
 
 @user_passes_test(lambda u:u.is_superuser)

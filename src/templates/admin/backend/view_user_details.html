@@ -57,10 +57,19 @@
                                         </li>
                                         <li>
                                             <label>Gruppo di appartenenza</label>
-                                            <select class="chzn-select" name="gruppo" >
+                                            <select class="chzn-select" name="gruppo" id="gruppo">
                                                 <option value="-1" > --- </option>
                                                 {% for g in gruppi %}
                                                     <option value="{{ g.id }}" {% if g.id == ugruppo.id %}selected="selected"{% endif %}>{{ g }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </li>
+                                        <li id="lst_districts">
+                                            <label>Distretti:</label>
+                                            <select id="district" class="uniform" name="district" >
+                                                <option value="-1" > --- </option>
+                                                {% for d in districts %}
+                                                    <option value="{{ d.id }}" {% if d.id == district.district.id %}selected="selected"{% endif %}>{{ d.description }}</option>
                                                 {% endfor %}
                                             </select>
                                         </li>
@@ -115,5 +124,25 @@
             </div> <!-- span 12 -->
         </div><!-- row fluid -->
     </div>
+
+    <script>
+        /*
+         Show or hide District dropdown
+         */
+        function showHideDistrict() {
+            var group = $("#gruppo option:selected").val();
+            if (group === "{{ its_group_id }}") {
+                $("#lst_districts").show();
+            } else {
+                $("#lst_districts").hide();
+            }
+        }
+        $("#gruppo").on("change", showHideDistrict);
+
+        $(document).on("ready",function(){
+            showHideDistrict();
+        });
+
+    </script>
 
 {% endblock %}

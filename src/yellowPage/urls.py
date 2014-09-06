@@ -58,9 +58,9 @@ urlpatterns = patterns('',
     url(r'^admin/campaigns/campaign/add/$', 'campaigns.views.view_add_campaign'),
     url(r'^admin/campaigns/campaign/(\w+)/$', 'campaigns.views.view_campaign_details'),
 
-    url(r'^admin/campaigns/areaits/$', 'campaigns.views.view_areeits'),
-    url(r'^admin/campaigns/areaits/add/$', 'campaigns.views.view_add_areeits'),
-    url(r'^admin/campaigns/areaits/(\d+)$', 'campaigns.views.view_areeits_details'),
+    url(r'^admin/campaigns/district/$', 'campaigns.views.view_district'),
+    url(r'^admin/campaigns/district/add/$', 'campaigns.views.view_district_add'),
+    url(r'^admin/campaigns/district/(\d+)$', 'campaigns.views.view_district_details'),
 
     url(r'^admin/campaigns/areamanager/$', 'campaigns.views.view_areemanager'),
     url(r'^admin/campaigns/areamanager/add/$', 'campaigns.views.view_add_areemanager'),

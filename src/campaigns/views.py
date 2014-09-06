@@ -23,8 +23,8 @@ from django.contrib.auth.decorators import user_passes_test
 from django.views.decorators.csrf import csrf_exempt
 from backend.utils import get_its_users, can_handle_events, is_its
 from campaigns.models import Campaign, Newsletter, Event, Image, NewsletterTemplate, NewsletterAttachment, \
-    NewsletterTarget, NewsletterSchedulation, EventSignup, EventPayment, AreaIts, AreaManager, Channel, Theme, Goal, \
-    PointOfSaleType, EventCoupon, EventType, ProductGroup
+    NewsletterTarget, NewsletterSchedulation, EventSignup, EventPayment, AreaManager, Channel, Theme, Goal, \
+    PointOfSaleType, EventCoupon, EventType, ProductGroup, District
 from contacts.models import Contact, Sector, Work, Province
 from cabinet.models import EventFile
 
@@ -98,12 +98,6 @@ class ImportSignup(forms.Form):
 class SingleSendForm(forms.Form):
     contact = forms.EmailField()
     newsletter = forms.IntegerField()
-
-
-class AreeItsForm(ModelForm):
-    class Meta:
-        model = AreaIts
-
 
 class AreeManagerForm(ModelForm):
     class Meta:
@@ -724,7 +718,6 @@ def view_add_event(request):
     c.update(csrf(request))
     form = EventForm()
     campaigns = Campaign.objects.all()
-    # district = AreaIts.objects.all()
     its_users = get_its_users()
     consultants = Contact.objects.filter(type='C')
     areamanager = AreaManager.objects.all()
@@ -775,7 +768,6 @@ def view_event_details(request, id):
 
     form = EventForm()
     campaigns = Campaign.objects.all()
-    # district = AreaIts.objects.all()
     its_users = get_its_users()
     consultants = Contact.objects.filter(type='C')
     areamanager = AreaManager.objects.all()
@@ -1317,50 +1309,65 @@ def view_add_eventsignup(request):
 
 
 ###########################
-##### AREE ITS ############
+##### District ############
 ###########################
 
+class DistrictForm(ModelForm):
+    class Meta:
+        model = District
+
 @user_passes_test(lambda u: u.is_superuser)
-def view_areeits(request):
-    areeits = AreaIts.objects.all()
-    return render_to_response('admin/campaigns/view_areeits.html', {'areeits': areeits},
+def view_district(request):
+    districts = District.objects.all()
+    return render_to_response('admin/campaigns/view_district.html', {'districts': districts},
                               context_instance=RequestContext(request))
 
+@user_passes_test(lambda u: u.is_superuser)
+def view_district_details(request, id):
+    district = get_object_or_404(District, id=id)
+    params = {
+        'action': "edit",
+        'its_users': get_its_users(),
+        'district_manager': district.district_manager
+    }
+
+    if request.method == "POST":
+        form = DistrictForm(request.POST, instance=district)
+        action = request.POST.get("action")
+        if form.is_valid():
+            if action == "edit":
+                district = form.save()
+                action_message = "Distretto '%s' aggiornato correttamente!" % district.description
+            elif action == "delete":
+                action_message = "Distretto '%s' cancellato!" % district.description
+                district.delete()
+
+            messages.success(request, action_message)
+            return HttpResponseRedirect('/admin/campaigns/district/')
+    else:
+        form = DistrictForm(instance=district)
+    params["form"] = form
+
+    return render_to_response('admin/campaigns/view_district_details.html',params,context_instance=RequestContext(request))
 
 @user_passes_test(lambda u: u.is_superuser)
-def view_add_areeits(request):
-    print request
-    c = {}
-    c.update(csrf(request))
-    form = AreeItsForm()
-    if request.method == 'POST':
-        form = AreeItsForm(request.POST)
-        if form.is_valid():
-            new_area = form.save()
-            if request.POST.has_key('_addanother'):
-                form = AreeItsForm()
-                messages.success(request, 'Aggiunta area \"' + new_area.description + '\"')
-            else:
-                messages.success(request, 'Aggiunta area \"' + new_area.description + '\"')
-                return HttpResponseRedirect('/admin/campaigns/areaits')
-    c = {'form': form}
-    return render_to_response('admin/campaigns/view_add_areeits.html', c, context_instance=RequestContext(request))
+def view_district_add(request):
+    params = {
+        'action': "add",
+        'its_users': get_its_users(),
+    }
 
-
-@user_passes_test(lambda u: u.is_superuser)
-def view_areeits_details(request, id):
-    areaits = get_object_or_404(AreaIts, id=id)
-    form = AreeItsForm()
-    if request.method == 'POST':
-        print request.POST
-        form = AreeItsForm(request.POST, instance=areaits)
+    if request.method == "POST":
+        form = DistrictForm(request.POST)
         if form.is_valid():
-            new_area = form.save(commit=False)
-            new_area.save()
-            messages.success(request, 'Area \"' + new_area.description + '\" aggiornata correttamente!')
-            return HttpResponseRedirect('/admin/campaigns/areaits')
-    return render_to_response('admin/campaigns/view_areeits_details.html', {'areaits': areaits, 'form': form},
-                              context_instance=RequestContext(request))
+            district = form.save()
+            messages.success(request, "Aggiunta distretto '%s'" % district.description)
+            return HttpResponseRedirect('/admin/campaigns/district/')
+    else:
+        form = DistrictForm()
+    params["form"] = form
+
+    return render_to_response('admin/campaigns/view_district_details.html',params,context_instance=RequestContext(request))
 
 
 ###############################

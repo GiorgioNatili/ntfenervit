@@ -1,25 +1,25 @@
 {% extends "admin/base_site.html" %}
 {% load i18n admin_static bootstrapped_goodies_tags %}
 {% block icon-detail %}<i class="icon-briefcase"></i>{% endblock %}
-{% block content_title %}Its {% endblock %}
-{% block content_subtitle %}<h5>lista di tutte gli Its gestite dal sistema</h5>{% endblock %}
+{% block content_title %}Distretto{% endblock %}
+{% block content_subtitle %}<h5>Lista di tutti i distretti gestiti dal sistema</h5>{% endblock %}
 {% block object-tools %}
     <ul class="object-tools form-inline pull-right inline">
         <li>
-            <a href="/admin/campaigns/areaits/add/" class="btn btn-blue">
-                <i class="icon-plus icon-white"></i> Aggiungi Area ITS
+            <a href="/admin/campaigns/district/add/" class="btn btn-blue">
+                <i class="icon-plus icon-white"></i> Aggiungi Distretto
             </a>
         </li>
     </ul>
-
 {% endblock %}
+
 {% block content %}
     <div class="container-fluid padded">
         <div class="row-fluid">
             <div class="span12">
                 <div class="box">
                     <div class="box-header">
-                        <span class="title">Its</span>
+                        <span class="title">Distretti</span>
                     </div>
                     <div class="box-content">
                         <div id="dataTables">
@@ -27,15 +27,17 @@
                                 <thead>
                                 <tr>
                                     <th><div>Descrizione</div></th>
+                                    <th><div>Manager</div></th>
 
                                     <th>&nbsp;</th>
                                 </tr>
                                 </thead>
                                 <tbody>
-                                {% for area in areeits %}
+                                {% for district in districts %}
                                     <tr>
-                                        <td>{{ area.description }}</td>
-                                        <td><a href="/admin/campaigns/areaits/{{area.id }}"><i class="icon-tasks"></i></a></td>
+                                        <td>{{ district.description }}</td>
+                                        <td>{{ district.district_manager_displayname|default:"" }}</td>
+                                        <td><a href="/admin/campaigns/district/{{district.id }}"><i class="icon-tasks"></i></a></td>
                                     </tr>
 
                                 {% endfor %}
