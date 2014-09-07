@@ -4,7 +4,7 @@
         "model": "campaigns.eventtype",
         "fields": {
             "description": "SEMINARIO",
-            "contact_to_customer": 40,
+            "contact_to_customer": 1,
             "customer_to_sale": 0.2,
             "selectable": true
         }
@@ -14,7 +14,7 @@
         "model": "campaigns.eventtype",
         "fields": {
             "description": "ONE-TO-ONE",
-            "contact_to_customer": 8,
+            "contact_to_customer": 1,
             "customer_to_sale": 0.3,
             "selectable": true
         }

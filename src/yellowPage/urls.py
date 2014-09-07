@@ -170,7 +170,8 @@ urlpatterns = patterns('',
 
     url(r'^admin/cabinet/', include('cabinet.urls')),
     url(r'^admin/its/agenda', 'campaigns.views_its.its.view_agenda'),
-    url(r'^admin/its/report', 'campaigns.views_its.its.view_report'),
+    url(r'^admin/its/report/$', 'campaigns.views_its.its.view_report'),
+    url(r'^admin/its/report/(\d+)$', 'campaigns.views_its.its.view_report'),
     url(r'^admin/its/event', 'campaigns.views_its.its.view_eventlist'),
     url(r'^admin/its/rest/eventslist', 'campaigns.views_its.its.view_eventlist_rest'),
     # Uncomment the admin/doc line below to enable admin documentation:

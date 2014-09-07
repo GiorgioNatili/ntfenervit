@@ -1,11 +1,11 @@
 from django.db.models import Q
 from django.template import RequestContext
-from backend.utils import is_its
-from campaigns.models import Event
+from backend.utils import is_its, get_its_users
 from django.shortcuts import render_to_response
 from django.http import HttpResponse
 from django.contrib.auth.decorators import user_passes_test
 
+from campaigns.models import Event, District, ITSRelDistrict, ITSRelConsultant
 from .report_helper import ListOfYear, ConsumerReport, RevenueReport
 
 
@@ -64,24 +64,45 @@ def view_eventlist_rest(request):
 ##################
 
 @user_passes_test(is_its)
-def view_report(request):
-
-    # Read year params
+def view_report(request, year=None):
     list_year = ListOfYear()
+
+    # Read QueryString, initializing with default
+    district_id = -1
+    its_id = -1
+    consultant_id = "-1"
+    if request.method == "GET":
+        district_id = request.GET.get("district", district_id)
+        its_id = request.GET.get("its", its_id)
+        consultant_id = request.GET.get("consultant", consultant_id)
+
+    # If list of year returns empty, show the no data page
     if len(list_year.rows) == 0:
         return render_to_response(
             'admin/its/view_report_nodata.html', {},
             context_instance=RequestContext(request)
         )
+    else:
+        params = {
+            "years": [col[0] for col in list_year.rows],
+            "districts": District.objects.all(),
+            "district_id": district_id,
+            "its_rels": ITSRelDistrict.objects.all(),
+            "its_id": its_id,
+            "consultant_rels": ITSRelConsultant.objects.all(),
+            "consultant_id": consultant_id
+        }
 
-    years = [col[0] for col in list_year.rows]
-    try:
-        year = int(request.GET.get('year'))
-    except:
-        year = years[0]
-
-    params = {"years": years, "year": int(year), "rpt_consumer": ConsumerReport(year)}
-    params["rpt_revenue"] = RevenueReport(params["rpt_consumer"].total_sales)
+    if year:
+        # Generate report
+        params["year"] = int(year)
+        rpt = ConsumerReport(year, district_id=district_id, its_id=its_id, consultant_id=consultant_id)
+        if len(rpt.rows):
+            params["rpt_consumer"] = rpt
+            params["rpt_revenue"] = RevenueReport(params["rpt_consumer"].total_sales)
+            params["show_report"] = True
+        else:
+            params["nodata"] = True
 
     return render_to_response('admin/its/view_report.html', params,
                               context_instance=RequestContext(request))

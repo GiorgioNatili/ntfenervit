@@ -100,13 +100,9 @@ class EventTypeHTMLTestCase(BaseHTMLTestCase):
         for row in rows:
             cells = row.getchildren()
             title = cells[0].text
-            if title == "PORTALE ENS":
+            if title == "SEMINARIO":
                 row_text = self._get_list_from_element(row, attr="object.text")
-                expected_row_text = ['PORTALE ENS', '1', '3,8 %', 'No', None]
-                self.assertEqual(row_text, expected_row_text)
-            elif title == "SEMINARIO":
-                row_text = self._get_list_from_element(row, attr="object.text")
-                expected_row_text = ['SEMINARIO', '40', '20,0 %', u'Sì', None]
+                expected_row_text = ['SEMINARIO', '1', '20,0 %', u'Sì', None]
                 self.assertEqual(row_text, expected_row_text)
 
     def test02_EventType_edit(self):
@@ -116,7 +112,7 @@ class EventTypeHTMLTestCase(BaseHTMLTestCase):
         # Check initial data
         doc = self._get_elem_from_url(url)
         result = self._get_list_from_element(doc, "form#company_form > div > div.span6 > ul > li > input", attr="value")
-        expected_result = ['SEMINARIO', None, '40.0', '0.2']
+        expected_result = ['SEMINARIO', None, '1.0', '0.2']
         self.assertEqual(result, expected_result)
 
         # Make sure update succeeds and redirect expected URL
@@ -317,77 +313,58 @@ class ITSReportHTMLTestCase(BaseHTMLTestCase):
     def setUp(self):
         self.admin = User.objects.get(pk=1)
         self.is_logged_in = self.client.login(username=self.admin.username, password="devel02")
+        self.year = 2014
 
     def test01_rpt_contacts(self):
         '''Testing Report: Stima Contatti Lordi'''
-        url = "/admin/its/report"
+        url = "/admin/its/report/%s" % self.year
         doc = self._get_elem_from_url(url)
 
         result = self._get_list_from_element(doc, "#rpt-contacts > tbody > tr > td", attr="object.text")
         result_expected = [
-            'SEMINARIO', '40,0', '154',
-            'ONE-TO-ONE', '8,0', '111',
-            'FORMAZIONE A PUNTO VENDITA', '3,0', '105',
-            'INFORMAZIONE MEDICA', '8,0', '77',
-            'PORTALE ENS', '1,0', '61'
+            'SEMINARIO', '3', '204', '1,0', '204,0',
+            'ONE-TO-ONE', '2', '122', '1,0', '122,0',
+            'FORMAZIONE A PUNTO VENDITA', '1', '105', '3,0', '315,0',
+            'INFORMAZIONE MEDICA', '1', '77', '8,0', '616,0'
         ]
         self.assertEqual(result, result_expected)
 
     def test02_rpt_contacts(self):
         '''Testing Report: Sintesi Numero Consumatori'''
-        url = "/admin/its/report"
+        url = "/admin/its/report/%s" % self.year
         doc = self._get_elem_from_url(url)
 
         result = self._get_list_from_element(doc, "#rpt-sales > tbody > tr > td", attr="object.text")
         result_expected = [
-            'SEMINARIO','20,0%','6.160',
-            'ONE-TO-ONE','30,0%','888',
-            'FORMAZIONE A PUNTO VENDITA','30,0%','315',
-            'INFORMAZIONE MEDICA','40,0%','616',
-            'PORTALE ENS','3,8%','61',
-            None, None,
-            'CONSUMATORI NETTI','1.842','22,91%'
+            'SEMINARIO', '204', '20,0%', '41',
+            'ONE-TO-ONE', '122', '30,0%', '37',
+            'FORMAZIONE A PUNTO VENDITA', '315', '30,0%', '95',
+            'INFORMAZIONE MEDICA', '616', '40,0%', '246',
+            None, None, u'\xa0', None, '33,28%'
         ]
         self.assertEqual(result, result_expected)
 
     def test03_rpt_revenue(self):
         '''Testing Report: Stima Fatturati'''
-        url = "/admin/its/report"
+        url = "/admin/its/report/%s" % self.year
         doc = self._get_elem_from_url(url)
 
         result = self._get_list_from_element(doc, "#rpt-revenue > tbody > tr > td", attr="object.text")
         result_expected = [
-            '1','30,0%','9,95','5.497',
-            '2','20,0%','38,57','14.206',
-            '3','20,0%','87,14','32.095',
-            '4','20,0%','487,25','179.463',
-            '5','10,0%','698,30','128.598',
-            None,None
-        ]
+            '1', u'10 SNACK', '\n                                        ', '30,0%', u'9,95 €', u'1.249 €',
+            '2', u'1 OMEGA 120, 6 SNACK, 2 FROLLINI', '20,0%', u'38,57 €', u'3.227 €',
+            '3', u'2 OMEGA 3 DA 120 CPS, 12 SNACK, 4 FROLLINI, VARIE PER 20€', '20,0%', u'87,14 €', u'7.290 €',
+            '4', u'6 OMEGA 240, 4 MAQUI, 30 SNACK, 8 FROLLINI, VARIE PER 100€', '20,0%', u'487,25 €', u'40.763 €',
+            '5', u'8 OMEGA 240, 6 MAQUI, 60 SNACK, 12 FROLLINI, VARIE PER 150€', '10,0%', u'698,30 €', u'29.210 €',
+            None, None]
 
         self.assertEqual(result, result_expected)
 
-    def test04_rpt_producgroup(self):
-        '''Testing Report: Stima Contatti Lordi (Reference Table)'''
-        url = "/admin/its/report"
-        doc = self._get_elem_from_url(url)
-
-        result = self._get_list_from_element(doc, "#rpt-productgroup > tbody > tr > td", attr="object.text")
-        result_expected = [
-            '1','10 SNACK',
-            '2','1 OMEGA 120, 6 SNACK, 2 FROLLINI',
-            '3',u'2 OMEGA 3 DA 120 CPS, 12 SNACK, 4 FROLLINI, VARIE PER 20€',
-            '4',u'6 OMEGA 240, 4 MAQUI, 30 SNACK, 8 FROLLINI, VARIE PER 100€',
-            '5',u'8 OMEGA 240, 6 MAQUI, 60 SNACK, 12 FROLLINI, VARIE PER 150€'
-        ]
-
-        self.assertEqual(result, result_expected)
-
-    def test05_rpt_contacts_qs(self):
-        '''Testing Report: Stima Contatti Lordi'''
-        url = "/admin/its/report?year=2013"
+    def test04_rpt_contacts_qs(self):
+        '''Testing Report: Not expected any result'''
+        url = "/admin/its/report/2013"
         doc = self._get_elem_from_url(url)
 
         result = self._get_list_from_element(doc, "#rpt-contacts > tbody > tr > td", attr="object.text")
-        result_expected = ['PORTALE ENS', '1,0', None]
+        result_expected = []
         self.assertEqual(result, result_expected)

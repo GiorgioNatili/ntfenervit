@@ -1,0 +1,123 @@
+{% load humanize %}
+
+    <!-- REPORT: Stima Contatti Lordi -->
+    <div class="row-fluid">
+        <div class="span12">
+            <div class="box">
+                <div class="box-header">
+                    <span class="title">Stima Contatti Lordi</span>
+                </div>
+                <div class="box-content">
+                    <div class="padded">
+                        <table id="rpt-contacts" class="table table-hover">
+                            <thead>
+                                <th>{{ rpt_consumer.fields.description }}</th>
+                                <th style="text-align: right">{{ rpt_consumer.fields.events }}</th>
+                                <th style="text-align: right">{{ rpt_consumer.fields.contacts }}</th>
+                                <th style="text-align: right">{{ rpt_consumer.fields.contact_to_customer }}</th>
+                                <th style="text-align: right">{{ rpt_consumer.fields.customers }}</th>
+                            </thead>
+                            <tbody>
+                            {% for row in rpt_consumer.rows %}
+                                <tr>
+                                    <td>{{ row.description }}</td>
+                                    <td style="text-align: right">{{ row.events|floatformat:"0"|intcomma }}</td>
+                                    <td style="text-align: right">{{ row.contacts|floatformat:"0"|intcomma }}</td>
+                                    <td style="text-align: right">{{ row.contact_to_customer|floatformat:"1"|intcomma }}</td>
+                                    <td style="text-align: right">{{ row.customers|floatformat:"1"|intcomma }}</td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- REPORT: Sintesi Numero Consumatori -->
+    <div class="row-fluid">
+        <div class="span12">
+            <div class="box">
+                <div class="box-header">
+                    <span class="title">Sintesi Numero Consumatori</span>
+                </div>
+                <div class="box-content">
+                    <div class="padded">
+                        <table id="rpt-sales" class="table table-hover">
+                            <thead>
+                                <th>{{ rpt_consumer.fields.description }}</th>
+                                <th style="text-align: right">{{ rpt_consumer.fields.customers }}</th>
+                                <th style="text-align: right">{{ rpt_consumer.fields.customer_to_sale }}</th>
+                                <th style="text-align: right">{{ rpt_consumer.fields.sales }}</th>
+                            </thead>
+                            <tbody>
+                            {% for row in rpt_consumer.rows %}
+                                <tr>
+                                    <td>{{ row.description }}</td>
+                                    <td style="text-align: right">{{ row.customers|floatformat:"0"|intcomma }}</td>
+                                    <td style="text-align: right">{{ row.customer_to_sale|floatformat:"1"|intcomma }}%</td>
+                                    <td style="text-align: right">{{ row.sales|floatformat:"0"|intcomma }}</td>
+                                </tr>
+                            {% endfor %}
+                            <tr class="info">
+                                <td><strong>TOTALE</strong></td>
+                                <td style="text-align: right"><strong>{{ rpt_consumer.total_customers|floatformat:"0"|intcomma }}</strong></td>
+                                <td>&nbsp;</td>
+                                <td style="text-align: right"><strong>{{ rpt_consumer.total_sales|floatformat:"0"|intcomma }}</strong></td>
+                            </tr>
+                            <tr>
+                                <td colspan="4" style="text-align: right">{{ rpt_consumer.pct_sales_to_customers|floatformat:"2"|intcomma }}%</td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- REPORT: Stima Fatturati -->
+    <div class="row-fluid">
+        <div class="span12">
+            <div class="box">
+                <div class="box-header">
+                    <span class="title">Stima Fatturati</span>
+                </div>
+                <div class="box-content">
+                    <div class="padded">
+                        <table id="rpt-revenue" class="table table-hover">
+                            <thead>
+                                <th>{{ rpt_revenue.fields.id }}</th>
+                                <th>{{ rpt_revenue.fields.description }}</th>
+                                <th>Consumatori</th>
+                                <th style="text-align: right">{{ rpt_revenue.fields.sell_in_alloc }}</th>
+                                <th style="text-align: right">{{ rpt_revenue.fields.sell_in_amount }}</th>
+                                <th style="text-align: right">{{ rpt_revenue.fields.revenue }}</th>
+                            </thead>
+                            <tbody>
+                            {% for row in rpt_revenue.rows %}
+                                <tr>
+                                    <td>{{ row.id }}</td>
+                                    <td>{{ row.description }}</td>
+                                    {% if forloop.counter == 1 %}
+                                    <td style="text-align: center; vertical-align: middle" rowspan="5">
+                                        <strong>{{ rpt_consumer.total_sales|floatformat:"0"|intcomma }}</strong>
+                                    </td>
+                                    {% endif %}
+                                    <td style="text-align: right">{{ row.sell_in_alloc|floatformat:"1"|intcomma }}%</td>
+                                    <td style="text-align: right">{{ row.sell_in_amount|floatformat:"2"|intcomma }} €</td>
+                                    <td style="text-align: right">{{ row.revenue|floatformat:"0"|intcomma }} €</td>
+                                </tr>
+                            {% endfor %}
+                                <tr class="info">
+                                    <td colspan="5"><strong>TOTALE FATTURATO</strong></td>
+                                    <td style="text-align: right"><strong>{{ rpt_revenue.total_revenue|floatformat:"0"|intcomma }} €</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>

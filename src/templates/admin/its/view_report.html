@@ -6,152 +6,171 @@
 {% block object-tools %}
 {% endblock %}
 {% block content %}
-{% load humanize %}
 
 <div class="container-fluid padded">
     <!-- Year drop down -->
     <div class="row-fluid">
-        <select id="lst-year" name="years">
-            {% for year_no in years %}
-                {% ifequal year_no year %}
-                    <option value="{{ year_no }}" selected="selected">{{ year_no }}</option>
-                {% else %}
-                    <option value="{{ year_no }}">{{ year_no }}</option>
-                {% endifequal %}
-            {% endfor %}
-        </select>
-    </div>
+        <span>
+            <select id="lst-year" name="years">
+                {% for year_no in years %}
+                    {% ifequal year_no year %}
+                        <option value="{{ year_no }}" selected="selected">{{ year_no }}</option>
+                    {% else %}
+                        <option value="{{ year_no }}">{{ year_no }}</option>
+                    {% endifequal %}
+                {% endfor %}
+            </select>
+        </span>
+        <span>
+            <select id="lst-district" name="district">
+                <option value="-1" selected="selected">T - Totale Italia</option>
+                {% for district in districts %}
+                    {% ifequal district_id district.id %}
+                        <option value="{{ district.id }}" selected="selected">{{ district.description }}</option>
+                    {% else %}
+                        <option value="{{ district.id }}">{{ district.description }}</option>
+                    {% endifequal %}
+                {% endfor %}
+            </select>
+        </span>
+        <span>
+            <select id="lst-its" name="its">
+                <option value="-1" selected="selected">--- Tutti ITS</option>
+            </select>
+        </span>
+        <span>
+            <select id="lst-consultant" name="consultant">
+                <option value="-1" selected="selected">--- Tutti Consulenti</option>
+            </select>
+        </span>
 
-    <!-- REPORT: Stima Contatti Lordi -->
-    <div class="row-fluid">
-        <div class="span12">
-            <div class="box">
-                <div class="box-header">
-                    <span class="title">Stima Contatti Lordi</span>
-                </div>
-                <div class="box-content">
-                    <div class="padded">
-                        <table id="rpt-contacts" class="table table-hover">
-                            <thead>
-                                <th>{{ rpt_consumer.fields.description }}</th>
-                                <th style="text-align: right">{{ rpt_consumer.fields.contact_to_customer }}</th>
-                                <th style="text-align: right">{{ rpt_consumer.fields.contacts }}</th>
-                            </thead>
-                            <tbody>
-                            {% for row in rpt_consumer.rows %}
-                                <tr>
-                                    <td>{{ row.description }}</td>
-                                    <td style="text-align: right">{{ row.contact_to_customer|floatformat:"1"|intcomma }}</td>
-                                    <td style="text-align: right">{{ row.contacts|floatformat:"0"|intcomma }}</td>
-                                </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
+    <div class="row-fluid">
+        <button id="btn-report" type="button" class="btn btn-primary">Show Report</button>
+    </div>
+    <br/>
+    <!-- Report content -->
+    {% if nodata %}
+        {% include "admin/its/view_report_nocontent.html" %}
+    {% elif show_report %}
+        {% include "admin/its/view_report_content.html" %}
+    {% endif %}
 
-    <!-- REPORT: Sintesi Numero Consumatori -->
-    <div class="row-fluid">
-        <div class="span12">
-            <div class="box">
-                <div class="box-header">
-                    <span class="title">Sintesi Numero Consumatori</span>
-                </div>
-                <div class="box-content">
-                    <div class="padded">
-                        <table id="rpt-sales" class="table table-hover">
-                            <thead>
-                                <th>{{ rpt_consumer.fields.description }}</th>
-                                <th style="text-align: right">{{ rpt_consumer.fields.customer_to_sale }}</th>
-                                <th style="text-align: right">{{ rpt_consumer.fields.customers }}</th>
-                            </thead>
-                            <tbody>
-                            {% for row in rpt_consumer.rows %}
-                                <tr>
-                                    <td>{{ row.description }}</td>
-                                    <td style="text-align: right">{{ row.customer_to_sale|floatformat:"1"|intcomma }}%</td>
-                                    <td style="text-align: right">{{ row.customers|floatformat:"0"|intcomma }}</td>
-                                </tr>
-                            {% endfor %}
-                            <tr class="info">
-                                <td colspan="2"><strong>TOTALE CONTATTI</strong></td>
-                                <td style="text-align: right"><strong>{{ rpt_consumer.total_customers|floatformat:"0"|intcomma }}</strong></td>
-                            </tr>
-                            <tr>
-                                <td colspan="2">CONSUMATORI NETTI</td>
-                                <td style="text-align: right">{{ rpt_consumer.total_sales|floatformat:"0"|intcomma }}</td>
-                            </tr>
-                            <tr>
-                                <td colspan="3" style="text-align: right">{{ rpt_consumer.pct_sales_to_customers|floatformat:"2"|intcomma }}%</td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- REPORT: Stima Fatturati -->
-    <div class="row-fluid">
-        <div class="span12">
-            <div class="box">
-                <div class="box-header">
-                    <span class="title">Stima Fatturati</span>
-                </div>
-                <div class="box-content">
-                    <div class="padded">
-                        <table id="rpt-revenue" class="table table-hover">
-                            <thead>
-                                <th>{{ rpt_revenue.fields.id }}</th>
-                                <th style="text-align: right">{{ rpt_revenue.fields.sell_in_alloc }}</th>
-                                <th style="text-align: right">{{ rpt_revenue.fields.sell_in_amount }}</th>
-                                <th style="text-align: right">{{ rpt_revenue.fields.revenue }}</th>
-                            </thead>
-                            <tbody>
-                            {% for row in rpt_revenue.rows %}
-                                <tr>
-                                    <td>{{ row.id }}</td>
-                                    <td style="text-align: right">{{ row.sell_in_alloc|floatformat:"1"|intcomma }}%</td>
-                                    <td style="text-align: right">{{ row.sell_in_amount|floatformat:"2"|intcomma }}</td>
-                                    <td style="text-align: right">{{ row.revenue|floatformat:"0"|intcomma }}</td>
-                                </tr>
-                            {% endfor %}
-                                <tr class="info">
-                                    <td colspan="3"><strong>TOTALE FATTURATO</strong></td>
-                                    <td style="text-align: right"><strong>{{ rpt_revenue.total_revenue|floatformat:"0"|intcomma }}</strong></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <table id="rpt-productgroup" class="table table-hover">
-                            <thead>
-                                <th>{{ rpt_revenue.fields.id }}</th>
-                                <th>{{ rpt_revenue.fields.description }}</th>
-                            </thead>
-                            <tbody>
-                            {% for row in rpt_revenue.rows %}
-                                <tr>
-                                    <td>{{ row.id }}</td>
-                                    <td>{{ row.description }}</td>
-                                </tr>
-                            {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 </div>
 
 
 <script>
-    $("#lst-year").change(function () {
-        year = $("#lst-year").find(":selected").text();
-        location.search = "year=" + year;
-    });
+    !function () {
+        // Create dataset used to populate the ITS and Consultant dropdown
+        var its_data = [
+                { "id": -1, "desc": "--- Tutti ITS", "parent": undefined }
+                {% for rel in its_rels %}
+                    ,{ "id": {{ rel.its.id }}, "desc": "{{ rel.its.first_name }} {{ rel.its.last_name }}", "parent": {{ rel.district.id }} }
+                {% endfor %}
+            ],
+            consultant_data = [
+                { "id": -1, "desc": "--- Tutti Consulenti", "parent": undefined }
+                {% for rel in consultant_rels %}
+                    ,{ "id": "{{ rel.consultant.code }}", "desc": "{{ rel.consultant.name }} {{ rel.consultant.surname }}", "parent": {{ rel.its.id }} }
+                {% endfor %}
+            ],
+            year, district_id, its_id, consultant_id;
+
+        // Populate selected fields
+        function readLists(listName) {
+            if (typeof listName === "undefined" || listName === "year") {
+                year = parseInt($("#lst-year option:selected").val());
+            }
+            if (typeof listName === "undefined" || listName === "district") {
+                district_id = parseInt($("#lst-district option:selected").val());
+            }
+            if (typeof listName === "undefined" || listName === "its") {
+                its_id = parseInt($("#lst-its option:selected").val());
+            }
+            if (typeof listName === "undefined" || listName === "consultant") {
+                consultant_id = $("#lst-consultant option:selected").val();
+            }
+        }
+
+        // Function used to refresh the drop down based on a parent_id
+        function refreshList(list, data, parent_id) {
+            // Clear all drop down items
+            list.find('option').remove();
+
+            // Loop though the data and create new dropdown items.  id of -1 is always shown
+            $.each(data, function (index, obj) {
+                if (obj.id === -1 || obj.parent === parent_id ) {
+                    list.append('<option value="' + obj.id + '">' + obj.desc + '</option>');
+                }
+            });
+        }
+
+        $("#lst-district").change(function () {
+            readLists("district");
+            refreshList($("#lst-its"), its_data, district_id);
+            // Invoke the change in consultant dropdown
+            $("#lst-its").change();
+        });
+
+        $("#lst-its").change(function () {
+            readLists("its");
+            refreshList($("#lst-consultant"), consultant_data, its_id);
+        });
+
+        // Kick off the report
+        $("#btn-report").click(function () {
+            readLists();
+            var url = "/admin/its/report/" + year,
+                qs = [];
+
+            // Build query string
+            if ( district_id !== -1 ) {
+                qs.push("district=" + encodeURIComponent(district_id));
+            }
+            if ( its_id !== -1 ) {
+                qs.push("its=" + encodeURIComponent(its_id));
+            }
+            if ( consultant_id !== "-1" ) {
+                qs.push("consultant=" + encodeURIComponent(consultant_id));
+            }
+
+            // Build Querystring
+            if (!$.isEmptyObject(qs)) {
+                url += "?" + qs.join("&");
+            }
+
+            // Final URL
+            window.location = url;
+        });
+
+        // Populate Dropdown based on value from querystring.  Querystring value are read in server.
+        $("document").ready(function () {
+            var year = {{ year|default:"undefined" }},
+                district_id = {{ district_id }},
+                its_id = {{ its_id }},
+                consultant_id = "{{ consultant_id }}";
+
+            if (year) {
+                $("#lst-year").val(year);
+            }
+
+            if (district_id !== -1) {
+                $("#lst-district").val(district_id);
+                $("#lst-district").change();
+            }
+
+            if (its_id !== -1) {
+                $("#lst-its").val(its_id);
+                $("#lst-its").change();
+            }
+
+            if (consultant_id !== "-1") {
+                $("#lst-consultant").val(consultant_id);
+            }
+
+        });
+    }();
+
 </script>
+
 {% endblock %}
