@@ -138,4 +138,8 @@ arc diff d5cd505a498c9aaa3df5e0115c6075dfb14b9b3d^
 # When approved, do
 arc land
 
+# arc land command will delete the local branch, so you must delete the remote one
+git push origin :T419
+
+
 ```
