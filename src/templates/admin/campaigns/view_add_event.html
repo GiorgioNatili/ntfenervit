@@ -111,7 +111,7 @@
                                                 <option>---</option>
                                                 {% if user|is_its%}
                                                     {% for pos in its_users %}
-                                                    <option value="{{ pos.id }}" {% if pos.id == user.id %} selected="selected"{% endif %}>{{ pos.first_name }} {{ pos.last_name }} ({{ pos.email }})</option>
+                                                    <option value="{{ pos.id }}" {% if pos.id == user.id %} selected="selected"{% endif %}>{{ pos.first_name }} {{ pos.last_name }} {% if pos.email %}({{ pos.email }}){% endif %}</option>
                                                     {% endfor %}
                                                 {% else %}
                                                     {% for pos in its_users %}

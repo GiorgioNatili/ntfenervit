@@ -1,7 +1,9 @@
+from campaigns.models import is_its as is_its_util
+
 __author__ = 'dominik'
 
 from django import template
-from backend.utils import is_its as is_its_util, group as group_
+from backend.utils import group as group_
 register = template.Library()
 
 

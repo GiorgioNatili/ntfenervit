@@ -11,9 +11,10 @@ from django.forms import ModelForm,forms
 from django.contrib.auth.models import User,Group,Permission
 from django.contrib.auth.decorators import user_passes_test
 from django.forms import ModelForm,forms
+from campaigns.models import District, ITSRelDistrict
 
 from contacts.models import Contact
-from campaigns.models import District, ITSRelDistrict
+
 
 class UserForm(ModelForm):
     class Meta:

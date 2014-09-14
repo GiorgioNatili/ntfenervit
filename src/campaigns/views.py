@@ -21,10 +21,10 @@ from django.utils.encoding import smart_str
 from xlrd import open_workbook
 from django.contrib.auth.decorators import user_passes_test
 from django.views.decorators.csrf import csrf_exempt
-from backend.utils import get_its_users, can_handle_events, is_its
 from campaigns.models import Campaign, Newsletter, Event, Image, NewsletterTemplate, NewsletterAttachment, \
     NewsletterTarget, NewsletterSchedulation, EventSignup, EventPayment, AreaManager, Channel, Theme, Goal, \
-    PointOfSaleType, EventCoupon, EventType, ProductGroup, District
+    PointOfSaleType, EventCoupon, EventType, ProductGroup, District, get_its_users, is_its, can_handle_events, \
+    ITSRelDistrict, ITSRelConsultant
 from contacts.models import Contact, Sector, Work, Province
 from cabinet.models import EventFile
 
@@ -720,6 +720,9 @@ def view_add_event(request):
     campaigns = Campaign.objects.all()
     its_users = get_its_users()
     consultants = Contact.objects.filter(type='C')
+    districts = District.objects.all()
+    consultants_rels = ITSRelConsultant.objects.all()
+    its_rels = ITSRelDistrict.objects.all()
     areamanager = AreaManager.objects.all()
     eventtype = EventType.objects.filter(selectable=True)
     channel = Channel.objects.all()
@@ -744,7 +747,7 @@ def view_add_event(request):
                 return HttpResponseRedirect('/admin/campaigns/event')
     c = {'form': form, 'province': province, 'campaigns': campaigns,
          'its_users': its_users, 'consultants': consultants, 'from_its': from_its,
-         # 'district':district,
+         'districts': districts, 'consultants_rels': consultants_rels, 'its_rels': its_rels,
          'areamanager': areamanager, 'eventtype': eventtype,
          'channel': channel, 'theme': theme, 'pointofsaletype': pointofsaletype}
     return render_to_response('admin/campaigns/view_add_event.html', c, context_instance=RequestContext(request))

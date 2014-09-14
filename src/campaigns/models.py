@@ -1,13 +1,12 @@
 import datetime
+
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
 from redactor.fields import RedactorField
+from django.contrib.auth.models import User, AnonymousUser
 
-from django.contrib.auth.models import User
-from contacts.models import Contact
-
-from backend.utils import is_its as is_its_util
 # Create your models here.
+from backend.utils import is_controller
+from contacts.models import Contact
 
 CAMPAIGN_STATUS = (
     ('A', 'Attiva'),
@@ -268,7 +267,7 @@ class Event(models.Model):
     def is_its(self):
         if not self.owner:
             return False
-        return is_its_util(self.owner) and not self.is_public
+        return is_its(self.owner) and not self.is_public
 
     @property
     def is_consultant_led(self):
@@ -353,6 +352,7 @@ class ProductGroup(models.Model):
 # District > ITS > Consultant
 # ###########################
 
+
 class District(models.Model):
     description = models.CharField(max_length=200, blank=True, null=True, verbose_name='Distretto')
     district_manager = models.ForeignKey(User, null=True)
@@ -367,11 +367,37 @@ class District(models.Model):
         else:
             return None
 
+
+class ITSRelConsultant(models.Model):
+    consultant = models.ForeignKey(Contact)
+    its = models.ForeignKey(User)
+
+
 class ITSRelDistrict(models.Model):
     its = models.ForeignKey(User, primary_key=True)
     district = models.ForeignKey(District)
 
 
-class ITSRelConsultant(models.Model):
-    consultant = models.ForeignKey(Contact)
-    its = models.ForeignKey(User)
+def get_its_users():
+    its_users = ITSRelDistrict.objects.all().values_list('its').distinct()
+    return User.objects.filter(id__in=its_users)
+
+
+def is_its(user):
+
+    """
+    :param user:
+    :return: Boolean
+    """
+    if not isinstance(user, AnonymousUser):
+        its_user_district = ITSRelDistrict.objects.filter(its=user)
+        if its_user_district:
+            return True
+    return False
+
+
+def can_handle_events(user, e=None, new=False, from_its=False):
+    res = is_controller(user) \
+        or (e is not None and e.owner is not None and e.owner == user and from_its) \
+        or (is_its(user) and new and from_its)
+    return res

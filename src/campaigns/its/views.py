@@ -1,11 +1,10 @@
 from django.db.models import Q
 from django.template import RequestContext
-from backend.utils import is_its, get_its_users
 from django.shortcuts import render_to_response
 from django.http import HttpResponse
 from django.contrib.auth.decorators import user_passes_test
 
-from campaigns.models import Event, District, ITSRelDistrict, ITSRelConsultant
+from campaigns.models import Event, District, ITSRelConsultant, ITSRelDistrict, is_its
 from .report_helper import ListOfYear, ConsumerReport, RevenueReport
 
 
@@ -24,7 +23,6 @@ def view_eventlist(request):
         e.not_owned = True if not user == e.owner else False
     return render_to_response('admin/its/view_event.html', {'events': events},
                               context_instance=RequestContext(request))
-
 
 
 def view_eventlist_rest(request):
@@ -47,7 +45,7 @@ def view_eventlist_rest(request):
             target['color'] = 'white'
             target['borderColor'] = 'yellow'
         elif e.its_districtmanager == user:
-            # these events appears on the its_districtmanager user agenda
+            # these events appears on the its user agenda
             # but they were created by admins
             # and assigned to them as public events
             target['color'] = 'black'

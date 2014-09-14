@@ -10,11 +10,10 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.forms import ModelForm, forms
 from xlrd import open_workbook,cellname
 
-from campaigns.models import NewsletterTarget, EventSignup, ITSRelConsultant
+from campaigns.models import NewsletterTarget, EventSignup, ITSRelConsultant, get_its_users
 from survey.models import Submission, Answer
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import user_passes_test
-from backend.utils import get_its_users
 
 from cabinet.models import ContactRefFile, ContactCertFile
 
@@ -64,7 +63,6 @@ class RankingConfigurationForm(ModelForm):
 @staff_member_required
 def view_company(request):
     companies = Company.objects.all()
-    print get_messages(request)
     return render_to_response('admin/contacts/view_company.html', {'companies': companies},
                               context_instance=RequestContext(request))
 
@@ -84,6 +82,8 @@ def view_add_company(request):
             else:
                 messages.success(request, 'Aggiunta azienda \"' + new_company.name + '\"')
                 return HttpResponseRedirect('/admin/contacts/company')
+        else:
+            messages.error(request, 'Errore durante inserimento nuova azienda')
     c = {'form': form, 'provinces': provinces}
     return render_to_response('admin/contacts/view_add_company.html', c, context_instance=RequestContext(request))
 
@@ -94,13 +94,14 @@ def view_company_details(request, id):
     provinces = Province.objects.all()
     form = CompanyForm()
     if request.method == 'POST':
-        print request.POST
         form = CompanyForm(request.POST, instance=company)
         if form.is_valid():
             new_company = form.save(commit=False)
             new_company.save()
             messages.success(request, 'Azienda \"' + new_company.name + '\" aggiornata correttamente!')
             return HttpResponseRedirect('/admin/contacts/company')
+        else:
+            messages.error(request, 'Errore durante inserimento nuova azienda')
     return render_to_response('admin/contacts/view_company_details.html',
                               {'company': company, 'provinces': provinces, 'form': form},
                               context_instance=RequestContext(request))
@@ -373,8 +374,8 @@ def view_contact_details(request, id):
     sector = None
     works = None
     if contact.work and contact.work.sector:
-       sector = Sector.objects.filter(id=contact.work.sector.id)
-    if sector!=None:
+        sector = Sector.objects.filter(id=contact.work.sector.id)
+    if sector is not None:
         works = Work.objects.all().filter(sector=sector)
 
     ana_division = None
