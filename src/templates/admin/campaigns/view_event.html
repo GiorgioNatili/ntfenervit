@@ -51,7 +51,7 @@
                                         <td>{{ event.id }}</td>
                                         <td>{{ event.date|date:"d-m-Y" }}{% if event.enddate %} al {{ event.enddate|date:"d-m-Y" }}{% endif %}</td>
                                         <td>{% if event.title %}{{ event.title }}{% else %}{{ event.description }}{% endif %}</td>
-                                        <td>{{ event.campaign }}</td>
+                                        <td>{{ event.campaign|default_if_none:"" }}</td>
                                         <td>{{ event.is_public|yesno:"Si,No" }}</td>
                                         <td><a href="/admin/campaigns/event/{{event.id }}{{ event.from_its }}"><i class="icon-tasks"></i></a></td>
                                     </tr>

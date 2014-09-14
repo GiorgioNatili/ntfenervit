@@ -793,8 +793,10 @@ def view_event_details(request, id):
         eventtype, form, its_id, its_rels, its_users, \
         pointofsaletype, province, theme = _prepare_event_form()
     consultant_id = event.consultant.code if event.consultant else '-1'
-    its_id = event.its_districtmanager.id
-    district_id = ITSRelDistrict.objects.filter(its=event.its_districtmanager)[0].district.id
+    its_id = district_id = -1
+    if event.its_districtmanager:
+        its_id = event.its_districtmanager.id
+        district_id = ITSRelDistrict.objects.filter(its=event.its_districtmanager)[0].district.id
 
     eventfiles = EventFile.objects.filter(event=event)
     if request.method == 'POST':
