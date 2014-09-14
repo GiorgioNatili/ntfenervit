@@ -231,29 +231,27 @@ class Event(models.Model):
     its_districtmanager = models.ForeignKey(User, blank=True, null=True,
                                             verbose_name="District ITS Manager", on_delete=models.SET_NULL,
                                             related_name='my_its_events')
-    #TODO to plan a task for populate its_districtmanager
-    # (see setup/tasks/domenico_migrations.md document)
 
     owner = models.ForeignKey(User, blank=True, null=True, verbose_name="Creator of the event",
                               on_delete=models.SET_NULL, related_name='my_owned_events')
 
     visible_for_its = models.BooleanField(verbose_name="Pubblica evento sulle agende ITS", blank=False, default=True)
 
-    pointofsale = models.CharField(max_length=6,blank=True,null=True,verbose_name="Codice Punto Vendita")
+    pointofsale = models.CharField(max_length=10, blank=True,null=True,verbose_name="Codice Punto Vendita")
     pointofsaledescription = models.CharField(max_length=250,blank=True,null=True,verbose_name="Nominativo Punto Vendita")
     typepointofsale = models.ForeignKey('campaigns.PointOfSaleType',blank=True,null=True,verbose_name="Tipologia Punto Vendita",on_delete=models.SET_NULL)
-    channel = models.ForeignKey('campaigns.Channel',blank=True,null=True,verbose_name="Canale",on_delete=models.SET_NULL)
-    eventtype = models.ForeignKey('campaigns.EventType',blank=True,null=True,verbose_name="Tipologia Evento",on_delete=models.SET_NULL)
-    theme = models.ForeignKey('campaigns.Theme',blank=True,null=True,verbose_name="Tema Evento",on_delete=models.SET_NULL)
+    channel = models.ForeignKey('campaigns.Channel', blank=True,null=True,verbose_name="Canale",on_delete=models.SET_NULL)
+    eventtype = models.ForeignKey('campaigns.EventType', blank=True,null=True,verbose_name="Tipologia Evento",on_delete=models.SET_NULL)
+    theme = models.ForeignKey('campaigns.Theme', blank=True, null=True,verbose_name="Tema Evento",on_delete=models.SET_NULL)
 
     #TODO drop this field  - will be replaced by consultant (after population of consultant)
     trainer = models.CharField(max_length=250,blank=True, null=True, verbose_name="Relatore")
     #TODO to plan a task for populate consultant
     consultant = models.ForeignKey('contacts.Contact', blank=True, null=True, verbose_name="Relatore")
 
-    feedback = models.SmallIntegerField(blank=True,null=True,verbose_name="Valutazione Evento")
-    feedback_note = models.CharField(max_length=500,blank=True,null=True,verbose_name="Feedback Evento")
-    population = models.IntegerField(blank=True,null=True,verbose_name="Numero di partecipanti")
+    feedback = models.SmallIntegerField(blank=True, null=True,verbose_name="Valutazione Evento")
+    feedback_note = models.CharField(max_length=500, blank=True,null=True,verbose_name="Feedback Evento")
+    population = models.IntegerField(blank=True,null=True, verbose_name="Numero di partecipanti")
     signups_enabled = models.BooleanField(verbose_name="Iscrizioni permesse lato frontend",blank=True,default=False)
 
     def __unicode__(self):

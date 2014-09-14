@@ -76,6 +76,15 @@
                                                 {% endfor %}
                                             </select>
                                         </li>
+                                        <li>
+                                            <label>Tipo:</label>
+                                            <select class="chzn-select" name="type" >
+                                                <option value="">---</option>
+                                                {% for t in types %}
+                                                    <option value="{{ t.id }}" {% if t.id == company.type.id %} selected="selected"{% endif %}>{{ t }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </li>
                                     </ul>
                                 </div>
                             </div> <!-- contenitore form -->

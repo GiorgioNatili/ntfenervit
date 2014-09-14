@@ -116,25 +116,11 @@
                                         <li>
                                             <label>ITS</label>
                                             <select class="chzn-select" name="its_districtmanager" id="lst-its" >
-{#                                                <option>---</option>#}
-{#                                                {% if user|is_its%}#}
-{#                                                    {% for pos in its_users %}#}
-{#                                                    <option value="{{ pos.id }}" {% if pos.id == user.id %} selected="selected"{% endif %}>{{ pos.first_name }} {{ pos.last_name }} {% if pos.email %}({{ pos.email }}){% endif %}</option>#}
-{#                                                    {% endfor %}#}
-{#                                                {% else %}#}
-{#                                                    {% for pos in its_users %}#}
-{#                                                    <option value="{{ pos.id }}" {% if pos.id == form.instance.its_districtmanager.id %} selected="selected"{% endif %}>{{ pos.first_name }} {{ pos.last_name }} {% if pos.email %}({{ pos.email }}){% endif %}</option>#}
-{#                                                {% endfor %}#}
-{#                                                {% endif %}#}
                                             </select>
                                         </li>
                                         <li>
                                             <label>Consulente</label>
                                             <select class="chzn-select" name="consultant" id="lst-consultant" >
-{#                                                {% for c in consultants %}#}
-{#                                                    <option value="{{ c.code }}" {% if c.code == form.instance.consultant.code %} selected="selected"{% endif %}>{{ c }} ({{ c.email }})</option>#}
-{#                                                {% endfor %}#}
-
                                             </select>
                                         </li>
 
@@ -169,6 +155,11 @@
                                 <div class="span6">
                                     <ul class="padded separate-sections">
                                         <li>
+                                            <label>Anagrafica Aziende</label>
+                                            <select class="chzn-select" name="company" id="lst-companies">
+                                            </select>
+                                        </li>
+                                        <li>
                                             <label>Codice Punto Vendita</label>
                                             {{ form.pointofsale.errors }}
                                             <input type="text" name="pointofsale" id="pointofsale" placeholder="Codice Punto Vendita" value="{{ form.instance.pointofsale|default_if_none:"" }}"/>
@@ -176,17 +167,16 @@
                                         <li>
                                             {{ form.typepointofsale.errors }}
                                             <label>Tipologia Punto Vendita</label>
-                                            <select class="chzn-select" name="typepointofsale" >
-                                                <option>---</option>
+                                            <select class="chzn-select" name="typepointofsale" id="lst-typepointofsale">
+                                                <option value="">---</option>
                                                 {% for pos in pointofsaletype %}
-
                                                     <option value="{{ pos.id }}" {% if pos.id == form.instance.typepointofsale.id %} selected="selected"{% endif %}>{{ pos }}</option>
                                                 {% endfor %}
                                             </select>
                                         </li>
                                         <li>
                                             <label>Provincia</label>
-                                            <select class="chzn-select" name="province" >
+                                            <select class="chzn-select" name="province" id="lst-provinces" >
                                                 <option>---</option>
                                                 {% for pos in province %}
                                                     <option value="{{ pos.id }}" {% if pos.id == form.instance.province.id %} selected="selected"{% endif %}>{{ pos }}</option>
@@ -206,7 +196,7 @@
                                         <li>
                                             <label>Indirizzo e Località</label>
                                             {{ form.place.errors }}
-                                            <textarea form="event_form" rows="4" cols="50" name="place" class="validate[required]" data-prompt-position="topLeft" placeholder="Sede" >{{ form.instance.place|default_if_none:"" }}</textarea>
+                                            <textarea form="event_form" rows="4" cols="50" id="place" name="place" class="validate[required]" data-prompt-position="topLeft" placeholder="Sede" >{{ form.instance.place|default_if_none:"" }}</textarea>
                                         </li>
                                     </ul>
                                 </div>
@@ -413,18 +403,42 @@
    </script>
 
     <script>
-    !function () {
+        function updatePointOfSale(data, company_id) {
+            $('#pointofsale').val('');
+            $('#pointofsaledescription').val('');
+            $('#place').val('');
+            $('#lst-provinces').val('').trigger('change');
+            $('#lst-typepointofsale').val('').trigger('change');
+
+            $.each(data, function (index, obj) {
+
+                if (obj.id === company_id) {
+                    $('#pointofsale').val(obj.code);
+                    $('#pointofsaledescription').val(obj.desc);
+                    $('#place').val(obj.address);
+                    $('#lst-provinces').val(obj.province).trigger('change');
+                    $('#lst-typepointofsale').val(obj.type).trigger('change');
+                }
+            });
+        }
+        !function () {
         // Create dataset used to populate the ITS and Consultant dropdown
         var its_data = [
                 { "id": -1, "desc": "---", "parent": undefined }
                 {% for rel in its_rels %}
-                    ,{ "id": {{ rel.its.id }}, "desc": "{{ rel.its.first_name }} {{ rel.its.last_name }}", "parent": {{ rel.district.id }} }
+                    ,{ "id": {{ rel.its.id }}, "desc": "{{ rel.its.first_name }} {{ rel.its.last_name }} {% if rel.its.email %}({{ rel.its.email}}){% endif %}", "parent": {{ rel.district.id }} }
                 {% endfor %}
             ],
             consultant_data = [
                 { "id": -1, "desc": "---", "parent": undefined }
                 {% for rel in consultant_rels %}
                     ,{ "id": "{{ rel.consultant.code }}", "desc": "{{ rel.consultant.name }} {{ rel.consultant.surname }}", "parent": {{ rel.its.id }} }
+                {% endfor %}
+            ],
+            company_data = [
+                { "id": -1, "desc": "---", "type": -1, "province": -1, "address": "" }
+                {% for c in companies %}
+                    ,{ "id": {{ c.vat }}, "code": "{{ c.company_code }}", "desc": "{{ c.company_code }} - {{ c.name }}", "type": {% if c.type %}{{ c.type.id }}{% else %}-1{% endif %}, "province": {{ c.province.id }}, "address": "{{ c.street }}, {{ c.civic }} {{ c.city }} ({{ c.province.code }})" }
                 {% endfor %}
             ],
             district_id, its_id, consultant_id;
@@ -440,6 +454,9 @@
             if (typeof listName === "undefined" || listName === "consultant") {
                 consultant_id = $("#lst-consultant option:selected").val();
             }
+            if (typeof listName === "undefined" || listName === "company") {
+                company_id = parseInt($("#lst-companies option:selected").val());
+            }
         }
 
         // Function used to refresh the drop down based on a parent_id
@@ -449,7 +466,7 @@
 
             // Loop though the data and create new dropdown items.  id of -1 is always shown
             $.each(data, function (index, obj) {
-                if (obj.id === -1 || obj.parent === parent_id ) {
+                if (parent_id === -1 || obj.id === -1 || obj.parent === parent_id) {
                     list.append('<option value="' + obj.id + '" >' + obj.desc + '</option>');
                 }
             });
@@ -469,12 +486,18 @@
             refreshList($("#lst-consultant"), consultant_data, its_id);
         });
 
+        $("#lst-companies").change(function () {
+            readLists("company");
+            updatePointOfSale(company_data, company_id);
+        });
+
 
         // Populate Dropdown based on value from querystring.  Querystring value are read in server.
         $("document").ready(function () {
             var district_id = {{ district_id }},
                 its_id = {{ its_id }},
-                consultant_id = "{{ consultant_id }}";
+                consultant_id = "{{ consultant_id }}",
+                company_id = -1;
 
 
             if (district_id !== -1) {
@@ -490,6 +513,8 @@
             if (consultant_id !== -1) {
                 $("#lst-consultant").val(consultant_id);
             }
+
+            refreshList($("#lst-companies"), company_data, -1);
 
         });
     }();

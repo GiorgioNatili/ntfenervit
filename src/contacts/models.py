@@ -36,9 +36,10 @@ class Company(models.Model):
     city = models.CharField(max_length=100, blank=False, null=True, verbose_name='Comune')
     province = models.ForeignKey('contacts.Province', blank=False, null=True)
     company_code = models.CharField(max_length=10, blank=True, null=True, verbose_name='Codice Azienda')
+    type = models.ForeignKey('campaigns.PointOfSaleType', blank=True, null=True, verbose_name="Tipologia Azienda", on_delete=models.SET_NULL)
 
     def __unicode__(self):
-        return '%s - %s (%s)' % (self.name, self.city, self.province.code)
+        return '%s - %s - %s (%s)' % (self.company_code, self.name, self.city, self.province.code)
 
     class Meta:
         verbose_name = "Azienda"

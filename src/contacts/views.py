@@ -11,7 +11,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.forms import ModelForm, forms
 from xlrd import open_workbook,cellname
 
-from campaigns.models import NewsletterTarget, EventSignup, ITSRelConsultant
+from campaigns.models import NewsletterTarget, EventSignup, ITSRelConsultant, PointOfSaleType
 from survey.models import Submission, Answer
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import user_passes_test
@@ -73,6 +73,7 @@ def view_add_company(request):
     c = {}
     c.update(csrf(request))
     provinces = Province.objects.all()
+    types = PointOfSaleType.objects.all()
     form = CompanyForm()
     if request.method == 'POST':
         form = CompanyForm(request.POST)
@@ -85,7 +86,7 @@ def view_add_company(request):
                 return HttpResponseRedirect('/admin/contacts/company')
         else:
             messages.error(request, 'Errore durante inserimento nuova azienda')
-    c = {'form': form, 'provinces': provinces}
+    c = {'form': form, 'provinces': provinces, 'types': types}
     return render_to_response('admin/contacts/view_add_company.html', c, context_instance=RequestContext(request))
 
 
@@ -93,6 +94,7 @@ def view_add_company(request):
 def view_company_details(request, id):
     company = get_object_or_404(Company, vat=id)
     provinces = Province.objects.all()
+    types = PointOfSaleType.objects.all()
     form = CompanyForm()
     if request.method == 'POST':
         form = CompanyForm(request.POST, instance=company)
@@ -104,7 +106,7 @@ def view_company_details(request, id):
         else:
             messages.error(request, 'Errore durante inserimento nuova azienda')
     return render_to_response('admin/contacts/view_company_details.html',
-                              {'company': company, 'provinces': provinces, 'form': form},
+                              {'company': company, 'types': types, 'provinces': provinces, 'form': form},
                               context_instance=RequestContext(request))
 
 
