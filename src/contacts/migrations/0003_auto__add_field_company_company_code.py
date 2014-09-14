@@ -10,7 +10,7 @@ class Migration(SchemaMigration):
     def forwards(self, orm):
         # Adding field 'Company.company_code'
         db.add_column(u'contacts_company', 'company_code',
-                      self.gf('django.db.models.fields.CharField')(max_length=100, null=True, blank=True),
+                      self.gf('django.db.models.fields.CharField')(max_length=10, null=True, blank=True),
                       keep_default=False)
 
 
@@ -60,7 +60,7 @@ class Migration(SchemaMigration):
             'Meta': {'object_name': 'Company'},
             'city': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True'}),
             'civic': ('django.db.models.fields.CharField', [], {'max_length': '5', 'blank': 'True'}),
-            'company_code': ('django.db.models.fields.CharField', [], {'max_length': '100', 'null': 'True', 'blank': 'True'}),
+            'company_code': ('django.db.models.fields.CharField', [], {'max_length': '10', 'null': 'True', 'blank': 'True'}),
             'email': ('django.db.models.fields.EmailField', [], {'max_length': '75', 'unique': 'True', 'null': 'True', 'blank': 'True'}),
             'name': ('django.db.models.fields.CharField', [], {'unique': 'True', 'max_length': '100'}),
             'province': ('django.db.models.fields.related.ForeignKey', [], {'to': u"orm['contacts.Province']", 'null': 'True'}),

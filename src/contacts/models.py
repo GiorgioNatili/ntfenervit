@@ -35,10 +35,10 @@ class Company(models.Model):
     civic = models.CharField(max_length=5, blank=True, verbose_name='Civico', error_messages={'max_length':"Civico non valido. Massimo 5 cifre"})
     city = models.CharField(max_length=100, blank=False, null=True, verbose_name='Comune')
     province = models.ForeignKey('contacts.Province', blank=False, null=True)
-    company_code = models.CharField(max_length=100, blank=True, null=True, verbose_name='Codice Azienda')
+    company_code = models.CharField(max_length=10, blank=True, null=True, verbose_name='Codice Azienda')
 
     def __unicode__(self):
-        return '%s' % self.name
+        return '%s - %s (%s)' % (self.name, self.city, self.province.code)
 
     class Meta:
         verbose_name = "Azienda"
