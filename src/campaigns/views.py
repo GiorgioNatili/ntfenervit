@@ -21,11 +21,12 @@ from django.utils.encoding import smart_str
 from xlrd import open_workbook
 from django.contrib.auth.decorators import user_passes_test
 from django.views.decorators.csrf import csrf_exempt
-from backend.utils import get_its_users, can_handle_events, is_its
+from backend.utils import get_its_users
 from campaigns.models import Campaign, Newsletter, Event, Image, NewsletterTemplate, NewsletterAttachment, \
     NewsletterTarget, NewsletterSchedulation, EventSignup, EventPayment, AreaManager, Channel, Theme, Goal, \
-    PointOfSaleType, EventCoupon, EventType, ProductGroup, District
-from contacts.models import Contact, Sector, Work, Province
+    PointOfSaleType, EventCoupon, EventType, ProductGroup, District, is_its, can_handle_events, \
+    ITSRelDistrict, ITSRelConsultant
+from contacts.models import Contact, Sector, Work, Province, Company
 from cabinet.models import EventFile
 
 
@@ -704,6 +705,25 @@ def view_export_signup_by_event(request, eventid):
 
 # @staff_member_required
 # @user_passes_test(is_controller)
+def _prepare_event_form():
+    form = EventForm()
+    campaigns = Campaign.objects.all()
+    its_users = get_its_users()
+    consultants = Contact.objects.filter(type='C')
+    districts = District.objects.all()
+    consultant_rels = ITSRelConsultant.objects.all()
+    its_rels = ITSRelDistrict.objects.all()
+    areamanager = AreaManager.objects.all()
+    eventtype = EventType.objects.filter(selectable=True)
+    channel = Channel.objects.all()
+    theme = Theme.objects.all()
+    pointofsaletype = PointOfSaleType.objects.all()
+    province = Province.objects.all()
+    companies = Company.objects.all()
+    its_id = district_id = consultant_id = -1
+    return areamanager, campaigns, channel, companies, consultant_id, consultant_rels, consultants, district_id, districts, eventtype, form, its_id, its_rels, its_users, pointofsaletype, province, theme
+
+
 def view_add_event(request):
     c = {}
     from_its = False
@@ -716,16 +736,12 @@ def view_add_event(request):
         else:
             return redirect('/admin')
     c.update(csrf(request))
-    form = EventForm()
-    campaigns = Campaign.objects.all()
-    its_users = get_its_users()
-    consultants = Contact.objects.filter(type='C')
-    areamanager = AreaManager.objects.all()
-    eventtype = EventType.objects.filter(selectable=True)
-    channel = Channel.objects.all()
-    theme = Theme.objects.all()
-    pointofsaletype = PointOfSaleType.objects.all()
-    province = Province.objects.all()
+
+    areamanager, campaigns, channel, companies, \
+        consultant_id, consultant_rels, consultants, \
+        district_id, districts, eventtype, form, its_id, \
+        its_rels, its_users, pointofsaletype, province, theme = _prepare_event_form()
+
     if request.method == 'POST':
         form = EventForm(request.POST)
         if form.is_valid():
@@ -737,16 +753,17 @@ def view_add_event(request):
                         destination.write(chunk)
                 new_event.emailattachment = my_file.name
                 new_event.save()
+            messages.success(request, 'Aggiunto Evento \"' + new_event.date.strftime("%d-%m-%Y") + '\"')
             if '_addanother' in request.POST:
                 form = EventForm()
             else:
-                messages.success(request, 'Aggiunto Evento \"' + new_event.date.strftime("%d-%m-%Y") + '\"')
                 return HttpResponseRedirect('/admin/campaigns/event')
     c = {'form': form, 'province': province, 'campaigns': campaigns,
          'its_users': its_users, 'consultants': consultants, 'from_its': from_its,
-         # 'district':district,
-         'areamanager': areamanager, 'eventtype': eventtype,
-         'channel': channel, 'theme': theme, 'pointofsaletype': pointofsaletype}
+         'districts': districts, 'consultant_rels': consultant_rels, 'its_rels': its_rels,
+         'areamanager': areamanager, 'eventtype': eventtype, 'companies': companies,
+         'channel': channel, 'theme': theme, 'pointofsaletype': pointofsaletype,
+         'its_id': its_id, 'district_id': district_id, 'consultant_id': consultant_id}
     return render_to_response('admin/campaigns/view_add_event.html', c, context_instance=RequestContext(request))
 
 
@@ -766,19 +783,24 @@ def view_event_details(request, id):
         else:
             return redirect('/admin')
 
-    form = EventForm()
-    campaigns = Campaign.objects.all()
-    its_users = get_its_users()
-    consultants = Contact.objects.filter(type='C')
-    areamanager = AreaManager.objects.all()
-    eventtype = EventType.objects.filter(selectable=True)
-    channel = Channel.objects.all()
-    theme = Theme.objects.all()
-    pointofsaletype = PointOfSaleType.objects.all()
-    province = Province.objects.all()
+    areamanager, campaigns, channel, companies, consultant_id, \
+        consultant_rels, consultants, district_id, districts, \
+        eventtype, form, its_id, its_rels, its_users, \
+        pointofsaletype, province, theme = _prepare_event_form()
+    consultant_id = event.consultant.code if event.consultant else '-1'
+    its_id = event.its_districtmanager.id
+    district_id = ITSRelDistrict.objects.filter(its=event.its_districtmanager)[0].district.id
+
     eventfiles = EventFile.objects.filter(event=event)
     if request.method == 'POST':
+        post_cons_id = request.POST.get('consultant')
+        if post_cons_id:
+            consultant_id = post_cons_id
+            if post_cons_id == '-1':
+                request.POST['consultant'] = ''
+
         form = EventForm(request.POST, instance=event)
+
         if form.is_valid():
             new_event = form.save(commit=False)
             new_event.save()
@@ -797,15 +819,14 @@ def view_event_details(request, id):
             if from_its and is_its(request.user):
                 return HttpResponseRedirect('/admin/its/agenda/')
             return HttpResponseRedirect('/admin/campaigns/event/' + id)
+    c = {'event': event, 'eventfiles': eventfiles, 'form': form, 'province': province,
+         'campaigns': campaigns, 'consultants': consultants, 'from_its': from_its,
+         'districts': districts, 'consultant_rels': consultant_rels, 'its_rels': its_rels,
+         'areamanager': areamanager, 'eventtype': eventtype, 'companies': companies,
+         'channel': channel, 'theme': theme, 'pointofsaletype': pointofsaletype,
+         'its_id': its_id, 'district_id': district_id, 'consultant_id': consultant_id}
     return render_to_response('admin/campaigns/view_event_details.html',
-                              {'event': event, 'from_its': from_its, 'form': form,
-                               'campaigns': campaigns, 'province': province,
-                               # 'district': district,
-                               'its_users': its_users, 'consultants': consultants,
-                               'areamanager': areamanager, 'eventtype': eventtype,
-                               'channel': channel, 'theme': theme, 'pointofsaletype': pointofsaletype,
-                               'eventfiles': eventfiles},
-                              context_instance=RequestContext(request))
+                              c, context_instance=RequestContext(request))
 
 
 @staff_member_required
@@ -960,7 +981,7 @@ def view_eventlist_rest(request):
         target['title'] = e.description
         if e.title:
             target['title'] = e.title
-        target['campaign'] = e.campaign.name
+        target['campaign'] = e.campaign.name if e.campaign else None
         target['url'] = '/admin/campaigns/event/' + str(e.id)
         if e.is_its:
             target['url'] += '?from_its=1'
@@ -1934,20 +1955,18 @@ def search_newsletter_export(request):
 
 @staff_member_required
 def search_event(request):
+
+    areamanagers, campaigns, channels, companies, \
+        consultant_id, consultant_rels, consultants, \
+        district_id, districts, eventtypes, form, its_id, \
+        its_rels, its, pointofsaletypes, province, themes = _prepare_event_form()
+
     form = EventSearchForm(request.GET)
-    its = get_its_users()
-    areamanagers = AreaManager.objects.all()
-    themes = Theme.objects.all()
-    pointofsaletypes = PointOfSaleType.objects.all()
-    eventtypes = EventType.objects.filter(selectable=True)
-    channels = Channel.objects.all()
-    campaigns = Campaign.objects.all()
-    province = Province.objects.all()
 
     results = []
-    if request.GET.has_key('q'):
-        if request.GET.has_key('max_results'):
-            results = form.search()[:request.GET.get('max_results')]
+    if request.GET.get('q'):
+        if request.GET.get('max_results'):
+            results = form.search()[:request.GET['max_results']]
         else:
             results = form.search()
     events = None
@@ -1963,6 +1982,7 @@ def search_event(request):
         'events': events,
         'form': form,
         'its': its,
+        'districts': districts, 'consultant_rels': consultant_rels, 'its_rels': its_rels,
         'areamanagers': areamanagers,
         'themes': themes,
         'pointofsaletypes': pointofsaletypes,
@@ -1970,6 +1990,7 @@ def search_event(request):
         'channels': channels,
         'campaigns': campaigns,
         'provinces': province,
+        'its_id': its_id, 'district_id': district_id, 'consultant_id': consultant_id,
     }, context_instance=RequestContext(request))
 
 

@@ -1,10 +1,11 @@
 from django.db.models import Q
 from django.template import RequestContext
-from backend.utils import is_its, is_backend_admin
+from backend.utils import is_backend_admin
 from django.shortcuts import render_to_response
 from django.http import HttpResponse
 from django.contrib.auth.decorators import user_passes_test
 
+from campaigns.models import is_its
 import xlwt
 
 from campaigns.models import Event, District, ITSRelDistrict, ITSRelConsultant
@@ -28,7 +29,6 @@ def view_eventlist(request):
                               context_instance=RequestContext(request))
 
 
-
 def view_eventlist_rest(request):
     user = request.user
     events = Event.objects.filter(Q(visible_for_its=True) | Q(owner=user) | Q(its_districtmanager=user))
@@ -41,7 +41,7 @@ def view_eventlist_rest(request):
         target['title'] = e.description
         if e.title:
             target['title'] = e.title
-        target['campaign'] = e.campaign.name
+        target['campaign'] = e.campaign.name if e.campaign else None
         target['url'] = '/admin/campaigns/event/'+str(e.id)
         if e.owner == user:
             target['url'] += '?from_its=1'
@@ -49,7 +49,7 @@ def view_eventlist_rest(request):
             target['color'] = 'white'
             target['borderColor'] = 'yellow'
         elif e.its_districtmanager == user:
-            # these events appears on the its_districtmanager user agenda
+            # these events appears on the its user agenda
             # but they were created by admins
             # and assigned to them as public events
             target['color'] = 'black'

@@ -169,11 +169,11 @@ urlpatterns = patterns('',
     url(r'^admin/rest/counter','campaigns.views.view_rest_counter'),
 
     url(r'^admin/cabinet/', include('cabinet.urls')),
-    url(r'^admin/its/agenda', 'campaigns.views_its.its.view_agenda'),
-    url(r'^admin/its/report/$', 'campaigns.views_its.its.view_its_report_its_section'),
-    url(r'^admin/its/report/(\d+)$', 'campaigns.views_its.its.view_its_report_its_section'),
-    url(r'^admin/its/event', 'campaigns.views_its.its.view_eventlist'),
-    url(r'^admin/its/rest/eventslist', 'campaigns.views_its.its.view_eventlist_rest'),
+    url(r'^admin/its/agenda', 'campaigns.its.views.view_agenda'),
+    url(r'^admin/its/report/$', 'campaigns.its.views.view_its_report_its_section'),
+    url(r'^admin/its/report/(\d+)$', 'campaigns.its.views.view_its_report_its_section'),
+    url(r'^admin/its/event', 'campaigns.its.views.view_eventlist'),
+    url(r'^admin/its/rest/eventslist', 'campaigns.its.views.view_eventlist_rest'),
     # Uncomment the admin/doc line below to enable admin documentation:
     #url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 

@@ -1,13 +1,12 @@
 import datetime
+
 from django.db import models
-from django.utils.translation import ugettext_lazy as _
 from redactor.fields import RedactorField
+from django.contrib.auth.models import User, AnonymousUser
 
-from django.contrib.auth.models import User
-from contacts.models import Contact
-
-from backend.utils import is_its as is_its_util
 # Create your models here.
+from backend.utils import is_backend_admin
+from contacts.models import Contact
 
 CAMPAIGN_STATUS = (
     ('A', 'Attiva'),
@@ -232,29 +231,27 @@ class Event(models.Model):
     its_districtmanager = models.ForeignKey(User, blank=True, null=True,
                                             verbose_name="District ITS Manager", on_delete=models.SET_NULL,
                                             related_name='my_its_events')
-    #TODO to plan a task for populate its_districtmanager
-    # (see setup/tasks/domenico_migrations.md document)
 
     owner = models.ForeignKey(User, blank=True, null=True, verbose_name="Creator of the event",
                               on_delete=models.SET_NULL, related_name='my_owned_events')
 
     visible_for_its = models.BooleanField(verbose_name="Pubblica evento sulle agende ITS", blank=False, default=True)
 
-    pointofsale = models.CharField(max_length=6,blank=True,null=True,verbose_name="Codice Punto Vendita")
+    pointofsale = models.CharField(max_length=10, blank=True,null=True,verbose_name="Codice Punto Vendita")
     pointofsaledescription = models.CharField(max_length=250,blank=True,null=True,verbose_name="Nominativo Punto Vendita")
     typepointofsale = models.ForeignKey('campaigns.PointOfSaleType',blank=True,null=True,verbose_name="Tipologia Punto Vendita",on_delete=models.SET_NULL)
-    channel = models.ForeignKey('campaigns.Channel',blank=True,null=True,verbose_name="Canale",on_delete=models.SET_NULL)
-    eventtype = models.ForeignKey('campaigns.EventType',blank=True,null=True,verbose_name="Tipologia Evento",on_delete=models.SET_NULL)
-    theme = models.ForeignKey('campaigns.Theme',blank=True,null=True,verbose_name="Tema Evento",on_delete=models.SET_NULL)
+    channel = models.ForeignKey('campaigns.Channel', blank=True,null=True,verbose_name="Canale",on_delete=models.SET_NULL)
+    eventtype = models.ForeignKey('campaigns.EventType', blank=True,null=True,verbose_name="Tipologia Evento",on_delete=models.SET_NULL)
+    theme = models.ForeignKey('campaigns.Theme', blank=True, null=True,verbose_name="Tema Evento",on_delete=models.SET_NULL)
 
     #TODO drop this field  - will be replaced by consultant (after population of consultant)
     trainer = models.CharField(max_length=250,blank=True, null=True, verbose_name="Relatore")
     #TODO to plan a task for populate consultant
     consultant = models.ForeignKey('contacts.Contact', blank=True, null=True, verbose_name="Relatore")
 
-    feedback = models.SmallIntegerField(blank=True,null=True,verbose_name="Valutazione Evento")
-    feedback_note = models.CharField(max_length=500,blank=True,null=True,verbose_name="Feedback Evento")
-    population = models.IntegerField(blank=True,null=True,verbose_name="Numero di partecipanti")
+    feedback = models.SmallIntegerField(blank=True, null=True,verbose_name="Valutazione Evento")
+    feedback_note = models.CharField(max_length=500, blank=True,null=True,verbose_name="Feedback Evento")
+    population = models.IntegerField(blank=True,null=True, verbose_name="Numero di partecipanti")
     signups_enabled = models.BooleanField(verbose_name="Iscrizioni permesse lato frontend",blank=True,default=False)
 
     def __unicode__(self):
@@ -268,7 +265,7 @@ class Event(models.Model):
     def is_its(self):
         if not self.owner:
             return False
-        return is_its_util(self.owner) and not self.is_public
+        return is_its(self.owner) and not self.is_public
 
     @property
     def is_consultant_led(self):
@@ -353,6 +350,7 @@ class ProductGroup(models.Model):
 # District > ITS > Consultant
 # ###########################
 
+
 class District(models.Model):
     description = models.CharField(max_length=200, blank=True, null=True, verbose_name='Distretto')
     district_manager = models.ForeignKey(User, null=True)
@@ -367,11 +365,35 @@ class District(models.Model):
         else:
             return None
 
-class ITSRelDistrict(models.Model):
-    its = models.ForeignKey(User, primary_key=True)
-    district = models.ForeignKey(District)
+    def __str__(self):
+        return "%s (%s)" % (self.description, self.district_manager_displayname())
 
 
 class ITSRelConsultant(models.Model):
     consultant = models.ForeignKey(Contact)
     its = models.ForeignKey(User)
+
+
+class ITSRelDistrict(models.Model):
+    its = models.ForeignKey(User, primary_key=True)
+    district = models.ForeignKey(District)
+
+
+def is_its(user):
+
+    """
+    :param user:
+    :return: Boolean
+    """
+    if not isinstance(user, AnonymousUser):
+        its_user_district = ITSRelDistrict.objects.filter(its=user)
+        if its_user_district:
+            return True
+    return False
+
+
+def can_handle_events(user, e=None, new=False, from_its=False):
+    res = is_backend_admin(user) \
+        or (e is not None and e.owner is not None and e.owner == user and from_its) \
+        or (is_its(user) and new and from_its)
+    return res

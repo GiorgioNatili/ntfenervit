@@ -26,6 +26,7 @@
                             <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
                                 <thead>
                                 <tr>
+                                    <th><div>Codice</div></th>
                                     <th><div>Denominazione</div></th>
                                     <th><div>P.Iva</div></th>
                                     <th><div>Email</div></th>
@@ -36,6 +37,7 @@
                                 <tbody>
                                 {% for company in companies %}
                                    <tr>
+                                   <td>{{ company.company_code }}</td>
                                    <td>{{ company.name }}</td>
                                    <td>{{ company.vat }}</td>
                                    <td>{{ company.email }}</td>

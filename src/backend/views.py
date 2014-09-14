@@ -1,20 +1,17 @@
 # Create your views here.
 
 from django.contrib import messages
-from django.contrib.messages import get_messages
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import *
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect
 from django.core.context_processors import csrf
 from django.contrib.admin.views.decorators import staff_member_required
-from django.forms import ModelForm,forms
 from django.contrib.auth.models import User,Group,Permission
 from django.contrib.auth.decorators import user_passes_test
-from django.forms import ModelForm,forms
-from django.forms.util import ErrorList
-
-from contacts.models import Contact
+from django.forms import ModelForm
 from campaigns.models import District, ITSRelDistrict
+from contacts.models import Contact
+
 
 ITS_GROUP_ID = 4
 

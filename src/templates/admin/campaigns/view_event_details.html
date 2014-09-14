@@ -143,28 +143,22 @@
                            class="validate[required]" value="{{ event.title }}"/>
                 </li>
                 <li>
-                    <label>ITS</label>
-                    <select class="chzn-select" name="its_districtmanager">
-                        <option>---</option>
-
-                        {% for pos in its_users %}
-                            <option value="{{ pos.id }}" {% if pos.id == event.its_districtmanager.id %}
-                                    selected="selected"{% endif %}>{{ pos.first_name }} {{ pos.last_name }}
-                                {% if pos.email %}({{ pos.email }}){% endif %}
-                            </option>
+                    <label>Distretto ITS</label>
+                    <select class="chzn-select" id="lst-district" name="district" >
+                        {% for d in districts %}
+                            <option value="{{ d.id }}" {% if d.id == form.instance.district.id %} selected="selected"{% endif %}>{{ d }}</option>
                         {% endfor %}
+                    </select>
+                </li>
+                <li>
+                    <label>ITS</label>
+                    <select class="chzn-select" name="its_districtmanager" id="lst-its">
 
                     </select>
                 </li>
                 <li>
                     <label>Consulente</label>
-                    <select class="chzn-select" name="consultant">
-                        <option value="">---</option>
-                        {% for c in consultants %}
-                            <option value="{{ c.code }}" {% if c.code == event.consultant.code %}
-                                    selected="selected"{% endif %}>{{ c }} ({{ c.email }})
-                            </option>
-                        {% endfor %}
+                    <select class="chzn-select" name="consultant" id="lst-consultant">
                     </select>
                 </li>
                 <li>
@@ -198,6 +192,11 @@
         <div class="span6">
             <ul class="padded separate-sections">
                 <li>
+                    <label>Anagrafica Aziende</label>
+                    <select class="chzn-select" name="company" id="lst-companies">
+                    </select>
+                </li>
+                <li>
                     <label>Codice Punto Vendita</label>
                     {{ form.pointofsale.errors }}
                     <input type="text" name="pointofsale" id="pointofsale" placeholder="Codice Punto Vendita"
@@ -206,7 +205,8 @@
                 <li>
                     {{ form.typepointofsale.errors }}
                     <label>Tipologia Punto Vendita</label>
-                    <select class="chzn-select" name="typepointofsale">
+                    <select class="chzn-select" id="lst-typepointofsale" name="typepointofsale">
+                        <option value="">---</option>
                         {% for pos in pointofsaletype %}
                             <option value="{{ pos.id }}" {% if pos.id == event.typepointofsale.id %}
                                     selected="selected"{% endif %}>{{ pos }}</option>
@@ -215,7 +215,7 @@
                 </li>
                 <li>
                     <label>Provincia</label>
-                    <select class="chzn-select" name="province">
+                    <select class="chzn-select" id="lst-provinces" name="province">
                         {% for pos in province %}
                             <option value="{{ pos.id }}" {% if pos.id == event.province.id %}
                                     selected="selected"{% endif %}>{{ pos }}</option>
@@ -236,7 +236,7 @@
                 </li>
                 <li>
                     <label>Indirizzo e Località</label>
-                    <textarea form="event_form" rows="4" cols="50" name="place" class="validate[required]"
+                    <textarea form="event_form" rows="4" cols="50" name="place" id="place" class="validate[required]"
                               data-prompt-position="topLeft" placeholder="Sede">{{ event.place }}</textarea>
                 </li>
 
@@ -331,7 +331,7 @@
                             abilitate</label>
                     </li>
                     <li>
-                        <input checked type="checkbox" class="icheck" id="visible_for_its" name="visible_for_its"
+                        <input type="checkbox" class="icheck" id="visible_for_its" name="visible_for_its"
                                {% if event.visible_for_its == True %}checked{% endif %}/>
                         <label for="visible_for_its" class="" style="margin-right:10px;">Pubblica evento sulle agende
                             ITS</label>
@@ -535,4 +535,123 @@
             });
         });
     </script>
+
+    <script>
+    function updatePointOfSale(data, company_id) {
+            $('#pointofsale').val('');
+            $('#pointofsaledescription').val('');
+            $('#place').val('');
+            $('#lst-provinces').val('').trigger('change');
+            $('#lst-typepointofsale').val('').trigger('change');
+
+            $.each(data, function (index, obj) {
+
+                if (obj.id === company_id) {
+                    $('#pointofsale').val(obj.code);
+                    $('#pointofsaledescription').val(obj.desc);
+                    $('#place').val(obj.address);
+                    $('#lst-provinces').val(obj.province).trigger('change');
+                    $('#lst-typepointofsale').val(obj.type).trigger('change');
+                }
+            });
+        }
+        !function () {
+        // Create dataset used to populate the ITS and Consultant dropdown
+        var its_data = [
+                { "id": -1, "desc": "---", "parent": undefined }
+                {% for rel in its_rels %}
+                    ,{ "id": {{ rel.its.id }}, "desc": "{{ rel.its.first_name }} {{ rel.its.last_name }} {% if rel.its.email %}({{ rel.its.email}}){% endif %}", "parent": {{ rel.district.id }} }
+                {% endfor %}
+            ],
+            consultant_data = [
+                { "id": -1, "desc": "---", "parent": undefined }
+                {% for rel in consultant_rels %}
+                    ,{ "id": "{{ rel.consultant.code }}", "desc": "{{ rel.consultant.name }} {{ rel.consultant.surname }}", "parent": {{ rel.its.id }} }
+                {% endfor %}
+            ],
+            company_data = [
+                { "id": -1, "desc": "---", "type": -1, "province": -1, "address": "" }
+                {% for c in companies %}
+                    ,{ "id": {{ c.vat }}, "code": "{{ c.company_code }}", "desc": "{{ c.company_code }} - {{ c.name }}", "type": {% if c.type %}{{ c.type.id }}{% else %}-1{% endif %}, "province": {{ c.province.id }}, "address": "{{ c.street }}, {{ c.civic }} {{ c.city }} ({{ c.province.code }})" }
+                {% endfor %}
+            ],
+            district_id, its_id, consultant_id;
+
+        // Populate selected fields
+        function readLists(listName) {
+            if (typeof listName === "undefined" || listName === "district") {
+                district_id = parseInt($("#lst-district option:selected").val());
+            }
+            if (typeof listName === "undefined" || listName === "its") {
+                its_id = parseInt($("#lst-its option:selected").val());
+            }
+            if (typeof listName === "undefined" || listName === "consultant") {
+                consultant_id = $("#lst-consultant option:selected").val();
+            }
+            if (typeof listName === "undefined" || listName === "company") {
+                company_id = parseInt($("#lst-companies option:selected").val());
+            }
+        }
+
+        // Function used to refresh the drop down based on a parent_id
+        function refreshList(list, data, parent_id) {
+            // Clear all drop down items
+            list.find('option').remove();
+
+            // Loop though the data and create new dropdown items.  id of -1 is always shown
+            $.each(data, function (index, obj) {
+                if (parent_id === -1 || obj.id === -1 || obj.parent === parent_id) {
+                    list.append('<option value="' + obj.id + '" >' + obj.desc + '</option>');
+                }
+            });
+
+            list.trigger('change');
+        }
+
+        $("#lst-district").change(function () {
+            readLists("district");
+            refreshList($("#lst-its"), its_data, district_id);
+            // Invoke the change in consultant dropdown
+            $("#lst-its").change();
+        });
+
+        $("#lst-its").change(function () {
+            readLists("its");
+            refreshList($("#lst-consultant"), consultant_data, its_id);
+        });
+
+        $("#lst-companies").change(function () {
+            readLists("company");
+            if (company_id !== -1)
+                updatePointOfSale(company_data, company_id);
+        });
+
+
+        // Populate Dropdown based on value from querystring.  Querystring value are read in server.
+        $("document").ready(function () {
+            var district_id = {{ district_id }},
+                its_id = {{ its_id }},
+                consultant_id = "{{ consultant_id }}",
+                company_id = -1;
+
+
+            if (district_id !== -1) {
+                $("#lst-district").val(district_id);
+            }
+            $("#lst-district").change();
+
+            if (its_id !== -1) {
+                $("#lst-its").val(its_id);
+                $("#lst-its").change();
+            }
+
+            if (consultant_id !== -1) {
+                $("#lst-consultant").val(consultant_id);
+            }
+
+            refreshList($("#lst-companies"), company_data, -1);
+
+        });
+    }();
+</script>
 {% endblock %}

@@ -32,12 +32,14 @@ class Company(models.Model):
     vat = models.CharField(primary_key=True, max_length=20, blank=False, null=False, verbose_name='P.Iva', unique=True, error_messages={'unique':"P.Iva presente gia' in anagrafica"})
     email = models.EmailField(blank=True, null=True, verbose_name='Email', unique=True,error_messages={'unique':"Email gia' presente in anagrafica"})
     street = models.CharField(max_length=100, blank=False, null=True, verbose_name='Via')
-    civic = models.CharField(max_length=5, blank=True, verbose_name='Civico',error_messages={'max_length':"Civico non valido. Massimo 5 cifre"})
+    civic = models.CharField(max_length=5, blank=True, verbose_name='Civico', error_messages={'max_length':"Civico non valido. Massimo 5 cifre"})
     city = models.CharField(max_length=100, blank=False, null=True, verbose_name='Comune')
     province = models.ForeignKey('contacts.Province', blank=False, null=True)
+    company_code = models.CharField(max_length=10, blank=True, null=True, verbose_name='Codice Azienda')
+    type = models.ForeignKey('campaigns.PointOfSaleType', blank=True, null=True, verbose_name="Tipologia Azienda", on_delete=models.SET_NULL)
 
     def __unicode__(self):
-        return '%s' % self.name
+        return '%s - %s - %s (%s)' % (self.company_code, self.name, self.city, self.province.code)
 
     class Meta:
         verbose_name = "Azienda"
@@ -172,7 +174,6 @@ class Payment(models.Model):
 
 class Contact(models.Model):
 
-    #TODO to add a new field ContactType
     type = models.CharField(max_length=1, choices=CONTACT_TYPE, default='N', verbose_name='Tipo Contatto')
 
     name = models.CharField(max_length=100, blank=False, null=False, verbose_name='Nome')
