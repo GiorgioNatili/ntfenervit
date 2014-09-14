@@ -1,6 +1,16 @@
-{% load humanize %}
+{% load humanize report_tags %}
 
-    <!-- REPORT: Stima Contatti Lordi -->
+    <style>
+        td.num_row {
+            text-align: right;
+        }
+
+        td.total_row {
+            font-weight: 600;
+        }
+    </style>
+
+    <!-- REPORT 1: Stima Contatti Lordi -->
     <div class="row-fluid">
         <div class="span12">
             <div class="box">
@@ -12,21 +22,28 @@
                         <table id="rpt-contacts" class="table table-hover">
                             <thead>
                                 <th>{{ rpt_consumer.fields.description }}</th>
-                                <th style="text-align: right">{{ rpt_consumer.fields.events }}</th>
-                                <th style="text-align: right">{{ rpt_consumer.fields.contacts }}</th>
-                                <th style="text-align: right">{{ rpt_consumer.fields.contact_to_customer }}</th>
-                                <th style="text-align: right">{{ rpt_consumer.fields.customers }}</th>
+                                <th class="num_row">{{ rpt_consumer.fields.events }}</th>
+                                <th class="num_row">{{ rpt_consumer.fields.contacts }}</th>
+                                <th class="num_row">{{ rpt_consumer.fields.contact_to_customer }}</th>
+                                <th class="num_row">{{ rpt_consumer.fields.customers }}</th>
                             </thead>
                             <tbody>
                             {% for row in rpt_consumer.rows %}
                                 <tr>
                                     <td>{{ row.description }}</td>
-                                    <td style="text-align: right">{{ row.events|floatformat:"0"|intcomma }}</td>
-                                    <td style="text-align: right">{{ row.contacts|floatformat:"0"|intcomma }}</td>
-                                    <td style="text-align: right">{{ row.contact_to_customer|floatformat:"1"|intcomma }}</td>
-                                    <td style="text-align: right">{{ row.customers|floatformat:"1"|intcomma }}</td>
+                                    <td class="num_row">{{ row.events|floatformat:"0"|intcomma }}</td>
+                                    <td class="num_row">{{ row.contacts|floatformat:"0"|intcomma }}</td>
+                                    <td class="num_row">{{ row.contact_to_customer|floatformat:"1"|intcomma }}</td>
+                                    <td class="num_row">{{ row.customers|floatformat:"1"|intcomma }}</td>
                                 </tr>
                             {% endfor %}
+                                <tr class="info">
+                                    <td class="total_row">TOTALE</td>
+                                    <td class="total_row num_row">{{ rpt_consumer.total.events|floatformat:"0"|intcomma }}</td>
+                                    <td class="total_row num_row">{{ rpt_consumer.total.contacts|floatformat:"0"|intcomma }}</td>
+                                    <td>&nbsp;</td>
+                                    <td class="total_row num_row">{{ rpt_consumer.total.customers|floatformat:"0"|intcomma }}</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -35,7 +52,7 @@
         </div>
     </div>
 
-    <!-- REPORT: Sintesi Numero Consumatori -->
+    <!-- REPORT 2: Sintesi Numero Consumatori -->
     <div class="row-fluid">
         <div class="span12">
             <div class="box">
@@ -47,27 +64,27 @@
                         <table id="rpt-sales" class="table table-hover">
                             <thead>
                                 <th>{{ rpt_consumer.fields.description }}</th>
-                                <th style="text-align: right">{{ rpt_consumer.fields.customers }}</th>
-                                <th style="text-align: right">{{ rpt_consumer.fields.customer_to_sale }}</th>
-                                <th style="text-align: right">{{ rpt_consumer.fields.sales }}</th>
+                                <th class="num_row">{{ rpt_consumer.fields.customers }}</th>
+                                <th class="num_row">{{ rpt_consumer.fields.customer_to_sale }}</th>
+                                <th class="num_row">{{ rpt_consumer.fields.sales }}</th>
                             </thead>
                             <tbody>
                             {% for row in rpt_consumer.rows %}
                                 <tr>
                                     <td>{{ row.description }}</td>
-                                    <td style="text-align: right">{{ row.customers|floatformat:"0"|intcomma }}</td>
-                                    <td style="text-align: right">{{ row.customer_to_sale|floatformat:"1"|intcomma }}%</td>
-                                    <td style="text-align: right">{{ row.sales|floatformat:"0"|intcomma }}</td>
+                                    <td class="num_row">{{ row.customers|floatformat:"0"|intcomma }}</td>
+                                    <td class="num_row">{{ row.customer_to_sale|format_percent:1|intcomma }}%</td>
+                                    <td class="num_row">{{ row.sales|floatformat:"0"|intcomma }}</td>
                                 </tr>
                             {% endfor %}
                             <tr class="info">
-                                <td><strong>TOTALE</strong></td>
-                                <td style="text-align: right"><strong>{{ rpt_consumer.total_customers|floatformat:"0"|intcomma }}</strong></td>
+                                <td class="total_row">TOTALE</td>
+                                <td class="total_row num_row">{{ rpt_consumer.total.customers|floatformat:"0"|intcomma }}</td>
                                 <td>&nbsp;</td>
-                                <td style="text-align: right"><strong>{{ rpt_consumer.total_sales|floatformat:"0"|intcomma }}</strong></td>
+                                <td class="total_row num_row">{{ rpt_consumer.total.sales|floatformat:"0"|intcomma }}</td>
                             </tr>
                             <tr>
-                                <td colspan="4" style="text-align: right">{{ rpt_consumer.pct_sales_to_customers|floatformat:"2"|intcomma }}%</td>
+                                <td colspan="4" class="total_row num_row">{{ rpt_consumer.pct_sales_to_customers|format_percent:2|intcomma }}%</td>
                             </tr>
                             </tbody>
                         </table>
@@ -90,10 +107,10 @@
                             <thead>
                                 <th>{{ rpt_revenue.fields.id }}</th>
                                 <th>{{ rpt_revenue.fields.description }}</th>
-                                <th>Consumatori</th>
-                                <th style="text-align: right">{{ rpt_revenue.fields.sell_in_alloc }}</th>
-                                <th style="text-align: right">{{ rpt_revenue.fields.sell_in_amount }}</th>
-                                <th style="text-align: right">{{ rpt_revenue.fields.revenue }}</th>
+                                <th>{{ rpt_revenue.fields.total_sales }}</th>
+                                <th class="num_row">{{ rpt_revenue.fields.sell_in_alloc }}</th>
+                                <th class="num_row">{{ rpt_revenue.fields.sell_in_amount }}</th>
+                                <th class="num_row">{{ rpt_revenue.fields.revenue }}</th>
                             </thead>
                             <tbody>
                             {% for row in rpt_revenue.rows %}
@@ -102,17 +119,17 @@
                                     <td>{{ row.description }}</td>
                                     {% if forloop.counter == 1 %}
                                     <td style="text-align: center; vertical-align: middle" rowspan="5">
-                                        <strong>{{ rpt_consumer.total_sales|floatformat:"0"|intcomma }}</strong>
+                                        <strong>{{ row.total_sales|floatformat:"0"|intcomma }}</strong>
                                     </td>
                                     {% endif %}
-                                    <td style="text-align: right">{{ row.sell_in_alloc|floatformat:"1"|intcomma }}%</td>
-                                    <td style="text-align: right">{{ row.sell_in_amount|floatformat:"2"|intcomma }} €</td>
-                                    <td style="text-align: right">{{ row.revenue|floatformat:"0"|intcomma }} €</td>
+                                    <td class="num_row">{{ row.sell_in_alloc|format_percent:1|intcomma }}%</td>
+                                    <td class="num_row">{{ row.sell_in_amount|floatformat:"2"|intcomma }} €</td>
+                                    <td class="num_row">{{ row.revenue|floatformat:"0"|intcomma }} €</td>
                                 </tr>
                             {% endfor %}
                                 <tr class="info">
-                                    <td colspan="5"><strong>TOTALE FATTURATO</strong></td>
-                                    <td style="text-align: right"><strong>{{ rpt_revenue.total_revenue|floatformat:"0"|intcomma }} €</strong></td>
+                                    <td colspan="5" class="total_row">TOTALE FATTURATO</td>
+                                    <td class="total_row num_row">{{ rpt_revenue.total.revenue|floatformat:"0"|intcomma }} €</td>
                                 </tr>
                             </tbody>
                         </table>

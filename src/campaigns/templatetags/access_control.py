@@ -4,7 +4,7 @@ from campaigns.models import is_its as is_its_util
 __author__ = 'dominik'
 
 from django import template
-from backend.utils import group, is_user_in_groups
+from backend.utils import group, is_user_in_groups, is_backend_admin
 register = template.Library()
 
 
@@ -22,3 +22,4 @@ def group_name(user_):
 register.filter('is_its', is_its)
 register.filter('is_group', is_group)
 register.filter('group', group_name)
+register.filter('is_backend_admin', is_backend_admin)

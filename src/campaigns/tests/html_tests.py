@@ -325,8 +325,10 @@ class ITSReportHTMLTestCase(BaseHTMLTestCase):
             'SEMINARIO', '3', '204', '1,0', '204,0',
             'ONE-TO-ONE', '2', '122', '1,0', '122,0',
             'FORMAZIONE A PUNTO VENDITA', '1', '105', '3,0', '315,0',
-            'INFORMAZIONE MEDICA', '1', '77', '8,0', '616,0'
+            'INFORMAZIONE MEDICA', '1', '77', '8,0', '616,0',
+            'TOTALE', '7', '508', u'\xa0', '1.257'
         ]
+
         self.assertEqual(result, result_expected)
 
     def test02_rpt_contacts(self):
@@ -340,7 +342,7 @@ class ITSReportHTMLTestCase(BaseHTMLTestCase):
             'ONE-TO-ONE', '122', '30,0%', '37',
             'FORMAZIONE A PUNTO VENDITA', '315', '30,0%', '95',
             'INFORMAZIONE MEDICA', '616', '40,0%', '246',
-            None, None, u'\xa0', None, '33,28%'
+            'TOTALE', '1.257', u'\xa0', '418', '33,28%'
         ]
         self.assertEqual(result, result_expected)
 
@@ -356,7 +358,7 @@ class ITSReportHTMLTestCase(BaseHTMLTestCase):
             '3', u'2 OMEGA 3 DA 120 CPS, 12 SNACK, 4 FROLLINI, VARIE PER 20€', '20,0%', u'87,14 €', u'7.290 €',
             '4', u'6 OMEGA 240, 4 MAQUI, 30 SNACK, 8 FROLLINI, VARIE PER 100€', '20,0%', u'487,25 €', u'40.763 €',
             '5', u'8 OMEGA 240, 6 MAQUI, 60 SNACK, 12 FROLLINI, VARIE PER 150€', '10,0%', u'698,30 €', u'29.210 €',
-            None, None]
+            'TOTALE FATTURATO', u'81.739 €']
 
         self.assertEqual(result, result_expected)
 

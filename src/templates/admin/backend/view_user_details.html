@@ -22,7 +22,7 @@
                                     <ul>
                                         {% for field, errors in form.errors.items %}
                                             {% for error in errors %}
-                                                <li>{{ field }} {{ error }}</li>
+                                                <li>{{ field }}: {{ error }}</li>
                                             {% endfor %}
 
                                         {% endfor %}
@@ -65,7 +65,7 @@
                                             </select>
                                         </li>
                                         <li id="lst_districts">
-                                            <label>Distretti:</label>
+                                            <label>Distretto:</label>
                                             <select id="district" class="uniform" name="district" >
                                                 <option value="-1" > --- </option>
                                                 {% for d in districts %}
@@ -126,23 +126,24 @@
     </div>
 
     <script>
-        /*
-         Show or hide District dropdown
-         */
-        function showHideDistrict() {
-            var group = $("#gruppo option:selected").val();
-            if (group === "{{ its_group_id }}") {
-                $("#lst_districts").show();
-            } else {
-                $("#lst_districts").hide();
+        !function () {
+            /*
+             Show or hide District dropdown
+             */
+            function showHideDistrict() {
+                var group = $("#gruppo option:selected").val();
+                if (group === "{{ its_group_id }}") {
+                    $("#lst_districts").show();
+                } else {
+                    $("#lst_districts").hide();
+                }
             }
-        }
-        $("#gruppo").on("change", showHideDistrict);
+            $("#gruppo").on("change", showHideDistrict);
 
-        $(document).on("ready",function(){
-            showHideDistrict();
-        });
-
+            $(document).on("ready",function(){
+                showHideDistrict();
+            });
+        }();
     </script>
 
 {% endblock %}

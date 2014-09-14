@@ -26,3 +26,6 @@ dist_test/
 src/media/cabinet/
 src/yellowPage/whoosh_index/
 
+# Ignore temp files
+**/test.py
+

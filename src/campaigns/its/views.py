@@ -1,10 +1,14 @@
 from django.db.models import Q
 from django.template import RequestContext
+from backend.utils import is_backend_admin
 from django.shortcuts import render_to_response
 from django.http import HttpResponse
 from django.contrib.auth.decorators import user_passes_test
 
-from campaigns.models import Event, District, ITSRelConsultant, ITSRelDistrict, is_its
+from campaigns.models import is_its
+import xlwt
+
+from campaigns.models import Event, District, ITSRelDistrict, ITSRelConsultant
 from .report_helper import ListOfYear, ConsumerReport, RevenueReport
 
 
@@ -61,8 +65,7 @@ def view_eventlist_rest(request):
 ### ITS Report ###
 ##################
 
-@user_passes_test(is_its)
-def view_report(request, year=None):
+def its_report_viewer(request, year, its_mode):
     list_year = ListOfYear()
 
     # Read QueryString, initializing with default
@@ -90,6 +93,25 @@ def view_report(request, year=None):
             "consultant_rels": ITSRelConsultant.objects.all(),
             "consultant_id": consultant_id
         }
+        if its_mode:
+            user = request.user
+            params["its_mode"] = True
+            try:
+                rel_district = ITSRelDistrict.objects.get(its=user)
+            except ITSRelDistrict.DoesNotExist:
+                rel_district = None
+
+            if rel_district is None:
+                params["its_error"] = "district.not.assigned"
+                params["district_name"] = "Distretto NON Assegnato"
+                params["its_name"] = "%s %s" % (user.first_name, user.last_name)
+            else:
+                params["district_id"] = rel_district.district.id
+                params["district_name"] = rel_district.district.description
+
+                params["its_id"] = rel_district.its.id
+                params["its_name"] = "%s %s" % (rel_district.its.first_name, rel_district.its.last_name)
+
 
     if year:
         # Generate report
@@ -97,10 +119,123 @@ def view_report(request, year=None):
         rpt = ConsumerReport(year, district_id=district_id, its_id=its_id, consultant_id=consultant_id)
         if len(rpt.rows):
             params["rpt_consumer"] = rpt
-            params["rpt_revenue"] = RevenueReport(params["rpt_consumer"].total_sales)
+            params["rpt_revenue"] = RevenueReport(params["rpt_consumer"].total["sales"])
             params["show_report"] = True
+            params["qs"] = request.META.get("QUERY_STRING")
         else:
             params["nodata"] = True
 
     return render_to_response('admin/its/view_report.html', params,
                               context_instance=RequestContext(request))
+
+@user_passes_test(is_its)
+def view_its_report_its_section(request, year=None):
+    '''
+    Report called from the "Agenda ITS > ITS Report"
+    '''
+    return its_report_viewer(request, year, its_mode=True)
+
+@user_passes_test(is_backend_admin)
+def view_its_report_report_section(request, year=None):
+    '''
+    Report called from the "Report > ITS"
+    '''
+    return its_report_viewer(request, year, its_mode=False)
+
+###############################
+### ITS Report Excel Export ###
+###############################
+def can_run_report_export(user):
+    '''
+    Custom permission for excel export
+    '''
+    return is_its(user) or is_backend_admin(user)
+
+
+def write_worksheet(worksheet, cols, total_cols, report):
+    ws_row = 0
+    ws_col = 0
+
+    # Create Header Row
+    for col in cols:
+        if col != "":
+            worksheet.write(ws_row, ws_col, report.fields[col])
+        ws_col += 1
+
+    # Create rows
+    for row in report.rows:
+        ws_row += 1
+        ws_col = 0
+        for col in cols:
+            worksheet.write(ws_row, ws_col, row[col])
+            ws_col += 1
+
+    # Create total
+    ws_row += 1
+    ws_col = 0
+    for tcol in total_cols:
+        if tcol.startswith("s:"):
+            title = tcol.split(":")[1]
+            worksheet.write(ws_row, ws_col, title)
+        elif tcol != "":
+            worksheet.write(ws_row, ws_col, report.total[tcol])
+        ws_col += 1
+
+    # Reset the trailing column increment
+    if ws_col:
+        ws_col -= 1
+
+    # Report last position it was writen to
+    return ws_row, ws_col
+
+@user_passes_test(can_run_report_export)
+def export_its_report(request, year):
+    # Read QueryString, initializing with default
+    district_id = -1
+    its_id = -1
+    consultant_id = "-1"
+    if request.method == "GET":
+        district_id = request.GET.get("district", district_id)
+        its_id = request.GET.get("its", its_id)
+        consultant_id = request.GET.get("consultant", consultant_id)
+
+    # Create Excel Output
+    wb = xlwt.Workbook()
+
+    style_percent = xlwt.XFStyle()
+    style_percent.num_format_str = "0.0%"
+
+
+    # Sheet 1: Stima Contatti Lordi
+    rpt_consumer = ConsumerReport(year, district_id=district_id, its_id=its_id, consultant_id=consultant_id)
+    if len(rpt_consumer.rows):
+        ws = wb.add_sheet("Stima Contatti Lordi")
+
+        rpt_columns = ("description", "events", "contacts", "contact_to_customer", "customers")
+        rpt_totals = ("s:TOTALE", "events", "contacts", "", "customers")
+        write_worksheet(ws, rpt_columns, rpt_totals, rpt_consumer)
+
+    # Sheet 2: Sintesi Numero Consumatori
+    if len(rpt_consumer.rows):
+        ws = wb.add_sheet("Sintesi Numero Consumatori")
+
+        rpt_columns = ("description", "customers", "customer_to_sale", "sales")
+        rpt_totals = ("s:TOTALE", "customers", "", "sales")
+        row, col = write_worksheet(ws, rpt_columns, rpt_totals, rpt_consumer)
+        ws.write(row + 1, col, rpt_consumer.pct_sales_to_customers, style=style_percent)
+
+    # Sheet 3: Stima Fatturati
+    rpt_revenue = RevenueReport(rpt_consumer.total["sales"])
+    if len(rpt_revenue.rows):
+        ws = wb.add_sheet("Stima Fatturati")
+
+        rpt_columns = ("id", "description", "total_sales", "sell_in_alloc", "sell_in_amount", "revenue")
+        rpt_totals = ("s:TOTALE FATTURATO", "", "", "", "", "revenue")
+        row, col = write_worksheet(ws, rpt_columns, rpt_totals, rpt_revenue)
+
+    response = HttpResponse(mimetype="application/ms-excel")
+    response['Content-Disposition'] = 'attachment; filename=its_report.xls'
+
+    wb.save(response)
+    return response
+

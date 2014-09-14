@@ -9,13 +9,15 @@ def group(user):
         group_ = user_groups[0]
     return group_
 
-
 def is_user_in_groups(user, *groups):
+    """
+    :param user:
+    :return: Boolean
+    """
     group_ = group(user)
     if user.is_superuser or (group_ and group_.name in groups):
         return True
     return False
-
 
 def get_its_users():
     ids = Group.objects.filter(Q(name='ITS') | Q(name='DISTRICT MANAGER ITS')).values_list('id')

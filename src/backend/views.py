@@ -1,20 +1,19 @@
 # Create your views here.
 
 from django.contrib import messages
-from django.contrib.messages import get_messages
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import *
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect
 from django.core.context_processors import csrf
 from django.contrib.admin.views.decorators import staff_member_required
-from django.forms import ModelForm,forms
 from django.contrib.auth.models import User,Group,Permission
 from django.contrib.auth.decorators import user_passes_test
-from django.forms import ModelForm,forms
+from django.forms import ModelForm
 from campaigns.models import District, ITSRelDistrict
-
 from contacts.models import Contact
 
+
+ITS_GROUP_ID = 4
 
 class UserForm(ModelForm):
     class Meta:
@@ -38,7 +37,6 @@ def user_list(request):
 
 @user_passes_test(lambda u:u.is_superuser)
 def user_details(request, id):
-    ITS_GROUP_ID = 4
     user = get_object_or_404(User, id=id)
     contact = None
     gruppo = None
@@ -59,12 +57,20 @@ def user_details(request, id):
     form = UserForm()
     if request.method == 'POST':
         form = UserForm(request.POST, instance=user)
-        if form.is_valid():
+        valid_form = form.is_valid()
 
+        # Custom validation for ITS district
+        post_gruppo = request.POST.get("gruppo")
+        post_district = request.POST.get("district")
+        if post_gruppo == str(ITS_GROUP_ID) and post_district == '-1':
+            form._errors["distretto"] = form.error_class(["Campo obrigattorio"])
+            valid_form = False
+
+        if valid_form:
             new_user = form.save(commit=False)
             new_user.save()
 
-            print "### user form is valid.  Group: %s" % new_user.groups.all()[0].id
+            # print "### user form is valid.  Group: %s" % new_user.groups.all()[0].id
             if request.POST.get("gruppo") != '-1':
                 new_user.groups.clear()
                 gruppo = Group.objects.all().filter(id=request.POST.get("gruppo"))[0]
@@ -74,7 +80,7 @@ def user_details(request, id):
             # Saving district.  Check if user belong to ITS group
             if len(new_user.groups.all())>0 and new_user.groups.all()[0].id == ITS_GROUP_ID:
                 post_district = request.POST.get("district")
-                print "### District %s to be saved" % post_district
+                #print "### District %s to be saved" % post_district
 
                 if district:
                     district.district_id = post_district
@@ -99,21 +105,44 @@ def user_add(request):
     c.update(csrf(request))
     form = UserForm()
     gruppi = Group.objects.all()
+
     if request.method == 'POST':
         form = UserForm(request.POST)
-        if form.is_valid():
+        valid_form = form.is_valid()
+
+        # Custom validation for ITS district
+        post_gruppo = request.POST.get("gruppo")
+        post_district = request.POST.get("district")
+        if post_gruppo == str(ITS_GROUP_ID) and post_district == '-1':
+            form._errors["distretto"] = form.error_class(["Campo obrigattorio"])
+            valid_form = False
+
+        if valid_form:
             new_user = form.save()
             new_user.set_password(request.POST.get("password"))
             new_user.save()
             if request.POST.get("gruppo") != '-1':
                 gruppo = Group.objects.all().filter(id=request.POST.get("gruppo"))[0]
                 new_user.groups.add(gruppo)
+
+            # Saving district.  Check if user belong to ITS group
+            if len(new_user.groups.all())>0 and new_user.groups.all()[0].id == ITS_GROUP_ID:
+                post_district = request.POST.get("district")
+                district = ITSRelDistrict(its=new_user, district_id=post_district)
+                district.save()
+
             if request.POST.has_key('_addanother'):
                 form = UserForm()
             else:
                 messages.success(request, 'Aggiunto utente \"' + new_user.username + '\"')
                 return HttpResponseRedirect('/admin/backend/utenti')
-    c = {'form': form,'gruppi':gruppi}
+
+    c = {
+        'form': form,
+        'gruppi':gruppi,
+        'districts': District.objects.all(),
+        'its_group_id': ITS_GROUP_ID
+    }
     return render_to_response('admin/backend/view_add_user.html', c, context_instance=RequestContext(request))
 
 
