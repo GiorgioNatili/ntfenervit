@@ -743,6 +743,11 @@ def view_add_event(request):
         its_rels, its_users, pointofsaletype, province, theme = _prepare_event_form()
 
     if request.method == 'POST':
+        post_cons_id = request.POST.get('consultant')
+        if post_cons_id:
+            consultant_id = post_cons_id
+            if post_cons_id == '-1':
+                request.POST['consultant'] = ''
         form = EventForm(request.POST)
         if form.is_valid():
             new_event = form.save()
