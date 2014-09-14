@@ -37,7 +37,7 @@ def view_eventlist_rest(request):
         target['title'] = e.description
         if e.title:
             target['title'] = e.title
-        target['campaign'] = e.campaign.name
+        target['campaign'] = e.campaign.name if e.campaign else None
         target['url'] = '/admin/campaigns/event/'+str(e.id)
         if e.owner == user:
             target['url'] += '?from_its=1'

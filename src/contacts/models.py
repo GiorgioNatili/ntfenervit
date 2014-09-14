@@ -32,7 +32,7 @@ class Company(models.Model):
     vat = models.CharField(primary_key=True, max_length=20, blank=False, null=False, verbose_name='P.Iva', unique=True, error_messages={'unique':"P.Iva presente gia' in anagrafica"})
     email = models.EmailField(blank=True, null=True, verbose_name='Email', unique=True,error_messages={'unique':"Email gia' presente in anagrafica"})
     street = models.CharField(max_length=100, blank=False, null=True, verbose_name='Via')
-    civic = models.CharField(max_length=5, blank=True, verbose_name='Civico',error_messages={'max_length':"Civico non valido. Massimo 5 cifre"})
+    civic = models.CharField(max_length=5, blank=True, verbose_name='Civico', error_messages={'max_length':"Civico non valido. Massimo 5 cifre"})
     city = models.CharField(max_length=100, blank=False, null=True, verbose_name='Comune')
     province = models.ForeignKey('contacts.Province', blank=False, null=True)
     company_code = models.CharField(max_length=100, blank=True, null=True, verbose_name='Codice Azienda')

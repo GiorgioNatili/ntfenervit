@@ -5,7 +5,7 @@ from redactor.fields import RedactorField
 from django.contrib.auth.models import User, AnonymousUser
 
 # Create your models here.
-from backend.utils import is_controller
+from backend.utils import is_backend_admin
 from contacts.models import Contact
 
 CAMPAIGN_STATUS = (
@@ -367,6 +367,9 @@ class District(models.Model):
         else:
             return None
 
+    def __str__(self):
+        return "%s (%s)" % (self.description, self.district_manager_displayname())
+
 
 class ITSRelConsultant(models.Model):
     consultant = models.ForeignKey(Contact)
@@ -376,11 +379,6 @@ class ITSRelConsultant(models.Model):
 class ITSRelDistrict(models.Model):
     its = models.ForeignKey(User, primary_key=True)
     district = models.ForeignKey(District)
-
-
-def get_its_users():
-    its_users = ITSRelDistrict.objects.all().values_list('its').distinct()
-    return User.objects.filter(id__in=its_users)
 
 
 def is_its(user):
@@ -397,7 +395,7 @@ def is_its(user):
 
 
 def can_handle_events(user, e=None, new=False, from_its=False):
-    res = is_controller(user) \
+    res = is_backend_admin(user) \
         or (e is not None and e.owner is not None and e.owner == user and from_its) \
         or (is_its(user) and new and from_its)
     return res

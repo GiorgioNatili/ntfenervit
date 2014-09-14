@@ -1,6 +1,7 @@
 # Create your views here.
 from django.contrib import messages
 from django.contrib.messages import get_messages
+from backend.utils import get_its_users
 from contacts.models import Region, Province, Company, Payment, Visit, ChampionsDelivery, Contact, Division, SubDivision, Sector, Work, RankingConfiguration
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import *
@@ -10,7 +11,7 @@ from django.contrib.admin.views.decorators import staff_member_required
 from django.forms import ModelForm, forms
 from xlrd import open_workbook,cellname
 
-from campaigns.models import NewsletterTarget, EventSignup, ITSRelConsultant, get_its_users
+from campaigns.models import NewsletterTarget, EventSignup, ITSRelConsultant
 from survey.models import Submission, Answer
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import user_passes_test

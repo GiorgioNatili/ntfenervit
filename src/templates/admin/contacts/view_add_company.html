@@ -38,6 +38,9 @@
                                             <label>Anagrafica:</label>
                                         </li>
                                         <li class="input">
+                                            <input type="text" name="company_code" class="validate[required]" data-prompt-position="topLeft" placeholder="Codice Azienda" value="{{ company.company_code }}"/>
+                                        </li>
+                                        <li class="input">
                                             <input type="text" name="name" class="validate[required]" data-prompt-position="topLeft" placeholder="Denominazione" value="{{ form.instance.name|default_if_none:"" }}"/>
                                         </li>
                                         <li>
