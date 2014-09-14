@@ -387,6 +387,26 @@
 
             </li>
 
+            {% if user|is_backend_admin %}
+            <li id="reportMenu" class="dark-nav">
+                <span class="glow"></span>
+                <a class="accordion-toggle collapsed " data-toggle="collapse" href="#reportMenu-detail">
+                    <i class="icon-bar-chart icon-2x"></i>
+                    <span>
+                        Report
+                        <i class="icon-caret-down"></i>
+                    </span>
+                </a>
+                <ul id="reportMenu-detail" class="collapse">
+                    <li>
+                        <a href="/admin/report/its/">
+                            <i class="icon-file"></i>ITS
+                        </a>
+                    </li>
+                </ul>
+            </li>
+            {% endif %}
+
             <li id="searchMenu" class="dark-nav">
                 <span class="glow"></span>
                 <a class="accordion-toggle collapsed " data-toggle="collapse" href="#3z2CycFSTz001">
