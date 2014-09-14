@@ -1,7 +1,7 @@
 {% extends "admin/base_site.html" %}
 {% load i18n admin_static bootstrapped_goodies_tags %}
 {% block icon-detail %}<i class="icon-calendar"></i>{% endblock %}
-{% block content_title %}Agenda ITS{% endblock %}
+{% block content_title %}Agenda ITS di {{ user.first_name|default_if_none:"" }} {{ user.last_name|default_if_none:"" }}{% endblock %}
 {% block content_subtitle %}<h5>lista di tutti gli eventi dell'agenda ITS</h5>{% endblock %}
 {% block object-tools %}
     <ul class="object-tools form-inline pull-right inline">
