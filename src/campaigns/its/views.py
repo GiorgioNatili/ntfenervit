@@ -24,7 +24,7 @@ def view_eventlist(request):
     events = Event.objects.filter(Q(owner=user) | Q(its_districtmanager=user))
     #monkey patching for differentiate events not owned but assigned to
     for e in events:
-        e.not_owned = True if not user == e.owner else False
+        e.not_owned = True if not (user == e.owner or is_backend_admin(user)) else False
     return render_to_response('admin/its/view_event.html', {'events': events},
                               context_instance=RequestContext(request))
 
