@@ -188,6 +188,8 @@
 
         // Populate Dropdown based on value from querystring.  Querystring value are read in server.
         $("document").ready(function () {
+            $(".active").removeClass("active");
+            $("#itsAreaMenu").addClass("active");
             var year = {{ year|default:"undefined" }},
                 district_id = {{ district_id }},
                 its_id = {{ its_id }},
