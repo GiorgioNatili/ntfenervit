@@ -93,7 +93,7 @@ class EventSearchForm(HighlightedModelSearchForm):
 
         if not self.is_valid():
             return self.no_query_found()
-        for field in ('its_district_manager', 'district', 'consultant'):
+        for field in ('its_districtmanager', 'district', 'consultant'):
             if self.cleaned_data[field] and self.cleaned_data[field] == '-1':
                 self.cleaned_data[field] = ""
         if self.cleaned_data['title']:
