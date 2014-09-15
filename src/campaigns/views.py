@@ -2037,30 +2037,30 @@ def search_event_export(request):
     if len(results) > 0:
         valid_results = []
         for r in results:
-            if r != None and r.model_name == 'event':
+            if r is not None and r.model_name == 'event':
                 valid_results.append(r.object)
         row = 1
         for c in valid_results:
-            ws.write(row, 0, c.id)
-            ws.write(row, 1, c.title)
-            ws.write(row, 2, c.description)
-            ws.write(row, 3, c.eventtype)
-            ws.write(row, 4, c.channel)
-            ws.write(row, 5, c.theme)
+            ws.write(row, 0, str(c.id))
+            ws.write(row, 1, str(c.title))
+            ws.write(row, 2, str(c.description))
+            ws.write(row, 3, str(c.eventtype))
+            ws.write(row, 4, str(c.channel))
+            ws.write(row, 5, str(c.theme))
             ws.write(row, 6, c.date.strftime("%d/%m/%Y"))
             if c.enddate:
                 ws.write(row, 7, c.enddate.strftime("%d/%m/%Y"))
-            ws.write(row, 8, c.campaign.name)
-            ws.write(row, 9, c.place)
-            ws.write(row, 10, c.province)
-            ws.write(row, 11, c.pointofsale)
-            ws.write(row, 12, c.pointofsaledescription)
-            ws.write(row, 13, c.typepointofsale)
-            ws.write(row, 14, c.trainer)
-            ws.write(row, 15, c.districtmanager)
-            ws.write(row, 16, c.areamanager)
+            ws.write(row, 8, str(c.campaign.name))
+            ws.write(row, 9, str(c.place))
+            ws.write(row, 10, str(c.province))
+            ws.write(row, 11, str(c.pointofsale))
+            ws.write(row, 12, str(c.pointofsaledescription))
+            ws.write(row, 13, str(c.typepointofsale))
+            ws.write(row, 14, str(c.trainer))
+            ws.write(row, 15, str(c.districtmanager))
+            ws.write(row, 16, str(c.areamanager))
             signups = EventSignup.objects.all().filter(event=c, presence=True)
-            ws.write(row, 17, len(signups))
+            ws.write(row, 17, str(len(signups)))
             row += 1
     wb.save(response)
     return response
