@@ -32,7 +32,7 @@
     <script>
         $(document).ready(function() {
             $(".active").removeClass("active");
-            $("#eventsMenu").addClass("active");
+            $("#itsAreaMenu").addClass("active");
             $.getJSON('/admin/its/rest/eventslist',function(data){
                 if(data.value=="OK"){
                     var events=[];

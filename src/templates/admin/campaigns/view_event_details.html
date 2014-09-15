@@ -468,7 +468,12 @@
 
             $("#enddate").datepicker({"language": "it", "format": "dd/mm/yyyy"});
             $(".active").removeClass("active");
-            $("#eventsMenu").addClass("active");
+             {% if from_its %}
+                $("#itsAreaMenu").addClass("active");
+             {% else %}
+                 $("#eventsMenu").addClass("active");
+
+             {% endif %}
 
             var salestart = $("#salestartdate").datepicker({"language": "it", "format": "dd/mm/yyyy"
             }).on("changeDate", function (dt) {
