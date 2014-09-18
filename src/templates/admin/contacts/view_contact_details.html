@@ -1,10 +1,10 @@
 {% extends "admin/base_site.html" %}
-{% load i18n admin_static bootstrapped_goodies_tags %}
+{% load i18n admin_static bootstrapped_goodies_tags settings_tags %}
 {% block icon-detail %}<i class="icon-book"></i>{% endblock %}
 {% block content_title %}Contatto{% endblock %}
 {% block content_subtitle %}<h5>visualizza e modifica gli attributi del contatto selezionato</h5>{% endblock %}
 {% block extrastyle %}
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDFh1lZtdBAwcyVuLmi-y14M-yfSB4i05Q&sensor=false&language=it"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key={% settings_value "GOOGLE_MAP_API_KEY" %}&sensor=false&language=it"></script>
     <style>
         #map-canvas {
             height: 100%;

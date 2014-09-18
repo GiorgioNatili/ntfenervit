@@ -63,7 +63,7 @@ def user_details(request, id):
         post_gruppo = request.POST.get("gruppo")
         post_district = request.POST.get("district")
         if post_gruppo == str(ITS_GROUP_ID) and post_district == '-1':
-            form._errors["distretto"] = form.error_class(["Campo obrigattorio"])
+            form._errors["distretto"] = form.error_class(["Campo obbligatorio"])
             valid_form = False
 
         if valid_form:
@@ -114,7 +114,7 @@ def user_add(request):
         post_gruppo = request.POST.get("gruppo")
         post_district = request.POST.get("district")
         if post_gruppo == str(ITS_GROUP_ID) and post_district == '-1':
-            form._errors["distretto"] = form.error_class(["Campo obrigattorio"])
+            form._errors["distretto"] = form.error_class(["Campo obbligatorio"])
             valid_form = False
 
         if valid_form:
