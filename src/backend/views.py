@@ -1,3 +1,4 @@
+# coding=utf-8
 # Create your views here.
 
 from django.contrib import messages
@@ -14,6 +15,8 @@ from contacts.models import Contact
 
 
 ITS_GROUP_ID = 4
+PERMANENT_GROUPS = ('ITS', 'CONTROLLER', 'AMMINISTRATORE')
+
 
 class UserForm(ModelForm):
     class Meta:
@@ -63,7 +66,7 @@ def user_details(request, id):
         post_gruppo = request.POST.get("gruppo")
         post_district = request.POST.get("district")
         if post_gruppo == str(ITS_GROUP_ID) and post_district == '-1':
-            form._errors["distretto"] = form.error_class(["Campo obrigattorio"])
+            form._errors["distretto"] = form.error_class(["Campo obbligatorio"])
             valid_form = False
 
         if valid_form:
@@ -114,7 +117,7 @@ def user_add(request):
         post_gruppo = request.POST.get("gruppo")
         post_district = request.POST.get("district")
         if post_gruppo == str(ITS_GROUP_ID) and post_district == '-1':
-            form._errors["distretto"] = form.error_class(["Campo obrigattorio"])
+            form._errors["distretto"] = form.error_class(["Campo obbligatorio"])
             valid_form = False
 
         if valid_form:
@@ -214,106 +217,115 @@ def group_add(request):
     return render_to_response('admin/backend/view_add_group.html', c, context_instance=RequestContext(request))
 
 @user_passes_test(lambda u:u.is_superuser)
-def group_details(request,id):
-    group = get_object_or_404(Group,id=id)
+def group_details(request, id):
+
+    group = get_object_or_404(Group, id=id)
+    can_be_deleted = group.name not in PERMANENT_GROUPS
     permissions = group.permissions.all()
     permissions_s = []
     for p in permissions:
         permissions_s.append(p.codename)
     form = GroupForm()
     if request.method == 'POST':
-        print request.POST
-        form = GroupForm(request.POST, instance=group)
-        if form.is_valid():
-            new_group = form.save(commit=False)
-            if request.POST.get("add_contact") == "on":
-                new_group.permissions.add(Permission.objects.get(codename="add_contact"))
+        if '_delete' in request.POST:
+            if can_be_deleted:
+                group.delete()
+                messages.success(request, 'Gruppo \"' + group.name + '\" eliminato correttamente!')
             else:
-                new_group.permissions.remove(Permission.objects.get(codename="add_contact"))
-            if request.POST.get("change_contact") == "on":
-                new_group.permissions.add(Permission.objects.get(codename="change_contact"))
-            else:
-                new_group.permissions.remove(Permission.objects.get(codename="change_contact"))
-            if request.POST.get("delete_contact") == "on":
-                new_group.permissions.add(Permission.objects.get(codename="delete_contact"))
-            else:
-                new_group.permissions.remove(Permission.objects.get(codename="delete_contact"))
-            if request.POST.get("add_campaign") == "on":
-                new_group.permissions.add(Permission.objects.get(codename="add_campaign"))
-            else:
-                new_group.permissions.remove(Permission.objects.get(codename="add_campaign"))
-            if request.POST.get("change_contact") == "on":
-                new_group.permissions.add(Permission.objects.get(codename="change_contact"))
-            else:
-                new_group.permissions.remove(Permission.objects.get(codename="change_contact"))
-            if request.POST.get("delete_campaign") == "on":
-                new_group.permissions.add(Permission.objects.get(codename="delete_campaign"))
-            else:
-                new_group.permissions.remove(Permission.objects.get(codename="delete_campaign"))
-            if request.POST.get("add_event") == "on":
-                new_group.permissions.add(Permission.objects.get(codename="add_event"))
-            else:
-                new_group.permissions.remove(Permission.objects.get(codename="add_event"))
-            if request.POST.get("add_event") == "on":
-                new_group.permissions.add(Permission.objects.get(codename="add_event"))
-            else:
-                new_group.permissions.remove(Permission.objects.get(codename="add_event"))
-            if request.POST.get("change_event") == "on":
-                new_group.permissions.add(Permission.objects.get(codename="change_event"))
-            else:
-                new_group.permissions.remove(Permission.objects.get(codename="change_event"))
-            if request.POST.get("delete_event") == "on":
-                new_group.permissions.add(Permission.objects.get(codename="delete_event"))
-            else:
-                new_group.permissions.remove(Permission.objects.get(codename="delete_event"))
-            if request.POST.get("change_eventsignup") == "on":
-                new_group.permissions.add(Permission.objects.get(codename="change_eventsignup"))
-            else:
-                new_group.permissions.remove(Permission.objects.get(codename="change_eventsignup"))
-            if request.POST.get("add_newsletter") == "on":
-                new_group.permissions.add(Permission.objects.get(codename="add_newsletter"))
-            else:
-                new_group.permissions.remove(Permission.objects.get(codename="add_newsletter"))
-            if request.POST.get("change_newsletter") == "on":
-                new_group.permissions.add(Permission.objects.get(codename="change_newsletter"))
-            else:
-                new_group.permissions.remove(Permission.objects.get(codename="change_newsletter"))
-            if request.POST.get("delete_newsletter") == "on":
-                new_group.permissions.add(Permission.objects.get(codename="delete_newsletter"))
-            else:
-                new_group.permissions.remove(Permission.objects.get(codename="delete_newsletter"))
-            if request.POST.get("add_newsletterschedulation") == "on":
-                new_group.permissions.add(Permission.objects.get(codename="add_newsletterschedulation"))
-            else:
-                new_group.permissions.remove(Permission.objects.get(codename="add_newsletterschedulation"))
-            if request.POST.get("add_newslettertemplate") == "on":
-                new_group.permissions.add(Permission.objects.get(codename="add_newslettertemplate"))
-            else:
-                new_group.permissions.remove(Permission.objects.get(codename="add_newslettertemplate"))
-            if request.POST.get("change_newslettertemplate") == "on":
-                new_group.permissions.add(Permission.objects.get(codename="change_newslettertemplate"))
-            else:
-                new_group.permissions.remove(Permission.objects.get(codename="change_newslettertemplate"))
-            if request.POST.get("delete_newslettertemplate") == "on":
-                new_group.permissions.add(Permission.objects.get(codename="delete_newslettertemplate"))
-            else:
-                new_group.permissions.remove(Permission.objects.get(codename="delete_newslettertemplate"))
-            if request.POST.get("add_survey") == "on":
-                new_group.permissions.add(Permission.objects.filter(codename="add_survey")[0])
-            else:
-                new_group.permissions.remove(Permission.objects.filter(codename="add_survey")[0])
-            if request.POST.get("change_survey") == "on":
-                new_group.permissions.add(Permission.objects.filter(codename="change_survey")[0])
-            else:
-                new_group.permissions.remove(Permission.objects.filter(codename="change_survey")[0])
-            if request.POST.get("delete_survey") == "on":
-                new_group.permissions.add(Permission.objects.filter(codename="delete_survey")[0])
-            else:
-                new_group.permissions.remove(Permission.objects.filter(codename="delete_survey")[0])
-            new_group.save()
-            messages.success(request, 'Gruppo \"' + new_group.name + '\" aggiornato correttamente!')
+                messages.error(request, 'Il gruppo \"' + group.name + '\" non può essere eliminato!')
             return HttpResponseRedirect('/admin/backend/gruppi')
+        else:
+            form = GroupForm(request.POST, instance=group)
+            if form.is_valid():
+                new_group = form.save(commit=False)
+                if request.POST.get("add_contact") == "on":
+                    new_group.permissions.add(Permission.objects.get(codename="add_contact"))
+                else:
+                    new_group.permissions.remove(Permission.objects.get(codename="add_contact"))
+                if request.POST.get("change_contact") == "on":
+                    new_group.permissions.add(Permission.objects.get(codename="change_contact"))
+                else:
+                    new_group.permissions.remove(Permission.objects.get(codename="change_contact"))
+                if request.POST.get("delete_contact") == "on":
+                    new_group.permissions.add(Permission.objects.get(codename="delete_contact"))
+                else:
+                    new_group.permissions.remove(Permission.objects.get(codename="delete_contact"))
+                if request.POST.get("add_campaign") == "on":
+                    new_group.permissions.add(Permission.objects.get(codename="add_campaign"))
+                else:
+                    new_group.permissions.remove(Permission.objects.get(codename="add_campaign"))
+                if request.POST.get("change_contact") == "on":
+                    new_group.permissions.add(Permission.objects.get(codename="change_contact"))
+                else:
+                    new_group.permissions.remove(Permission.objects.get(codename="change_contact"))
+                if request.POST.get("delete_campaign") == "on":
+                    new_group.permissions.add(Permission.objects.get(codename="delete_campaign"))
+                else:
+                    new_group.permissions.remove(Permission.objects.get(codename="delete_campaign"))
+                if request.POST.get("add_event") == "on":
+                    new_group.permissions.add(Permission.objects.get(codename="add_event"))
+                else:
+                    new_group.permissions.remove(Permission.objects.get(codename="add_event"))
+                if request.POST.get("add_event") == "on":
+                    new_group.permissions.add(Permission.objects.get(codename="add_event"))
+                else:
+                    new_group.permissions.remove(Permission.objects.get(codename="add_event"))
+                if request.POST.get("change_event") == "on":
+                    new_group.permissions.add(Permission.objects.get(codename="change_event"))
+                else:
+                    new_group.permissions.remove(Permission.objects.get(codename="change_event"))
+                if request.POST.get("delete_event") == "on":
+                    new_group.permissions.add(Permission.objects.get(codename="delete_event"))
+                else:
+                    new_group.permissions.remove(Permission.objects.get(codename="delete_event"))
+                if request.POST.get("change_eventsignup") == "on":
+                    new_group.permissions.add(Permission.objects.get(codename="change_eventsignup"))
+                else:
+                    new_group.permissions.remove(Permission.objects.get(codename="change_eventsignup"))
+                if request.POST.get("add_newsletter") == "on":
+                    new_group.permissions.add(Permission.objects.get(codename="add_newsletter"))
+                else:
+                    new_group.permissions.remove(Permission.objects.get(codename="add_newsletter"))
+                if request.POST.get("change_newsletter") == "on":
+                    new_group.permissions.add(Permission.objects.get(codename="change_newsletter"))
+                else:
+                    new_group.permissions.remove(Permission.objects.get(codename="change_newsletter"))
+                if request.POST.get("delete_newsletter") == "on":
+                    new_group.permissions.add(Permission.objects.get(codename="delete_newsletter"))
+                else:
+                    new_group.permissions.remove(Permission.objects.get(codename="delete_newsletter"))
+                if request.POST.get("add_newsletterschedulation") == "on":
+                    new_group.permissions.add(Permission.objects.get(codename="add_newsletterschedulation"))
+                else:
+                    new_group.permissions.remove(Permission.objects.get(codename="add_newsletterschedulation"))
+                if request.POST.get("add_newslettertemplate") == "on":
+                    new_group.permissions.add(Permission.objects.get(codename="add_newslettertemplate"))
+                else:
+                    new_group.permissions.remove(Permission.objects.get(codename="add_newslettertemplate"))
+                if request.POST.get("change_newslettertemplate") == "on":
+                    new_group.permissions.add(Permission.objects.get(codename="change_newslettertemplate"))
+                else:
+                    new_group.permissions.remove(Permission.objects.get(codename="change_newslettertemplate"))
+                if request.POST.get("delete_newslettertemplate") == "on":
+                    new_group.permissions.add(Permission.objects.get(codename="delete_newslettertemplate"))
+                else:
+                    new_group.permissions.remove(Permission.objects.get(codename="delete_newslettertemplate"))
+                if request.POST.get("add_survey") == "on":
+                    new_group.permissions.add(Permission.objects.filter(codename="add_survey")[0])
+                else:
+                    new_group.permissions.remove(Permission.objects.filter(codename="add_survey")[0])
+                if request.POST.get("change_survey") == "on":
+                    new_group.permissions.add(Permission.objects.filter(codename="change_survey")[0])
+                else:
+                    new_group.permissions.remove(Permission.objects.filter(codename="change_survey")[0])
+                if request.POST.get("delete_survey") == "on":
+                    new_group.permissions.add(Permission.objects.filter(codename="delete_survey")[0])
+                else:
+                    new_group.permissions.remove(Permission.objects.filter(codename="delete_survey")[0])
+                new_group.save()
+                messages.success(request, 'Gruppo \"' + new_group.name + '\" aggiornato correttamente!')
+                return HttpResponseRedirect('/admin/backend/gruppi')
     return render_to_response('admin/backend/view_group_details.html',
-                              {'group': group, 'permissions':permissions_s,'form': form},
+                              {'can_be_deleted': can_be_deleted,'group': group, 'permissions': permissions_s, 'form': form},
                               context_instance=RequestContext(request))
 

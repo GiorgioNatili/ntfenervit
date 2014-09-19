@@ -65,7 +65,7 @@
                                             <input type="checkbox" class="icheck"  name="delete_campaign" {% if "delete_campaign" in permissions %}checked{% endif %}/>
                                             <label  class="" style="margin-right:10px;">Eliminare</label>
                                         </li>
-                                        <label<span style="font-weight: bold">Eventi</span></label>
+                                        <label><span style="font-weight: bold">Eventi</span></label>
                                         <li>
                                             <input type="checkbox" class="icheck"  name="add_event" {% if "add_event" in permissions %}checked{% endif %}/>
                                             <label  class="" style="margin-right:10px;">Creare</label>
@@ -114,7 +114,8 @@
 
                             <div class="form-actions">
 
-                                <button type="submit" name="_save" class="btn btn-green">Modifica</button>
+                                <button type="submit" name="_save" class="btn btn-green">Salva le modifiche</button>
+                                <button type="submit"  name="_delete" {% if not can_be_deleted %} disabled title="Questo gruppo non può essere eliminato" {% endif %}class="btn btn-red pull-right">Cancella</button>
 
                             </div>
                         </form>

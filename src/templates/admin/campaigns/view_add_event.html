@@ -446,7 +446,7 @@
             company_data = [
                 { "id": -1, "desc": "---", "type": -1, "province": -1, "address": "" }
                 {% for c in companies %}
-                    ,{ "id": {{ c.vat }}, "code": "{{ c.company_code }}", "desc": "{{ c.company_code }} - {{ c.name }}", "type": {% if c.type %}{{ c.type.id }}{% else %}-1{% endif %}, "province": {{ c.province.id }}, "address": "{{ c.street }}, {{ c.civic }} {{ c.city }} ({{ c.province.code }})" }
+                    ,{ "id": '{{ c.vat }}', "code": "{{ c.company_code }}", "desc": "{{ c.company_code }} - {{ c.name }}", "type": {% if c.type %}{{ c.type.id }}{% else %}-1{% endif %}, "province": {{ c.province.id }}, "address": "{{ c.street }}, {{ c.civic }} {{ c.city }} ({{ c.province.code }})" }
                 {% endfor %}
             ],
             district_id, its_id, consultant_id;
@@ -463,7 +463,7 @@
                 consultant_id = $("#lst-consultant option:selected").val();
             }
             if (typeof listName === "undefined" || listName === "company") {
-                company_id = parseInt($("#lst-companies option:selected").val());
+                company_id = $("#lst-companies option:selected").val();
             }
         }
 
@@ -504,8 +504,8 @@
         $("document").ready(function () {
             var district_id = {{ district_id }},
                 its_id = {{ its_id }},
-                consultant_id = "{{ consultant_id }}",
-                company_id = -1;
+                consultant_id = "{{ consultant_id }}";
+            var company_id = -1;
 
 
             if (district_id !== -1) {

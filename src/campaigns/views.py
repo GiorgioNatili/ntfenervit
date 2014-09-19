@@ -241,6 +241,7 @@ def view_newsletter_details(request, id):
     events = Event.objects.all()
     ntemplates = NewsletterTemplate.objects.all()
     task = -1
+    schedulation_id = -1
     schedulations = NewsletterSchedulation.objects.filter(newsletter=newsletter)
     if schedulations:
         task = 1
@@ -276,7 +277,7 @@ def view_newsletter_details(request, id):
 @staff_member_required
 def send_single_newsletter(request):
     newsletters = Newsletter.objects.all()
-    contacts = Contact.objects.all()
+    contacts = Contact.objects.exclude(email__isnull=True).exclude(email__exact='')
     form = SingleSendForm()
     return render_to_response('admin/campaigns/view_newsletter_singlesend.html',
                               {'form': form, 'newsletters': newsletters, 'contacts': contacts},
@@ -285,7 +286,7 @@ def send_single_newsletter(request):
 
 def send_single_email(request):
     newsletter = get_object_or_404(Newsletter, id=request.GET.get("nl"))
-    contact = get_object_or_404(Contact, email=request.GET.get("ct"))
+    contact = get_object_or_404(Contact, code=request.GET.get("ct"))
     import smtplib
     from email.mime.multipart import MIMEMultipart
     from email import encoders
@@ -295,7 +296,7 @@ def send_single_email(request):
     from email.mime.text import MIMEText
     import mimetypes
 
-    to = (contact.email)
+    to = contact.email
     subject = newsletter.subject
     object = """
             <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">

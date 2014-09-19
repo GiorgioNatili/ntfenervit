@@ -28,9 +28,9 @@ CONTACT_TYPE = (('N', 'Normale'), ('C', 'Consulente'))
 
 
 class Company(models.Model):
-    name = models.CharField(max_length=100, unique=True, blank=False, null=False, verbose_name='Denominazione',error_messages={'unique':"Denominazione gia' presente in anagrafica"})
+    name = models.CharField(max_length=100, unique=False, blank=False, null=False, verbose_name='Denominazione',error_messages={'unique':"Denominazione gia' presente in anagrafica"})
     vat = models.CharField(primary_key=True, max_length=20, blank=False, null=False, verbose_name='P.Iva', unique=True, error_messages={'unique':"P.Iva presente gia' in anagrafica"})
-    email = models.EmailField(blank=True, null=True, verbose_name='Email', unique=True,error_messages={'unique':"Email gia' presente in anagrafica"})
+    email = models.EmailField(blank=True, null=True, verbose_name='Email', unique=True, error_messages={'unique':"Email gia' presente in anagrafica"})
     street = models.CharField(max_length=100, blank=False, null=True, verbose_name='Via')
     civic = models.CharField(max_length=5, blank=True, verbose_name='Civico', error_messages={'max_length':"Civico non valido. Massimo 5 cifre"})
     city = models.CharField(max_length=100, blank=False, null=True, verbose_name='Comune')
@@ -39,7 +39,10 @@ class Company(models.Model):
     type = models.ForeignKey('campaigns.PointOfSaleType', blank=True, null=True, verbose_name="Tipologia Azienda", on_delete=models.SET_NULL)
 
     def __unicode__(self):
-        return '%s - %s - %s (%s)' % (self.company_code, self.name, self.city, self.province.code)
+        if not self.province:
+            return '%s - %s - %s' % (self.company_code, self.name, self.city)
+        else:
+            return '%s - %s - %s (%s)' % (self.company_code, self.name, self.city, self.province.code)
 
     class Meta:
         verbose_name = "Azienda"
