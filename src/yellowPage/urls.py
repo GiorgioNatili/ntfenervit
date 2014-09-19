@@ -118,7 +118,7 @@ urlpatterns = patterns('',
     url(r'^admin/campaigns/event/signups', 'campaigns.views.view_signups'),
     url(r'^admin/campaigns/event/eventsignups/(\d+)/$', 'campaigns.views.view_signup_by_event'),
     url(r'^admin/campaigns/event/signup/(\d+)/$','campaigns.views.view_signup_details'),
-    url(r'^admin/campaingis/eventi/signupexport/(\d+)/$','campaigns.views.view_export_signup_by_event'),
+    url(r'^admin/campaigns/eventi/signupexport/(\d+)/$','campaigns.views.view_export_signup_by_event'),
 
     url(r'^admin/campaigns/newslettertemplate/$','campaigns.views.view_newslettertemplate'),
     url(r'^admin/campaigns/newslettertemplate/add/$', 'campaigns.views.view_add_newslettertemplate'),

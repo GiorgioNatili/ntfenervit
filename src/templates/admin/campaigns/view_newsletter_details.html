@@ -206,7 +206,7 @@
                                 </div>
                             </div>
                             <div class="form-actions">
-                                <button type="submit" name="_save" class="btn btn-green ">Modifica</button>
+                                <button type="submit" name="_save" class="btn btn-green ">Salva le modifiche</button>
                                 <a  href="delete/" name="delete" class="btn btn-red pull-right">Cancella</a>
                             </div>
                         </form>
@@ -252,6 +252,7 @@
             var newsletterID="{{ newsletter.id }}";
             var status = "{{ newsletter.status }}";
             var task = "{{ task }}" ;
+            var schedulation = "{{ schedulation_id }}"
 
             $("#startdate" ).datepicker({"language":"it","format":"dd/mm/yyyy"});
             $("#enddate" ).datepicker({"language":"it","format":"dd/mm/yyyy"});
@@ -304,7 +305,7 @@
                      alert("!!! Newsletter in Bozza !!!\nPer inviarla cambiare lo stato come \"In attesa di invio\"");
                  }else if(status == "W"){
                      if(task!="-1"){
-                        window.location.href = "/admin/campaigns/newsletter/schedule/"+newsletterID;
+                        window.location.href = "/admin/campaigns/newsletter/schedule/"+schedulation;
                      }else{
                          window.location.href = "/admin/campaigns/newsletter/schedule/add";
                      }

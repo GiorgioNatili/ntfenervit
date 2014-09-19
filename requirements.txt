@@ -23,3 +23,5 @@ xlutils==1.6.0
 xlwt==0.7.5
 geopy==0.99
 PIL==1.1.7
+#for deduplication of xls data in import aziende
+python-Levenshtein

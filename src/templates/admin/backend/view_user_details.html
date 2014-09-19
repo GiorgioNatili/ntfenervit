@@ -114,7 +114,7 @@
                                 <input type="hidden" name="password" value="{{ usr.password }}" />
                                 <input type="hidden" name="last_login" value="{{ usr.last_login|date:'d/m/Y 00:00' }}" />
                                 <input type="hidden" name="date_joined" value="{{ usr.date_joined|date:'d/m/Y 00:00' }}" />
-                                <button type="submit" name="_save" class="btn btn-green ">Modifica</button>
+                                <button type="submit" name="_save" class="btn btn-green ">Salva le modifiche</button>
                                 <a  href="/admin/auth/user/{{ usr.id }}/delete/    " name="delete" class="btn btn-red pull-right">Cancella</a>
                             </div>
                         </form>

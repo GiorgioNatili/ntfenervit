@@ -74,8 +74,8 @@
 
                                             <select class="chzn-select" name="contact" id="contact">
                                                 {% for ct in contacts %}
-                                                    {% if ct.email %}
-                                                    <option value="{{ ct.email }}" {% if ct.email == form.instance.contact.email %} selected="selected"{% endif %}>{{ ct.name }} {{ ct.surname }} ({{ ct.email }})</option>
+                                                    {% if ct.code and ct.email %}
+                                                    <option value="{{ ct.code }}" {% if ct.code == form.instance.contact.code %} selected="selected"{% endif %}>{{ ct.name }} {{ ct.surname }} ({{ ct.email }})</option>
                                                     {% endif %}
                                                 {% endfor %}
                                             </select>
