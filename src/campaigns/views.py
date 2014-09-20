@@ -1805,14 +1805,11 @@ def search_campaign(request):
     form = CampaignSearchForm(request.GET)
     results = []
     if request.GET.has_key('q'):
-        print "SEARCH "
-        if request.GET.has_key('max_results'):
-            results = form.search()[:request.GET.get('max_results')]
-        else:
-            results = form.search()
+        results = form.search()
     campaigns = None
     if len(results) > 0:
-        campaigns = Campaign.objects.all().filter(pk__in=[r.pk for r in results])
+        campaigns = Campaign.objects.filter(pk__in=[r.pk for r in results])
+        campaigns = campaigns[:int(request.GET.get('max_results', 10000))]
 
     return render_to_response('admin/search/search_campaign.html', {
         'search_query': "",
@@ -1839,13 +1836,16 @@ def search_campaign_export(request):
     form = CampaignSearchForm(request.GET)
     results = []
     if request.GET.has_key('q'):
-        if request.GET.has_key('max_results'):
-            results = form.search()[:request.GET.get('max_results')]
-        else:
-            results = form.search()
-    contacts = []
+        results = form.search()
+
     if len(results) > 0:
-        campaign = Campaign.objects.all().filter(pk__in=[r.pk for r in results])
+        campaign = []
+        max_results = int(request.GET.get('max_results', 10000))
+        for r in results:
+            if r is not None and r.model_name == 'contact':
+                campaign.append(r.object)
+                if len(campaign) >= max_results:
+                    break
         row = 1
         for c in campaign:
             ws.write(row, 0, c.id)
@@ -1867,7 +1867,6 @@ def search_campaign_export(request):
             ws.write(row, 6, newsletter)
             event = ""
             for ev in Event.objects.all().filter(campaign=c):
-                desc = ""
                 if ev.title:
                     desc = ev.title
                 else:
@@ -1886,17 +1885,17 @@ def search_newsletter(request):
     campaigns = Campaign.objects.all()
     results = []
     if request.GET.has_key('q'):
-        if request.GET.has_key('max_results'):
-            results = form.search()[:request.GET.get('max_results')]
-        else:
-            results = form.search()
+        results = form.search()
     newsletters = None
+
     if len(results) > 0:
-        valid_results = []
+        newsletters = []
+        max_results = int(request.GET.get('max_results', 10000))
         for r in results:
-            if r != None and r.model_name == 'newsletter':
-                valid_results.append(r.object)
-        newsletters = valid_results  #Newsletter.objects.all().filter(id__in=[r.id for r in valid_results])
+            if r is not None and r.model_name == 'newsletter':
+                newsletters.append(r.object)
+                if len(newsletters) >= max_results:
+                    break
 
     return render_to_response('admin/search/search_newsletter.html', {
         'search_query': "",
@@ -1925,15 +1924,15 @@ def search_newsletter_export(request):
     form = NewsletterSearchForm(request.GET)
     results = []
     if request.GET.has_key('q'):
-        if request.GET.has_key('max_results'):
-            results = form.search()[:request.GET.get('max_results')]
-        else:
-            results = form.search()
+        results = form.search()
     if len(results) > 0:
         valid_results = []
+        max_results = int(request.GET.get('max_results', 10000))
         for r in results:
             if r != None and r.model_name == 'newsletter':
                 valid_results.append(r.object)
+                if len(valid_results) >= max_results:
+                    break
         row = 1
         for c in valid_results:
             ws.write(row, 0, c.id)
@@ -1942,7 +1941,6 @@ def search_newsletter_export(request):
             ws.write(row, 3, c.startdate.strftime("%d/%m/%Y"))
             ws.write(row, 4, c.enddate.strftime("%d/%m/%Y"))
             ws.write(row, 5, c.campaign.name)
-            event = ""
             if c.event.title:
                 event = c.event.title
             else:
@@ -1972,19 +1970,18 @@ def search_event(request):
         its_rels, its, pointofsaletypes, province, themes = _prepare_event_form()
 
     form = EventSearchForm(request.GET)
-
     results = []
-    if request.GET.get('q'):
-        if request.GET.get('max_results'):
-            results = form.search()[:request.GET['max_results']]
-        else:
-            results = form.search()
+    if 'q' in request.GET:
+        results = form.search()
     events = None
     if len(results) > 0:
         valid_results = []
+        max_results = int(request.GET.get('max_results', 10000))
         for r in results:
             if r is not None and r.model_name == 'event':
                 valid_results.append(r.object)
+                if len(valid_results) >= max_results:
+                    break
         events = valid_results
 
     return render_to_response('admin/search/search_event.html', {
@@ -1992,7 +1989,7 @@ def search_event(request):
         'events': events,
         'form': form,
         'its': its,
-        'districts': districts, 'consultant_rels': consultant_rels, 'its_rels': its_rels,
+        'districts': districts, 'consultants': consultants,
         'areamanagers': areamanagers,
         'themes': themes,
         'pointofsaletypes': pointofsaletypes,
@@ -2000,7 +1997,6 @@ def search_event(request):
         'channels': channels,
         'campaigns': campaigns,
         'provinces': province,
-        'its_id': its_id, 'district_id': district_id, 'consultant_id': consultant_id,
     }, context_instance=RequestContext(request))
 
 
@@ -2025,45 +2021,49 @@ def search_event_export(request):
     ws.write(0, 12, 'Nominativo Punto Vendita')
     ws.write(0, 13, 'Tipo Punto Vendita')
     ws.write(0, 14, 'Formatore')
-    ws.write(0, 15, 'ITS')
-    ws.write(0, 16, 'Area Manager')
-    ws.write(0, 17, 'Feedback')
-    ws.write(0, 18, 'Presenti')
+    ws.write(0, 15, 'Consultant')
+    ws.write(0, 16, 'ITS')
+    ws.write(0, 17, 'Area Manager')
+    ws.write(0, 18, 'Feedback')
+    ws.write(0, 19, 'Presenti')
 
     form = EventSearchForm(request.GET)
     results = []
     if request.GET.has_key('q'):
-        if request.GET.has_key('max_results'):
-            results = form.search()[:request.GET.get('max_results')]
-        else:
-            results = form.search()
+        results = form.search()
     if len(results) > 0:
         valid_results = []
+        max_results = int(request.GET.get('max_results', 10000))
         for r in results:
             if r is not None and r.model_name == 'event':
                 valid_results.append(r.object)
+                if len(valid_results) >= max_results:
+                    break
         row = 1
         for c in valid_results:
+            its = c.its_districtmanager.get_full_name() if c.its_districtmanager else None
             ws.write(row, 0, str(c.id))
-            ws.write(row, 1, str(c.title))
-            ws.write(row, 2, str(c.description))
+            ws.write(row, 1, c.title)
+            ws.write(row, 2, c.description)
             ws.write(row, 3, str(c.eventtype))
             ws.write(row, 4, str(c.channel))
             ws.write(row, 5, str(c.theme))
             ws.write(row, 6, c.date.strftime("%d/%m/%Y"))
             if c.enddate:
                 ws.write(row, 7, c.enddate.strftime("%d/%m/%Y"))
-            ws.write(row, 8, str(c.campaign.name))
-            ws.write(row, 9, str(c.place))
+            ws.write(row, 8, c.campaign.name)
+            ws.write(row, 9, c.place)
             ws.write(row, 10, str(c.province))
-            ws.write(row, 11, str(c.pointofsale))
-            ws.write(row, 12, str(c.pointofsaledescription))
+            ws.write(row, 11, c.pointofsale)
+            ws.write(row, 12, c.pointofsaledescription)
             ws.write(row, 13, str(c.typepointofsale))
-            ws.write(row, 14, str(c.trainer))
-            ws.write(row, 15, str(c.districtmanager))
-            ws.write(row, 16, str(c.areamanager))
+            ws.write(row, 14, c.trainer)
+            ws.write(row, 15, c.consultant)
+            ws.write(row, 16, its)
+            ws.write(row, 17, str(c.areamanager))
             signups = EventSignup.objects.all().filter(event=c, presence=True)
-            ws.write(row, 17, str(len(signups)))
+            ws.write(row, 18, str(c.feedback))
+            ws.write(row, 19, str(len(signups)))
             row += 1
     wb.save(response)
     return response
