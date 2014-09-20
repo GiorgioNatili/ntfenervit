@@ -40,9 +40,9 @@ class Company(models.Model):
 
     def __unicode__(self):
         if not self.province:
-            return '%s - %s - %s' % (self.company_code, self.name, self.city)
+            return '%s - %s' % (self.name, self.city)
         else:
-            return '%s - %s - %s (%s)' % (self.company_code, self.name, self.city, self.province.code)
+            return '%s - %s (%s)' % (self.name, self.city, self.province.code)
 
     class Meta:
         verbose_name = "Azienda"

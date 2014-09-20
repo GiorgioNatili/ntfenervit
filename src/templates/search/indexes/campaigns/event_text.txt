@@ -8,11 +8,11 @@
 {{object.money}}
 {{object.payment}}
 {{object.campaign}}
-{{object.is_public}}
 {{object.pointofsale}}
 {{object.pointofsaledescription}}
 {{object.areamanager}}
-{{object.districtmanager}}
+{{object.its_districtmanager}}
+{{object.consultant}}
 {{object.typepointofsale}}
 {{object.channel}}
 {{object.eventtype}}

@@ -1,6 +1,10 @@
 Note for Production Migration
 =============================
 
+## New package requirement
+
+    pip install python-Levenshtein
+    
 ## Contact migration for company.company_code, company.type, company.name (not unique)
 
 *schema migration

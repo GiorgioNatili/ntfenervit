@@ -37,24 +37,32 @@
                                         <li>
                                             <input type="text" style="text-transform:capitalize;" name="trainer"  data-prompt-position="topLeft" placeholder="Formatore" value="{{ form.trainer.value|default_if_none:"" }}"/>
                                         </li>
-                                        <li>
-                                            <label>Distretto ITS</label>
-                                            <select class="chzn-select" id="lst-district" name="district" >
-                                                <option value="-1" selected="selected">---</option>
-                                                {% for d in districts %}
-                                                    <option value="{{ d.id }}" {% if d.id == form.instance.district.id %} selected="selected"{% endif %}>{{ d }}</option>
-                                                {% endfor %}
-                                            </select>
-                                        </li>
+{#                                        <li>#}
+{#                                            <label>Distretto ITS</label>#}
+{#                                            <select class="chzn-select" id="lst-district" name="district" >#}
+{#                                                <option value="" selected="selected">---</option>#}
+{#                                                {% for d in districts %}#}
+{#                                                    <option value="{{ d }}" >{{ d }}</option>#}
+{#                                                {% endfor %}#}
+{#                                            </select>#}
+{#                                        </li>#}
                                         <li>
                                             <label>ITS</label>
                                             <select class="chzn-select" name="its_districtmanager" id="lst-its">
+                                                <option value="" selected="selected">---</option>
+                                                {% for d in its %}
+                                                    <option value="{{ d }}">{{ d.first_name }} {{ d.last_name }} {% if d.email %}({{ d.email }}){% endif %}</option>
+                                                {% endfor %}
 
                                             </select>
                                         </li>
                                         <li>
                                             <label>Consulente</label>
                                             <select class="chzn-select" name="consultant" id="lst-consultant">
+                                                <option value="" selected="selected">---</option>
+                                                {% for d in consultants %}
+                                                    <option value="{{ d }}">{{ d }}</option>
+                                                {% endfor %}
                                             </select>
                                         </li>
                                         <li>
@@ -103,7 +111,7 @@
                                         <select class="chzn-select" name="province" >
                                             <option value="">---</option>
                                             {% for prov in provinces %}
-                                                <option value="{{ prov }}" {% if prov.name == form.province.value %} selected="selected"{% endif %}>{{ prov }}</option>
+                                                <option value="{{ prov }}">{{ prov }}</option>
                                             {% endfor %}
                                         </select>
                                         </li>
@@ -244,89 +252,5 @@
             $("#searchMenu").addClass("active");
         });
     </script>
-    <script>
-    !function () {
-        // Create dataset used to populate the ITS and Consultant dropdown
-        var its_data = [
-                { "id": -1, "desc": "---", "parent": undefined }
-                {% for rel in its_rels %}
-                    ,{ "id": {{ rel.its.id }}, "desc": "{{ rel.its.first_name }} {{ rel.its.last_name }}", "parent": {{ rel.district.id }} }
-                {% endfor %}
-            ],
-            consultant_data = [
-                { "id": -1, "desc": "---", "parent": undefined }
-                {% for rel in consultant_rels %}
-                    ,{ "id": "{{ rel.consultant.code }}", "desc": "{{ rel.consultant.name }} {{ rel.consultant.surname }}", "parent": {{ rel.its.id }} }
-                {% endfor %}
-            ],
-            district_id, its_id, consultant_id;
-
-        // Populate selected fields
-        function readLists(listName) {
-            if (typeof listName === "undefined" || listName === "district") {
-                district_id = parseInt($("#lst-district option:selected").val());
-            }
-            if (typeof listName === "undefined" || listName === "its") {
-                its_id = parseInt($("#lst-its option:selected").val());
-            }
-            if (typeof listName === "undefined" || listName === "consultant") {
-                consultant_id = $("#lst-consultant option:selected").val();
-            }
-        }
-
-        // Function used to refresh the drop down based on a parent_id
-        function refreshList(list, data, parent_id) {
-            // Clear all drop down items
-            list.find('option').remove();
-
-            // Loop though the data and create new dropdown items.  id of -1 is always shown
-            $.each(data, function (index, obj) {
-                if (obj.id === -1 || obj.parent === parent_id ) {
-                    list.append('<option value="' + obj.id + '" >' + obj.desc + '</option>');
-                }
-            });
-            list.trigger('change');
-        }
-
-        $("#lst-district").change(function () {
-            readLists("district");
-            refreshList($("#lst-its"), its_data, district_id);
-            // Invoke the change in consultant dropdown
-            $("#lst-its").change();
-        });
-
-
-        $("#lst-its").change(function () {
-            readLists("its");
-            refreshList($("#lst-consultant"), consultant_data, its_id);
-        });
-
-
-        // Populate Dropdown based on value from querystring.  Querystring value are read in server.
-        $("document").ready(function () {
-            var district_id = {{ district_id }},
-                its_id = {{ its_id }},
-                consultant_id = "{{ consultant_id }}";
-
-
-            if (district_id !== -1) {
-                $("#lst-district").val(district_id);
-            }
-            $("#lst-district").change();
-
-            if (its_id !== -1) {
-                $("#lst-its").val(its_id);
-                $("#lst-its").change();
-            }
-
-            if (consultant_id !== -1) {
-                $("#lst-consultant").val(consultant_id);
-                $("#lst-consultant").change();
-            }
-
-        });
-    }();
-
-</script>
 
 {% endblock %}

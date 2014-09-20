@@ -416,9 +416,7 @@
                 $('#place').val('');
                 $('#lst-provinces').val('').trigger('change');
                 $('#lst-typepointofsale').val('').trigger('change');
-
                 $.each(data, function (index, obj) {
-
                     if (obj.id === company_id) {
                         $('#pointofsale').val(obj.code);
                         $('#pointofsaledescription').val(obj.desc);
@@ -446,7 +444,7 @@
             company_data = [
                 { "id": -1, "desc": "---", "type": -1, "province": -1, "address": "" }
                 {% for c in companies %}
-                    ,{ "id": '{{ c.vat }}', "code": "{{ c.company_code }}", "desc": "{{ c.company_code }} - {{ c.name }}", "type": {% if c.type %}{{ c.type.id }}{% else %}-1{% endif %}, "province": {{ c.province.id }}, "address": "{{ c.street }}, {{ c.civic }} {{ c.city }} ({{ c.province.code }})" }
+                    ,{ "id": '{{ c.vat }}', "code": "{{ c.company_code }}", "desc": "{{ c.name }}", "type": {% if c.type %}{{ c.type.id }}{% else %}-1{% endif %}, "province": {{ c.province.id }}, "address": "{{ c.street }}, {{ c.civic }} {{ c.city }} ({{ c.province.code }})" }
                 {% endfor %}
             ],
             district_id, its_id, consultant_id;

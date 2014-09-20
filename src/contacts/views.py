@@ -521,24 +521,27 @@ def search_contact(request):
 
     form = ContactSearchForm(request.GET)
     results = []
-    if request.GET.has_key('q'):
-        print "SEARCH "
-        if request.GET.has_key('max_results'):
-            results = form.search()[:request.GET.get('max_results')]
-        else:
-            results = form.search()
+    if 'q' in request.GET:
+        results = form.search()
     contacts = None
-    if len(results)>0:
-        contacts = Contact.objects.all().filter(pk__in=[r.pk for r in results])
+    if len(results) > 0:
+        # contacts = Contact.objects.filter(pk__in=[r.pk for r in results])
+        contacts = []
+        max_results = int(request.GET.get('max_results', 10000))
+        for r in results:
+            if r is not None and r.model_name == 'contact':
+                contacts.append(r.object)
+                if len(contacts) >= max_results:
+                    break
 
     return render_to_response('admin/search/search_contact.html', {
         'search_query' : "",
-        'contacts' : contacts,
+        'contacts': contacts,
         'form' : form,
         'provinces' : provinces,
         'companies' : companies,
         'works' : works,
-        },context_instance=RequestContext(request))
+        }, context_instance=RequestContext(request))
 
 @staff_member_required
 def search_contact_export(request):
@@ -564,17 +567,22 @@ def search_contact_export(request):
     ws.write(0,15,'Ranking Partecipazione')
     ws.write(0,16,'Status')
 
-
     form = ContactSearchForm(request.GET)
     results = []
     if request.GET.has_key('q'):
-        if request.GET.has_key('max_results'):
-            results = form.search()[:request.GET.get('max_results')]
-        else:
-            results = form.search()
+        results = form.search()
+        # if request.GET.has_key('max_results'):
+        #     results = form.search()[:request.GET.get('max_results')]
+        # else:
+        #     results = form.search()
     contacts = []
-    if len(results)>0:
-        contacts = Contact.objects.all().filter(pk__in=[r.pk for r in results])
+    if len(results) > 0:
+        max_results = int(request.GET.get('max_results', 10000))
+        for r in results:
+            if r is not None and r.model_name == 'contact':
+                contacts.append(r.object)
+                if len(contacts) >= max_results:
+                    break
         row = 1
         for c in contacts:
            ws.write(row,0,c.code)
