@@ -2042,6 +2042,7 @@ def search_event_export(request):
         row = 1
         for c in valid_results:
             its = c.its_districtmanager.get_full_name() if c.its_districtmanager else None
+            campaign = c.campaign.name if c.campaign else None
             ws.write(row, 0, str(c.id))
             ws.write(row, 1, c.title)
             ws.write(row, 2, c.description)
@@ -2051,19 +2052,19 @@ def search_event_export(request):
             ws.write(row, 6, c.date.strftime("%d/%m/%Y"))
             if c.enddate:
                 ws.write(row, 7, c.enddate.strftime("%d/%m/%Y"))
-            ws.write(row, 8, c.campaign.name)
+            ws.write(row, 8, campaign)
             ws.write(row, 9, c.place)
             ws.write(row, 10, str(c.province))
             ws.write(row, 11, c.pointofsale)
             ws.write(row, 12, c.pointofsaledescription)
-            ws.write(row, 13, str(c.typepointofsale))
+            ws.write(row, 13, str(c.typepointofsale or ''))
             ws.write(row, 14, c.trainer)
             ws.write(row, 15, c.consultant)
             ws.write(row, 16, its)
             ws.write(row, 17, str(c.areamanager))
-            signups = EventSignup.objects.all().filter(event=c, presence=True)
-            ws.write(row, 18, str(c.feedback))
-            ws.write(row, 19, str(len(signups)))
+            signups = EventSignup.objects.all().filter(event=c, presence=True).count()
+            ws.write(row, 18, str(c.feedback or ''))
+            ws.write(row, 19, str(signups))
             row += 1
     wb.save(response)
     return response

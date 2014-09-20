@@ -51,7 +51,7 @@
                                             <select class="chzn-select" name="its_districtmanager" id="lst-its">
                                                 <option value="" selected="selected">---</option>
                                                 {% for d in its %}
-                                                    <option value="{{ d }}">{{ d.first_name }} {{ d.last_name }} {% if d.email %}({{ d.email }}){% endif %}</option>
+                                                    <option value="{{ d }}" {% if d.username == form.its_districtmanager.value %} selected {% endif %}>{{ d.first_name }} {{ d.last_name }} {% if d.email %}({{ d.email }}){% endif %}</option>
                                                 {% endfor %}
 
                                             </select>
@@ -61,7 +61,7 @@
                                             <select class="chzn-select" name="consultant" id="lst-consultant">
                                                 <option value="" selected="selected">---</option>
                                                 {% for d in consultants %}
-                                                    <option value="{{ d }}">{{ d }}</option>
+                                                    <option value="{{ d }}" {% if d.full_name == form.consultant.value %} selected {% endif %}>{{ d }}</option>
                                                 {% endfor %}
                                             </select>
                                         </li>
@@ -70,7 +70,7 @@
                                             <select class="chzn-select" name="areamanager" >
                                                 <option value="" selected="selected">---</option>
                                                 {% for w in areamanagers %}
-                                                    <option value="{{ w }}">{{ w }}</option>
+                                                    <option value="{{ w }}" {% if w.full_name == form.areamanager.value %} selected {% endif %}>{{ w }}</option>
                                                 {% endfor %}
                                             </select>
                                         </li>
@@ -79,7 +79,7 @@
                                             <select class="chzn-select" name="pointofsaletype" >
                                                 <option value="" selected="selected">---</option>
                                                 {% for w in pointofsaletypes %}
-                                                    <option value="{{ w }}">{{ w }}</option>
+                                                    <option value="{{ w }}" {% if w.description == form.pointofsaletype.value %} selected {% endif %}>{{ w }}</option>
                                                 {% endfor %}
                                             </select>
                                         </li>
@@ -88,7 +88,7 @@
                                             <select class="chzn-select" name="eventtype" >
                                                 <option value="" selected="selected">---</option>
                                                 {% for w in eventtypes %}
-                                                    <option value="{{ w }}">{{ w }}</option>
+                                                    <option value="{{ w }}" {% if w.description == form.eventtype.value %} selected {% endif %}>{{ w }}</option>
                                                 {% endfor %}
                                             </select>
                                         </li>
@@ -111,7 +111,7 @@
                                         <select class="chzn-select" name="province" >
                                             <option value="">---</option>
                                             {% for prov in provinces %}
-                                                <option value="{{ prov }}">{{ prov }}</option>
+                                                <option value="{{ prov }}"  {% if prov.name == form.province.value %} selected {% endif %}>{{ prov }}</option>
                                             {% endfor %}
                                         </select>
                                         </li>
@@ -120,7 +120,7 @@
                                             <select class="chzn-select" name="theme" >
                                                 <option value="" selected="selected">---</option>
                                                 {% for w in themes %}
-                                                    <option value="{{ w }}">{{ w }}</option>
+                                                    <option value="{{ w }}" {% if w.description == form.theme.value %} selected {% endif %}>{{ w }}</option>
                                                 {% endfor %}
                                             </select>
                                         </li>
@@ -129,7 +129,7 @@
                                             <select class="chzn-select" name="channel" >
                                                 <option value="" selected="selected">---</option>
                                                 {% for w in channels %}
-                                                    <option value="{{ w }}">{{ w }}</option>
+                                                    <option value="{{ w }}" {% if w.description == form.channel.value %} selected {% endif %}>{{ w }}</option>
                                                 {% endfor %}
                                             </select>
                                         </li>
