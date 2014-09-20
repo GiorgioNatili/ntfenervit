@@ -207,6 +207,10 @@ class Contact(models.Model):
                                                 related_name='contact_action_subdivision')
     owner = models.ForeignKey(User, null=True, blank=True)
 
+    @property
+    def full_name(self):
+        return '%s %s' % (self.name, self.surname)
+
     def __unicode__(self):
         return '%s %s' % (self.name, self.surname)
 

@@ -127,7 +127,11 @@ class AreaManager(models.Model):
     surname = models.CharField(max_length=250,blank=False, null=False,verbose_name="Cognome")
 
     def __unicode__(self):
-        return '%s %s' % (self.name,self.surname)
+        return '%s %s' % (self.name, self.surname)
+
+    @property
+    def full_name(self):
+        return '%s %s' % (self.name, self.surname)
 
     class Meta:
         verbose_name = "Area manager"
@@ -137,11 +141,12 @@ class Theme(models.Model):
     description = models.CharField(max_length=250,blank=False, null=False,verbose_name="Tema")
 
     def __unicode__(self):
-        return '%s' % (self.description)
+        return '%s' % self.description
 
     class Meta:
         verbose_name = "Tema evento"
         verbose_name_plural = "Temi evento"
+
 
 class Channel(models.Model):
     description = models.CharField(max_length=250,blank=False, null=False,verbose_name="Canale")
@@ -153,6 +158,7 @@ class Channel(models.Model):
         verbose_name = "Canale"
         verbose_name_plural = "Canali"
 
+
 class Goal(models.Model):
     description = models.CharField(max_length=250,blank=False, null=False,verbose_name="Obiettivo")
 
@@ -163,15 +169,17 @@ class Goal(models.Model):
         verbose_name = "Obiettivo evento"
         verbose_name_plural = "Obiettivi evento"
 
+
 class PointOfSaleType(models.Model):
     description = models.CharField(max_length=250,blank=False, null=False,verbose_name="Tipologia")
 
     def __unicode__(self):
-        return '%s' % (self.description)
+        return '%s' % self.description
 
     class Meta:
         verbose_name = "Tipologia Punto Vendita"
         verbose_name_plural = "Tipologia Punto Vendita"
+
 
 #TODO TO prune because not used any longer
 class EventCoupon(models.Model):
@@ -199,7 +207,7 @@ class EventType(models.Model):
         return self.customer_to_sale * 100
 
     def __unicode__(self):
-        return '%s' % (self.description)
+        return '%s' % self.description
     class Meta:
         verbose_name = "Tipo Evento"
         verbose_name_plural = "Tipi Evento"
