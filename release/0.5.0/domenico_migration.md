@@ -1,6 +1,10 @@
 Note for Production Migration
 =============================
 
+## New settings variable
+GOOGLE_MAP_API_KEY = 'AIzaSyDvwBg4JHzHXh4DISNEtFJwhYaMX0jv2ic'
+
+
 ## New package requirement
 
     pip install python-Levenshtein
@@ -9,14 +13,12 @@ Note for Production Migration
 
 *schema migration
 
-    python src/manage.py migrate contacts 0003
-    python src/manage.py migrate contacts 0004
-    python src/manage.py migrate contacts 0005
+    python src/manage.py migrate contacts
     
 ## Campaigns migration for change length of point of sale code
 
 *schema migration
 
-    python src/manage.py migrate campaigns 0003
+    python src/manage.py migrate campaigns
     
     
