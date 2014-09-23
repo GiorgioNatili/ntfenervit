@@ -16,16 +16,17 @@ Note for Production Migration
     python src/manage.py migrate campaigns 0004
 
 ## IMPORTANT: to plan a task for populate new Event fields based on old ones:
-*create users ITS for missing ones: Bosio, Marangi, Piovan
-*its_districtmanager based on districtmanager
+*This is needed for historical data. It can be done anytime.
+*Contact the developer if this operation is requested in the future.
 
+*create usersITS for missing ones: Bosio, Marangi, Piovan
+
+*its_districtmanager based on old field 'districtmanager'
+    
     python setup/release/20140811/populate_its.py
     
-*consultant based on trainer
+*consultant based on old field 'trainer'
 
     python setup/release/20140811/populate_consultant.py
     
-*then apply the following migration to remove old fields
-    
-    python src/manage.py migrate campaigns 0005 #this will remove unused fields
-  
+*old field can be removed from code, then to create migration to apply
