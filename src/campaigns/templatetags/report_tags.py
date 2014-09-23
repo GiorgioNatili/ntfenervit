@@ -16,4 +16,8 @@ def format_percent(num, decimals=0):
     if num:
         num *= 100
 
-    return round(num, decimals)
+    try:
+    	return round(num, decimals)
+    except:
+        return None
+

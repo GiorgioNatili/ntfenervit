@@ -178,7 +178,7 @@ urlpatterns = patterns('',
     #url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
 
     url(r'^admin/report/its/$', 'campaigns.its.views.view_its_report_report_section'),
-    url(r'^admin/report/its/(\d+)$', 'campaigns.its.views.view_its_report_its_section'),
+    url(r'^admin/report/its/(\d+)$', 'campaigns.its.views.view_its_report_report_section'),
     url(r'^admin/report/its/export/(\d+)$', 'campaigns.its.views.export_its_report'),
 
     # Uncomment the next line to enable the admin:
