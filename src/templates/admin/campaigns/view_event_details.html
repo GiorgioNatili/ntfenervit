@@ -230,6 +230,7 @@
                 <li>
                     <label>Provincia</label>
                     <select class="chzn-select" id="lst-provinces" name="province">
+                        <option value="">---</option>
                         {% for pos in province %}
                             <option value="{{ pos.id }}" {% if pos.id == event.province.id %}
                                     selected="selected"{% endif %}>{{ pos }}</option>

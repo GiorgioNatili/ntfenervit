@@ -629,7 +629,7 @@ def view_export_signup_by_event(request, eventid):
     event = Event.objects.all().filter(id=eventid)[0]
     response['Content-Disposition'] = 'attachment; filename=esportazione_evento-' + event.__unicode__() + '.xls'
 
-    wb = xlwt.Workbook()
+    wb = xlwt.Workbook(encoding='utf-8')
     ws = wb.add_sheet('Foglio 1')
 
     ws.write(0, 0, 'Staff')
@@ -1228,7 +1228,7 @@ def view_export_presence(request, id_event):
     event = Event.objects.all().filter(id=id_event)[0]
     response['Content-Disposition'] = 'attachment; filename=esportazione_evento-' + event.__unicode__() + '.xls'
 
-    wb = xlwt.Workbook()
+    wb = xlwt.Workbook(encoding='utf-8')
     ws = wb.add_sheet('Foglio 1')
 
     ws.write(0, 0, 'Presenza')
@@ -1822,7 +1822,7 @@ def search_campaign(request):
 def search_campaign_export(request):
     response = HttpResponse(mimetype="application/ms-excel")
     response['Content-Disposition'] = 'attachment; filename=esportazione_ricerca_campagna.xls'
-    wb = xlwt.Workbook()
+    wb = xlwt.Workbook(encoding='utf-8')
     ws = wb.add_sheet('Foglio 1')
     ws.write(0, 0, 'Identificativo')
     ws.write(0, 1, 'Nome')
@@ -1910,7 +1910,7 @@ def search_newsletter(request):
 def search_newsletter_export(request):
     response = HttpResponse(mimetype="application/ms-excel")
     response['Content-Disposition'] = 'attachment; filename=esportazione_ricerca_newsletter.xls'
-    wb = xlwt.Workbook()
+    wb = xlwt.Workbook(encoding='utf-8')
     ws = wb.add_sheet('Foglio 1')
     ws.write(0, 0, 'Identificativo')
     ws.write(0, 1, 'Nome')
@@ -2004,7 +2004,7 @@ def search_event(request):
 def search_event_export(request):
     response = HttpResponse(mimetype="application/ms-excel")
     response['Content-Disposition'] = 'attachment; filename=esportazione_ricerca_eventi.xls'
-    wb = xlwt.Workbook()
+    wb = xlwt.Workbook(encoding='utf-8')
     ws = wb.add_sheet('Foglio 1')
     ws.write(0, 0, 'Identificativo')
     ws.write(0, 1, 'Titolo')
@@ -2042,6 +2042,7 @@ def search_event_export(request):
         row = 1
         for c in valid_results:
             its = c.its_districtmanager.get_full_name() if c.its_districtmanager else None
+            consultant = c.consultant.full_name if c.consultant else None
             campaign = c.campaign.name if c.campaign else None
             ws.write(row, 0, str(c.id))
             ws.write(row, 1, c.title)
@@ -2059,7 +2060,7 @@ def search_event_export(request):
             ws.write(row, 12, c.pointofsaledescription)
             ws.write(row, 13, str(c.typepointofsale or ''))
             ws.write(row, 14, c.trainer)
-            ws.write(row, 15, c.consultant)
+            ws.write(row, 15, consultant)
             ws.write(row, 16, its)
             ws.write(row, 17, str(c.areamanager))
             signups = EventSignup.objects.all().filter(event=c, presence=True).count()
