@@ -340,10 +340,10 @@ def view_add_contact(request):
         form = ContactForm(request.POST)
         if form.is_valid():
             new_contact = form.save()
-            if request.POST.has_key('_addanother'):
+            messages.success(request, 'Aggiunta contatto \"' + new_contact.name + ' ' + new_contact.surname + '\"')
+            if '_addanother' in request.POST:
                 form = ContactForm()
             else:
-                messages.success(request, 'Aggiunta contatto \"' + new_contact.name + ' ' + new_contact.surname + '\"')
                 return HttpResponseRedirect('/admin/contacts/contact')
     c = {'form': form, 'provinces': provinces, 'companies': companies, 'sectors': sectors, 'divisions': divisions}
     return render_to_response('admin/contacts/view_add_contact.html', c, context_instance=RequestContext(request))
