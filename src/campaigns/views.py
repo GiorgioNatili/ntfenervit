@@ -143,7 +143,6 @@ class EventCouponForm(ModelForm):
 @staff_member_required
 def view_campaign(request):
     campaigns = Campaign.objects.all()
-    print get_messages(request)
     return render_to_response('admin/campaigns/view_campaign.html', {'campaigns': campaigns},
                               context_instance=RequestContext(request))
 
@@ -173,7 +172,6 @@ def view_campaign_details(request, id):
     events = Event.objects.all().filter(campaign=campaign)
     form = CampaignForm()
     if request.method == 'POST':
-        print request.POST
         form = CampaignForm(request.POST, instance=campaign)
         if form.is_valid():
             new_campaign = form.save(commit=False)
@@ -207,7 +205,6 @@ def view_add_newsletter(request):
     events = Event.objects.all()
     ntemplates = NewsletterTemplate.objects.all()
     if request.method == 'POST':
-        print request.POST
         form = NewsletterForm(request.POST)
         if form.is_valid():
             new_newsletter = form.save()
@@ -219,9 +216,7 @@ def view_add_newsletter(request):
             else:
                 if request.POST.get('event') is not None or request.POST.get('event') is not "-1":
                     event = Event.objects.filter(id=request.POST.get('event'))
-                    print event
                     eventSignups = EventSignup.objects.all().filter(event=event)
-                    print eventSignups
                     for es in eventSignups:
                         if not NewsletterTarget.objects.filter(newsletter=new_newsletter, contact=es.contact):
                             target = NewsletterTarget(newsletter=new_newsletter, contact=es.contact)
@@ -258,9 +253,7 @@ def view_newsletter_details(request, id):
                 attachments2.save()
             if request.POST.get('event') is not None or request.POST.get('event') is not "-1":
                 event = Event.objects.filter(id=request.POST.get('event'))
-                print event
                 eventSignups = EventSignup.objects.all().filter(event=event)
-                print eventSignups
                 for es in eventSignups:
                     if not NewsletterTarget.objects.filter(newsletter=new_newsletter, contact=es.contact):
                         target = NewsletterTarget(newsletter=new_newsletter, contact=es.contact)
@@ -539,7 +532,6 @@ def add_schedule_newsletter(request):
     newsletters = Newsletter.objects.all().filter(status="W")
     form = NewsletterSchedulationForm()
     if request.method == 'POST':
-        print request.POST
         form = NewsletterSchedulationForm(request.POST)
         if form.is_valid():
             new_schedulation = form.save()
@@ -584,7 +576,6 @@ def schedule_newsletter_delete(request, id):
 @staff_member_required
 def view_events(request):
     events = Event.objects.all()
-    #print get_messages(request)
     for e in events:
         e.from_its = '?from_its=1' if e.is_its else ''
 
@@ -617,7 +608,6 @@ def view_signup_details(request, signupid):
         payments = EventPayment.objects.all().filter(contact=signup.contact, event=signup.event)
         if len(payments) > 0:
             payment = payments[0]
-            print payment
     print signup
     return render_to_response('admin/campaigns/view_signup_details.html', {'signup': signup, 'payment': payment},
                               context_instance=RequestContext(request))
@@ -778,7 +768,6 @@ def view_add_event(request):
 # @staff_member_required
 # @user_passes_test(is_controller)
 def view_event_details(request, id):
-    # print str(get_messages(request))
     from_its = False
     if request.GET.get('from_its'):
         from_its = True
@@ -847,8 +836,6 @@ def view_event_import(request):
         form = ImportSignup(request.POST, request.FILES)
         my_file = request.FILES['file']
         if form.is_valid():
-            print "Evento:"
-            print form.cleaned_data['event']
             with open('/var/www/yellowpage/media/xls/' + my_file.name, 'wb+') as destination:
                 for chunk in my_file.chunks():
                     destination.write(chunk)
@@ -901,14 +888,12 @@ def view_event_import(request):
                             my_work = Work.objects.filter(name=qualifica.strip())[0] if len(
                                 qualifica.strip()) > 2 and len(categoria.strip()) > 2 else None
                             code = str(uuid.uuid4()).replace("-", "")[0:16]
-                            print code
                             my_contact = Contact(name=nome, surname=cognome, street=indirizzo, province=province,
                                                  city=citta, zip=cap, email=email, phone_number=tel, work=my_work,
                                                  code=code)
                             my_contact.save()
 
-                        if len(
-                                indirizzo.strip()) > 2 and indirizzo.lower() != "enervit" and indirizzo.lower() != "relatore":
+                        if len(indirizzo.strip()) > 2 and indirizzo.lower() != "enervit" and indirizzo.lower() != "relatore":
                             print indirizzo
                         else:
                             if indirizzo.lower() == "enervit" and sheet.cell(row_index, 0).value == 1:
@@ -922,7 +907,6 @@ def view_event_import(request):
                         elif sheet.cell(row_index, 0).value != 1 and sheet.cell(row_index, 2).value == 1:
                             pagante = True
                         event = Event.objects.filter(id=form.cleaned_data['event'])[0]
-                        print event
                         contact = \
                             Contact.objects.filter(name=nome, surname=cognome, street=indirizzo, city=citta, zip=cap,
                                                    email=email, phone_number=tel)[0]
@@ -938,7 +922,6 @@ def view_event_import(request):
                             if not NewsletterTarget.objects.filter(newsletter=ns, contact=contact):
                                 target = NewsletterTarget(newsletter=ns, contact=contact)
                                 target.save()
-                                print target
 
                         if pagante:
                             type = str(sheet.cell(row_index, 14).value) if str(
@@ -1016,7 +999,6 @@ def view_calendar(request):
 @staff_member_required
 def view_newslettertemplate(request):
     newslettertemplates = NewsletterTemplate.objects.all()
-    print get_messages(request)
     return render_to_response('admin/campaigns/view_newslettertemplate.html',
                               {'newslettertemplates': newslettertemplates},
                               context_instance=RequestContext(request))
@@ -1095,7 +1077,6 @@ def view_newslettertarget_add_rest(request):
     newsletter = get_object_or_404(Newsletter, id=newsletterId)
     if not NewsletterTarget.objects.filter(contact=contact, newsletter=newsletter):
         target = NewsletterTarget(contact=contact, newsletter=newsletter)
-        print target
         target.save()
 
     import json
@@ -1317,13 +1298,11 @@ def view_add_eventsignup(request):
     events = Event.objects.all()
     form = EventSignupForm()
     if request.method == 'POST':
-        print request.POST
         request.POST['omaggio'] = False
         request.POST['pagante'] = False
         request.POST['staff'] = False
         if 'tipo_partecipante' in request.POST:
             request.POST[request.POST['tipo_partecipante']] = True
-        print request.POST
         form = EventSignupForm(request.POST)
         if form.is_valid():
             new_signup = form.save()
@@ -1436,7 +1415,6 @@ def view_areemanager_details(request, id):
     area = get_object_or_404(AreaManager, id=id)
     form = AreeManagerForm()
     if request.method == 'POST':
-        print request.POST
         form = AreeManagerForm(request.POST, instance=area)
         if form.is_valid():
             new_area = form.save(commit=False)
@@ -1483,7 +1461,6 @@ def view_theme_details(request, id):
     theme = get_object_or_404(Theme, id=id)
     form = ThemeForm()
     if request.method == 'POST':
-        print request.POST
         form = ThemeForm(request.POST, instance=theme)
         if form.is_valid():
             new_theme = form.save(commit=False)
@@ -1529,7 +1506,6 @@ def view_goal_details(request, id):
     goal = get_object_or_404(Goal, id=id)
     form = GoalForm()
     if request.method == 'POST':
-        print request.POST
         form = GoalForm(request.POST, instance=goal)
         if form.is_valid():
             new_goal = form.save(commit=False)
@@ -1575,7 +1551,6 @@ def view_channel_details(request, id):
     channel = get_object_or_404(Channel, id=id)
     form = ChannelForm()
     if request.method == 'POST':
-        print request.POST
         form = ChannelForm(request.POST, instance=channel)
         if form.is_valid():
             new_channel = form.save(commit=False)
@@ -1621,7 +1596,6 @@ def view_pointofsaletype_details(request, id):
     pos = get_object_or_404(PointOfSaleType, id=id)
     form = PointOfSaleTypeForm()
     if request.method == 'POST':
-        print request.POST
         form = PointOfSaleTypeForm(request.POST, instance=pos)
         if form.is_valid():
             new_pos = form.save(commit=False)
@@ -1666,7 +1640,6 @@ def view_eventtype_details(request, id):
     eventtype = get_object_or_404(EventType, id=id)
     form = EventTypeForm(instance=eventtype)
     if request.method == 'POST':
-        # print request.POST
         form = EventTypeForm(request.POST, instance=eventtype)
         if form.is_valid():
             new_type = form.save(commit=False)

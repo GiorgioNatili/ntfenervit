@@ -80,21 +80,11 @@ def view_signup(request):
     import json
     response_data = {}
     if request.method == 'POST':
-        print "CRO"
-        print request.POST.get("cro")
-        print "COUPON"
-        print request.POST.get("coupon")
-        print request.user
-        print request.user.email
-        print request.POST.get("note")
-        print request.POST.get("event")
-        print request.POST.get("money")
         event = Event.objects.filter(id=request.POST.get("event"))[0]
         contact = Contact.objects.all().filter(owner=request.user)[0]
         if EventSignup.objects.all().filter(event=event, contact=contact):
             response_data["error"] = "L'utente risulta gia' regolarmente iscritto all'evento"
         else:
-            print "Non iscritto"
             if not EventPayment.objects.filter(event=event, contact=contact):
                 omaggio = False
                 relatore = False
@@ -109,13 +99,8 @@ def view_signup(request):
                     try:
                         id_event_coupon = int(request.POST.get("coupon")[8:10])
                         id_coupon = int(request.POST.get("coupon")[9:14])
-                        print id_coupon
                         coupon = Coupon.objects.get(pk=id_coupon)
-                        print coupon.coupon_bulk.max_date
-                        print datetime.date.today()
                         if coupon and coupon.is_valid(event.id):
-                            print coupon.coupon_bulk.max_date
-                            print datetime.datetime.now()
                             omaggio = True
                             coupon.assigned_to = contact
                             coupon.used = True
@@ -139,16 +124,13 @@ def view_signup(request):
                     pagante = True
 
                 already_signedup = EventSignup.objects.filter(event=event, contact=contact, staff=staff, omaggio=omaggio, pagante=pagante, relatore=relatore).count() > 0
-                print already_signedup
                 if not already_signedup and not error_coupon:
-                    print 'signing up'
                     signup = EventSignup(event=event, contact=contact, staff=staff, omaggio=omaggio,
                                          pagante=pagante, note=nota, relatore=relatore, coupon=coupon)
                     signup.save()
 
                 if pagante:
                     type = request.POST.get("money") #event.money
-                    print "TYPE" + type
                     way = request.POST.get("cro")
                     executor = request.POST.get("ragionesociale")
                     street = request.POST.get("indirizzo")
@@ -180,10 +162,6 @@ def view_contact(request):
     from django.conf import settings
     response_data = {}
     if request.method == 'POST':
-        print request.POST.get("message")
-        print request.user
-        print request.user.email
-        print request.POST.get("reason")
         to = ('K.Viel@enervit.it',)
         subject = "Richiesta di contatto dal portale NTF"
         s = smtplib.SMTP_SSL(settings.EMAIL_HOST,settings.EMAIL_PORT,'enervit.com')

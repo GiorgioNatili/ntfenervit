@@ -55,7 +55,7 @@ def user_details(request, id):
         gruppo = user.groups.all()[0]
     gruppi = Group.objects.all()
 
-    if not user.is_staff:
+    if not user.is_staff and Contact.objects.all().filter(owner=user):
         contact = Contact.objects.all().filter(owner=user)[0]
     form = UserForm()
     if request.method == 'POST':

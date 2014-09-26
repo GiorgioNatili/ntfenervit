@@ -118,7 +118,6 @@ def view_company_details(request, id):
 @staff_member_required
 def view_division(request):
     division = Division.objects.all()
-    print get_messages(request)
     return render_to_response('admin/contacts/view_division.html', {'divisions': division},
                               context_instance=RequestContext(request))
 
@@ -146,7 +145,6 @@ def view_division_details(request, id):
     division = get_object_or_404(Division, id=id)
     form = DivisionForm()
     if request.method == 'POST':
-        print request.POST
         form = DivisionForm(request.POST, instance=division)
         if form.is_valid():
             new_division = form.save(commit=False)
@@ -164,7 +162,6 @@ def view_division_details(request, id):
 @staff_member_required
 def view_subdivision(request):
     subdivision = SubDivision.objects.all()
-    print get_messages(request)
     return render_to_response('admin/contacts/view_subdivision.html', {'subdivisions': subdivision},
                               context_instance=RequestContext(request))
 
@@ -194,7 +191,6 @@ def view_subdivision_details(request, id):
     form = SubDivisionForm()
     divisions = Division.objects.all()
     if request.method == 'POST':
-        print request.POST
         form = SubDivisionForm(request.POST, instance=subdivision)
         if form.is_valid():
             new_subdivision = form.save(commit=False)
@@ -220,7 +216,6 @@ def view_subdivision_rest(request):
 @staff_member_required
 def view_sector(request):
     sector = Sector.objects.all()
-    print get_messages(request)
     return render_to_response('admin/contacts/view_sector.html', {'sectors': sector},
                               context_instance=RequestContext(request))
 
@@ -248,7 +243,6 @@ def view_sector_details(request, id):
     sector = get_object_or_404(Sector, id=id)
     form = SectorForm()
     if request.method == 'POST':
-        print request.POST
         form = SectorForm(request.POST, instance=sector)
         if form.is_valid():
             new_sector = form.save(commit=False)
@@ -267,7 +261,6 @@ def view_sector_details(request, id):
 @staff_member_required
 def view_work(request):
     work = Work.objects.all()
-    print get_messages(request)
     return render_to_response('admin/contacts/view_work.html', {'works': work},
                               context_instance=RequestContext(request))
 
@@ -297,7 +290,6 @@ def view_work_details(request, id):
     form = WorkForm()
     sectors = Sector.objects.all()
     if request.method == 'POST':
-        print request.POST
         form = WorkForm(request.POST, instance=work)
         if form.is_valid():
             new_work = form.save(commit=False)
@@ -322,7 +314,6 @@ def view_work_rest(request):
 @staff_member_required
 def view_contact(request):
     contacts = Contact.objects.all()
-    print get_messages(request)
     return render_to_response('admin/contacts/view_contact.html', {'contacts': contacts},
                               context_instance=RequestContext(request))
 
@@ -429,7 +420,6 @@ def view_contact_details(request, id):
 
             if owner:
                 new_contact.owner = User.objects.all().filter(id=owner)[0]
-                print new_contact.status
                 if new_contact.status == 'C':
                    userLoc = User.objects.all().filter(id=owner)[0]
                    userLoc.is_active = False
@@ -479,9 +469,6 @@ def view_contact_import(request):
                     destination.write(chunk)
             xls = open_workbook('/var/www/yellowpage/media/xls/'+my_file.name)
             sheet = xls.sheet_by_index(0)
-            print sheet.name
-            print sheet.nrows
-            print sheet.ncols
             for row_index in range(sheet.nrows):
                 if row_index > 0:
                     #for col_index in range(sheet.ncols):
@@ -493,7 +480,6 @@ def view_contact_import(request):
                         print "EMAIL: "+sheet.cell(row_index,7).value.lower()
                         print "CF: "+sheet.cell(row_index,20).value
 
-            print "VALIDO!!!"
     return render_to_response('admin/contacts/view_contact_import.html',{'form':form}, context_instance=RequestContext(request))
 
 
@@ -502,7 +488,6 @@ def view_ranking_details(request,id):
     ranking = get_object_or_404(RankingConfiguration, id=id)
     form = RankingConfigurationForm()
     if request.method == 'POST':
-        print request.POST
         form = RankingConfigurationForm(request.POST, instance=ranking)
         if form.is_valid():
             new_ranking = form.save(commit=False)

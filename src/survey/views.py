@@ -190,10 +190,8 @@ def _find_contacts_not_open_survey(survey, all_submissions):
 
     for qs in all_submissions:
         for sub in qs:
-            # print sub.contact
             if sub.contact in all_contacts:
                 all_contacts.remove(sub.contact)
-                # print str(sub.contact) + 'removed from negligents'
     #all_contacts list contains only 'negligent' contacts now
     return all_contacts
 
@@ -449,7 +447,7 @@ def _survey_show_form(request, survey, forms):
     contact = None
     if request.GET.get('email'):
         contacts = Contact.objects.all().filter(email=request.GET.get('email'))
-        if len(contacts) > 0:
+        if contacts.count() > 0:
             contact = contacts[0]
     specific_template = 'admin/survey/%s_survey_detail.html' % survey.slug
     entered = False  #_user_entered_survey(request, survey)
@@ -478,30 +476,27 @@ def survey_detail(request, slug):
     the form, redirects to the results page, displays messages, or whatever
     makes sense based on the survey, the user, and the user's entries. """
     survey = _get_survey_or_404(slug, request)
-    print 'here'
     if not survey.is_open and survey.can_have_public_submissions():
-        print '_survey_results_redirect'
         return _survey_results_redirect(request, survey)
     need_login = (survey.is_open
                   and survey.require_login
                   and not request.user.is_authenticated())
-    print 'before '+str(need_login)
     if _can_show_form(request, survey):
-        print '_can_show_form'
+
         if request.method == 'POST':
-            print 'POST'
             return _survey_submit(request, survey)
         else:
             #create submission with status opened, it will be filtered out in reports
             email = request.GET.get('email')  # contact email is in the querystring
+
             if email and Contact.objects.filter(email=email):
                 contact = Contact.objects.filter(email=email)[0]
                 already_submitted = Submission.objects.filter(survey=survey, contact=contact,
-                                                              status=Submission.COMPLETED).order_by('submitted_at')
-                if len(already_submitted) > 0:
+                                                              status=Submission.COMPLETED)
+                if already_submitted.count() > 0:
                     if survey.allow_multiple_submissions:
                         #get the latest
-                        submission_ = already_submitted.latest()
+                        submission_ = already_submitted.latest('submitted_at')
                         submission_.status = Submission.OPENED
                     else:
                         #redirect to already submitted
@@ -523,15 +518,11 @@ def survey_detail(request, slug):
                 submission_.save()
         forms = forms_for_survey(survey, request)
     elif need_login:
-        print 'need_login'
         forms = ()
     elif survey.can_have_public_submissions():
-        print '_survey_results_redirect'
         return _survey_results_redirect(request, survey)
     else:  # Survey is closed with private results.
-        print 'else'
         forms = ()
-    print 'show form'
     return _survey_show_form(request, survey, forms)
 
 
@@ -845,19 +836,18 @@ def _survey_report(request, slug, report, page, templates):
     archive_fields = list(survey.get_public_archive_fields())
     is_staff = request.user.is_staff
     if is_staff:
-        submissions = survey.submission_set.all()
+        submissions_ = survey.submission_set.all()
         fields = list(survey.get_fields())
     else:
-        submissions = survey.public_submissions()
+        submissions_ = survey.public_submissions()
         fields = list(survey.get_public_fields())
     filters = get_filters(survey, request.GET)
 
     id_field = "survey_submission.id"
     if not report_obj.display_individual_results:
-        submissions = submissions.none()
-        print submissions
+        submissions_ = submissions_.none()
     else:
-        submissions = extra_from_filters(submissions,
+        submissions_ = extra_from_filters(submissions_,
                                          id_field,
                                          survey,
                                          request.GET)
@@ -865,16 +855,16 @@ def _survey_report(request, slug, report, page, templates):
         # If you want to sort based on rating, wire it up here.
         if crowdsourcing_settings.PRE_REPORT:
             pre_report = get_function(crowdsourcing_settings.PRE_REPORT)
-            submissions = pre_report(
-                submissions=submissions,
+            submissions_ = pre_report(
+                submissions=submissions_,
                 report=report_obj,
                 request=request)
         if report_obj.featured:
-            submissions = submissions.filter(featured=True)
+            submissions_ = submissions_.filter(featured=True)
         if report_obj.limit_results_to:
-            submissions = submissions[:report_obj.limit_results_to]
+            submissions_ = submissions_[:report_obj.limit_results_to]
 
-    paginator, page_obj = paginate_or_404(submissions, page)
+    paginator, page_obj = paginate_or_404(submissions_, page)
 
     page_answers = get_all_answers(
         page_obj.object_list,
@@ -887,7 +877,7 @@ def _survey_report(request, slug, report, page, templates):
         archive_fields or (is_staff and fields)])
     context = dict(
         survey=survey,
-        submissions=submissions,
+        submissions=submissions_,
         paginator=paginator,
         page_obj=page_obj,
         pages_to_link=pages_to_link,
