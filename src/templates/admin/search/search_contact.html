@@ -107,6 +107,11 @@
                         <span class="title">Risultati</span>
                         <ul class="object-tools form-inline pull-right inline">
                             <li>
+                                <a href="#" id="copy_to_newsletter" class="btn btn-blue">
+                                    <i class="icon-plus icon-white"></i> Newsletter
+                                </a>
+                            </li>
+                            <li>
                                 <a href="#" id="export" class="btn btn-green">
                                     <i class="icon-download icon-white"></i> Esporta
                                 </a>
@@ -143,6 +148,12 @@
                 </div>
             </div>
         </div>
+        <div>
+            <form id="add2newsletter" method="post" action="/admin/campaigns/newsletter/copy/">
+                {% csrf_token %}
+                <input type="hidden" name="contact_ids" id="contact_ids" value="">
+            </form>
+        </div>
     </div>
 
     <script>
@@ -174,9 +185,24 @@
 
             });
 
+            $("#copy_to_newsletter").on("click", function () {
+                contacts = [
+                    {% for contact in contacts %}
+                        {% if forloop.last %}"{{ contact.code }}"{% else %}"{{ contact.code }}",{% endif %}
+                    {% endfor %}
+                ];
+
+                $("#contact_ids").val(JSON.stringify(contacts));
+
+                $('#add2newsletter').submit();
+
+            });
+
             $(".active").removeClass("active");
             $("#searchMenu").addClass("active");
+
         });
+
     </script>
 
 {% endblock %}

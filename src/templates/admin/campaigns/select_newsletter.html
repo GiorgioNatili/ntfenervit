@@ -1,0 +1,101 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_static bootstrapped_goodies_tags %}
+{% block icon-detail %}<i class="icon-plus"></i>{% endblock %}
+{% block content_title %}Aggiungi a Newsletter{% endblock %}
+{% block content_subtitle %}<h5>seleziona una newsletter per aggiungere {{ contact_count }} contatti</h5>{% endblock %}
+
+{% block content %}
+    <div class="container-fluid padded">
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Newsletter</span>
+                    </div>
+                    <div class="box-content">
+                        <div id="dataTables">
+                            <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
+                                <thead>
+                                <tr>
+                                    <th><div>Id</div></th>
+                                    <th><div>Denominazione</div></th>
+                                    <th><div>Data di inizio</div></th>
+                                    <th><div>Data di fine</div></th>
+                                    <th><div>Campagna</div></th>
+                                    <th><div>Stato</div></th>
+                                    <th>&nbsp;</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for nl in newsletters %}
+                                    <tr>
+                                        <td>{{ nl.id }}</td>
+                                        <td>{{ nl.name }}</td>
+                                        <td>{{ nl.startdate }}</td>
+                                        <td>{{ nl.enddate }}</td>
+                                        <td>{{ nl.campaign }}</td>
+                                        <td>
+                                            {% if nl.status == 'D' %} Bozza {% endif %}
+                                            {% if nl.status == 'W' %} In attesa di invio {% endif %}
+                                            {% if nl.status == 'S' %} Invio in corso {% endif %}
+                                            {% if nl.status == 'F' %} Inviata {% endif %}
+                                            {% if nl.status == 'C' %} Cancellata {% endif %}
+                                        </td>
+
+                                        <td><a href="#" onclick="selectNewsletter({{ nl.id }});"><i class="icon-plus"></i></a></td>
+                                    </tr>
+
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                            <form method="post" id="selected-form">
+                                {% csrf_token %}
+                                <input type="hidden" name="from_url" value="{{ from_url|default:"" }}">
+                                <input type="hidden" name="contact_ids" value="{{ contact_ids|default:"" }}">
+                                <input type="hidden" id="newsletter_id" name="newsletter_id" value="">
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+
+        $(document).ready(function() {
+            $(".dTable2").dataTable({
+                bJQueryUI:!1
+                ,bAutoWidth:!1,
+                sPaginationType:"full_numbers",
+                sDom:'<"table-header"fl>t<"table-footer"ip>',
+                "oLanguage": {
+                    "sSearch":"Cerca",
+                    "sLengthMenu": "Mostra _MENU_ righe per pagina",
+                    "sZeroRecords": "Nessun risultato trovato",
+                    "sInfo": "Risultati da _START_ a _END_ di _TOTAL_ ",
+                    "sInfoEmpty": "Mostrati da 0 a 0 di 0 records",
+                    "sInfoFiltered": "(filtrati da _MAX_ records totali)",
+                    "oPaginate":{
+                        "sFirst":"Primo",
+                        "sLast":"Ultimo",
+                        "sNext":"Prossimo",
+                        "sPrevious":"Precedente"
+
+                    }
+                }
+            });
+        });
+
+        function selectNewsletter(id) {
+            {% if contact_count == 0 %}
+            alert("Nessun contatto selezionato.");
+            {% else %}
+            $("#newsletter_id").val(id);
+            form = $("#selected-form");
+            form.attr("action", id);
+            form.submit();
+            {% endif %}
+        };
+
+    </script>
+{% endblock %}

@@ -108,6 +108,8 @@ urlpatterns = patterns('',
     url(r'^admin/campaigns/newsletter/schedule/(\d+)/delete', 'campaigns.views.schedule_newsletter_delete'),
     url(r'^admin/campaigns/newsletter/single','campaigns.views.send_single_newsletter'),
     url(r'^admin/campaigns/newsletter/sendsingleemail','campaigns.views.send_single_email'),
+    url(r'^admin/campaigns/newsletter/copy/$','campaigns.views.select_newsletter'),
+    url(r'^admin/campaigns/newsletter/copy/(\d+)','campaigns.views.copy_to_newsletter'),
 
     url(r'^admin/campaigns/event/$','campaigns.views.view_events'),
     url(r'^admin/campaigns/event/add/$', 'campaigns.views.view_add_event'),

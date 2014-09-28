@@ -10,7 +10,7 @@ from django.core.context_processors import csrf
 
 from django.shortcuts import render_to_response, get_object_or_404, redirect
 from django.template import *
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.contrib.admin.views.decorators import staff_member_required
 from django.forms import ModelForm
 from django import forms
@@ -193,6 +193,113 @@ def view_newsletter(request):
     newsletter = Newsletter.objects.all()
     return render_to_response('admin/campaigns/view_newsletter.html', {'newsletter': newsletter},
                               context_instance=RequestContext(request))
+
+
+@staff_member_required
+def select_newsletter(request):
+    '''
+    Create a list of contacts to be copied and present a list of
+    newsletter allowing user to choose.
+
+    from_url is designed to redirect to that page if provided.
+    '''
+    newsletters = Newsletter.objects.all()
+    from_url = request.GET.get("from")
+
+    contact_count = 0
+    contact_ids = None
+    if request.method == "POST":
+        # Read contact ids if passed
+        in_contact_ids = request.POST.get("contact_ids")
+        if in_contact_ids:
+            contact_ids = json.loads(in_contact_ids)
+    else:
+        # Check for query string passed
+        event_id = request.GET.get("event_id")
+        source = request.GET.get("source")
+
+        # Get the contacts from event
+        if source == "present":
+            signups = EventSignup.objects.filter(event=event_id, presence=True)
+        else:
+            signups = EventSignup.objects.filter(event=event_id)
+
+        contact_ids = []
+        for ev in signups:
+            contact_ids.append(ev.contact.code)
+
+    if contact_ids is not None:
+        contact_count = len(contact_ids)
+        contact_ids = json.dumps(contact_ids)
+
+    return render_to_response('admin/campaigns/select_newsletter.html',
+                              {
+                                  "newsletters": newsletters,
+                                  "contact_count": contact_count,
+                                  "contact_ids": contact_ids,
+                                  "from_url": from_url
+                              },
+                              context_instance=RequestContext(request))
+
+@staff_member_required
+def copy_to_newsletter(request, newsletter_id):
+    '''
+    Copy the contact into newsletter and redirect to from_url or
+    the newsletter page if from_url not defined
+    '''
+    newsletter = get_object_or_404(Newsletter,pk=newsletter_id)
+
+    if request.method == "POST":
+        contact_ids = None
+        error_message = ""
+
+        # Determine URL to redirect to upon completion
+        if request.POST.get("from_url"):
+            url = request.POST.get("from_url")
+        else:
+            url = "/admin/campaigns/newsletter/%s/" % newsletter_id
+
+        # Read contact ids if passed
+        in_contact_ids = request.POST.get("contact_ids")
+        if in_contact_ids:
+            try:
+                contact_ids = json.loads(in_contact_ids)
+            except Exception as e:
+                error_message = "Error while reading contacts: %s" % e
+
+        # Prepare message
+        if contact_ids is None:
+            if error_message == "":
+                error_message = "No contact selected."
+
+            messages.error(request, error_message)
+        else:
+            contact_exist = 0
+            contact_added = 0
+            for contact_id in contact_ids:
+                # Sanitize contact_id
+                if contact_id == "" or contact_id is None:
+                    continue
+
+                # As there is no unique key on NewsletterTarget, need to check before adding
+                try:
+                    nt = NewsletterTarget.objects.get(newsletter=newsletter, contact_id=contact_id)
+                    contact_exist += 1
+                except NewsletterTarget.DoesNotExist:
+                    nt = NewsletterTarget(newsletter=newsletter, contact_id=contact_id)
+                    nt.save()
+                    contact_added += 1
+            if contact_exist == 0 and contact_added > 0:
+                messages.success(request, "%s contatti aggiunti come destinatari." % contact_added)
+            elif contact_exist > 0 and contact_added == 0:
+                messages.success(request, u"Nessun contatto aggiunto.  Tutti i %s contatti selezionati sono già esistenti." % contact_exist)
+            else:
+                messages.success(request, "%s contatti aggiunti come destinatari, %s esistenti non aggiunti." % (contact_added, contact_exist))
+
+        return HttpResponseRedirect(url)
+    else:
+        raise Http404
+
 
 
 @staff_member_required
@@ -1162,7 +1269,7 @@ def view_presence(request, event):
     npagante = EventSignup.objects.all().filter(event=event, pagante=True).count()
     ppagante = EventSignup.objects.all().filter(event=event, pagante=True, presence=True).count()
     c = {'signups': signup, 'total': total, 'ptotal': ptotal, 'nstaff': nstaff, 'pstaff': pstaff, 'pomaggio': pomaggio,
-         'nomaggio': nomaggio, 'npagante': npagante, 'ppagante': ppagante}
+         'nomaggio': nomaggio, 'npagante': npagante, 'ppagante': ppagante, 'event_id': event}
     return render_to_response('admin/campaigns/view_eventpresence.html', c, context_instance=RequestContext(request))
 
 

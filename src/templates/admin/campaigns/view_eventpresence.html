@@ -6,7 +6,7 @@
 {% block object-tools %}
     <ul class="object-tools form-inline pull-right inline">
         <li>
-            <a href="/admin/campaigns/eventpresence/export/{{ signups.0.event.id}}" class="btn btn-green">
+            <a href="/admin/campaigns/eventpresence/export/{{ signups.0.event.id }}" class="btn btn-green">
                 <i class="icon-download-alt icon-white"></i> Esporta XLS
             </a>
         </li>
@@ -30,6 +30,19 @@
                 <div class="box">
                     <div class="box-header">
                         <span class="title">Registro presenze </span>
+                        <ul class="object-tools form-inline pull-right inline">
+                           <label>Aggiungi a Newsletter:</label>
+                            <li>
+                                <a id="add2newsletter-all" class="btn btn-blue">
+                                    <i class="icon-plus icon-white"></i> Tutti
+                                </a>
+                            </li>
+                            <li>
+                                <a id="add2newsletter-present" class="btn btn-blue">
+                                    <i class="icon-plus icon-white"></i> Presenti
+                                </a>
+                            </li>
+                        </ul>
                     </div>
                     <div class="box-content">
                         <div id="dataTables">
@@ -81,13 +94,14 @@
     <script>
 
         $(document).ready(function() {
+
             var staff = new JustGage({
                 id: "staff",
                 value: {{ pstaff }},
                 min: 0,
                 max: {{ nstaff }},
                 title: "Staff",
-		labelFontColor: "black"
+		        labelFontColor: "black"
             });
 
             var total= new JustGage({
@@ -96,7 +110,7 @@
                 min: 0,
                 max: {{ total }},
                 title: "Presenze",
-		labelFontColor: "black"
+		        labelFontColor: "black"
 
             });
             var omaggio= new JustGage({
@@ -105,7 +119,7 @@
                 min: 0,
                 max: {{ nomaggio }},
                 title: "Omaggio",
-		labelFontColor: "black"
+		        labelFontColor: "black"
 
             });
             var pagante= new JustGage({
@@ -113,7 +127,7 @@
                 value: {{ ppagante }},
                 min: 0,
                 max: {{ npagante }},
-		labelFontColor: "black",
+		        labelFontColor: "black",
                 title: "Pagante"
             });
 
@@ -173,7 +187,15 @@
             $(".active").removeClass("active");
             $("#eventsMenu").addClass("active");
 
-
+            $("#add2newsletter-all, #add2newsletter-present").on("click", function () {
+                var url="/admin/campaigns/newsletter/copy/?event_id={{ event_id }}";
+                if ( this.id === "add2newsletter-all" ) {
+                    url += "&source=all";
+                } else if ( this.id === "add2newsletter-present" ) {
+                    url += "&source=present";
+                }
+                location.href = url;
+            });
 
         });
     </script>
