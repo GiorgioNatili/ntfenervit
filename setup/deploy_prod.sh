@@ -30,7 +30,7 @@ do
 	if [ ! -d "$dest_dir/$dir/" ]; then
 		mkdir "$dest_dir/$dir/"
 	fi
-	rsync -av --delete "./src/$dir/" "$dest_dir/$dir/"
+	rsync -av --delete --exclude="whoosh_index/" "./src/$dir/" "$dest_dir/$dir/"
 done
 
 
