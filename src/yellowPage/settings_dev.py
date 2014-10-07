@@ -6,6 +6,8 @@ import sys
 import json
 
 # Read the config file if exists
+from django.contrib import messages
+
 __config_file = os.path.splitext(os.path.basename(__file__))[0] + ".json"
 CONFIG_FILE = os.path.join(os.path.dirname(__file__), __config_file)
 __config = None
@@ -15,7 +17,8 @@ if os.path.isfile(CONFIG_FILE):
         with open(CONFIG_FILE, "r") as fh:
             __config = json.load(fh)
     except Exception as e:
-        sys.stderr.write("Configuration Error: Failed to read '%s' with error '%s'" (CONFIG_FILE, e))
+        sys.stderr.write("Configuration Error: Failed to read '%s' with error '%s'"(CONFIG_FILE, e))
+
 
 def getConfig(key, default=None):
     if __config and key in __config:
@@ -26,14 +29,14 @@ def getConfig(key, default=None):
         return default
 
 # Start the normal settings.py section
-PROJECT_ROOT = os.path.normpath(os.path.dirname(__file__)+'/..')
+PROJECT_ROOT = os.path.normpath(os.path.dirname(__file__) + '/..')
 
 DEBUG = getConfig("DEBUG", True)
 TEMPLATE_DEBUG = getConfig("TEMPLATE_DEBUG", DEBUG)
 
 ADMINS = getConfig("ADMINS", ())
 
-ROOT_URL = getConfig("ROOT_URL","http://localhost:8000")
+ROOT_URL = getConfig("ROOT_URL", "http://localhost:8000")
 
 MANAGERS = getConfig("ADMINS", ADMINS)
 
@@ -109,7 +112,7 @@ STATICFILES_DIRS = getConfig("STATICFILES_DIRS", __staticfiles_dirs)
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
-#    'django.contrib.staticfiles.finders.DefaultStorageFinder',
+    # 'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
 
 # Make this unique, and don't share it with anybody.
@@ -119,7 +122,7 @@ SECRET_KEY = getConfig("SECRET_KEY", 'g%eh7ov*xub8=-*q*165h%(9bo%#$x7%e_*gqftsp(
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
+    # 'django.template.loaders.eggs.Loader',
 )
 
 MIDDLEWARE_CLASSES = (
@@ -137,9 +140,8 @@ ROOT_URLCONF = 'yellowPage.urls'
 # Python dotted path to the WSGI application used by Django's runserver.
 WSGI_APPLICATION = 'yellowPage.wsgi.application'
 
-
 TEMPLATE_DIRS = (
-    os.path.join(os.path.dirname(__file__), '..', getConfig("STATIC_SUBDIR", 'templates')).replace('\\','/'),
+    os.path.join(os.path.dirname(__file__), '..', getConfig("STATIC_SUBDIR", 'templates')).replace('\\', '/'),
 )
 
 INSTALLED_APPS = (
@@ -151,7 +153,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'django.contrib.humanize',
     # Uncomment the next line to enable the admin:
-    #'tinymce',
+    # 'tinymce',
     'haystack',
     'redactor',
     'django_admin_bootstrapped',
@@ -224,7 +226,7 @@ HAYSTACK_CONNECTIONS = {
     },
 }
 
-#SURVEY app
+# SURVEY app
 #this setting serve to find the threshold date
 # for a survey to be considered as abandoned
 #It's the maximum number of days passed since
@@ -238,4 +240,7 @@ SURVEY_ACTIVE_DAYS = 15
 
 FIXTURE_DIRS = getConfig("FIXTURE_DIRS", ("fixtures_tests",))
 SOUTH_TESTS_MIGRATE = False
+MESSAGE_TAGS = {
+    messages.ERROR: "danger"
+}
 

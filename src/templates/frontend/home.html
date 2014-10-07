@@ -9,6 +9,7 @@
 
         </div>
     {% else %}
+
     <div class="login-bar">
        <span class="span-bar"><a id="auth" class="link-bar" href="#">Entra</a></span>
 
@@ -18,6 +19,7 @@
 
     </div>
     {% endif %}
+
 
     <!-- Carousel
     ================================================== -->
@@ -47,6 +49,18 @@
         <a  style="display:none;" class="right carousel-control" href="#myCarousel" data-slide="next"><span class="glyphicon glyphicon-chevron-right"></span></a>
     </div><!-- /.carousel -->
 
+    {% if messages %}
+    <div class="row-fluid">
+        <div class="span12">
+                <ul style="list-style-type:none;">
+                    {% for message in messages %}
+                        <li {% if message.tags %} class="alert alert-{{ message.tags }}"{% endif %}>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+        </div>
+    </div>
+    {% endif %}
+
 
 
     <!-- Marketing messaging and featurettes
@@ -54,6 +68,7 @@
     <!-- Wrap the rest of the page in another container to center all the content. -->
 
     <div class="container marketing">
+
 
         <!-- START THE FEATURETTES -->
 
