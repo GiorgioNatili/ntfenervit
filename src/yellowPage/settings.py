@@ -3,9 +3,12 @@
 import os.path
 
 # -*- coding: utf-8 -*-
+from django.contrib import messages
 
 PROJECT_ROOT = os.path.normpath(os.path.dirname(__file__)+'/..')
-
+MESSAGE_TAGS = {
+    messages.ERROR: 'danger'
+}
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG

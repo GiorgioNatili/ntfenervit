@@ -1,3 +1,4 @@
+# coding=utf-8
 from __future__ import absolute_import
 
 import csv
@@ -517,6 +518,7 @@ def survey_detail(request, slug):
                 submission_.save()
         forms = forms_for_survey(survey, request)
     elif need_login:
+        messages.error(request, 'Per compilare il questionario è necessario autenticarsi.')
         return HttpResponseRedirect(_login_url(request))
     elif survey.can_have_public_submissions():
         return _survey_results_redirect(request, survey, thanks=True)
