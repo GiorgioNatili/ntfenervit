@@ -328,9 +328,7 @@ def _user_entered_survey(request, survey):
 
 def _entered_no_more_allowed(request, survey):
     """ The user entered the survey and the survey allows only one entry. """
-    return all((
-        not survey.allow_multiple_submissions,
-        _user_entered_survey(request, survey),))
+    return all((not survey.allow_multiple_submissions, _user_entered_survey(request, survey),))
 
 
 def _login_url(request):
@@ -369,7 +367,6 @@ def _survey_submit(request, survey):
             return _survey_results_redirect(request, survey, thanks=True)
         return _survey_show_form(request, survey, ())
     else:
-
         return _survey_show_form(request, survey, forms)
 
 
@@ -464,7 +461,7 @@ def _survey_show_form(request, survey, forms):
 
 def _can_show_form(request, survey):
     #return True
-    authenticated = True  #request.user.is_authenticated()
+    authenticated = request.user.is_authenticated()
     return all((
         survey.is_open,
         authenticated or not survey.require_login,
@@ -476,8 +473,10 @@ def survey_detail(request, slug):
     the form, redirects to the results page, displays messages, or whatever
     makes sense based on the survey, the user, and the user's entries. """
     survey = _get_survey_or_404(slug, request)
-    if not survey.is_open and survey.can_have_public_submissions():
+    if not survey.is_open:
         return _survey_results_redirect(request, survey)
+    # if not survey.is_open and survey.can_have_public_submissions():
+    #     return _survey_results_redirect(request, survey)
     need_login = (survey.is_open
                   and survey.require_login
                   and not request.user.is_authenticated())
@@ -518,9 +517,9 @@ def survey_detail(request, slug):
                 submission_.save()
         forms = forms_for_survey(survey, request)
     elif need_login:
-        forms = ()
+        return HttpResponseRedirect(_login_url(request))
     elif survey.can_have_public_submissions():
-        return _survey_results_redirect(request, survey)
+        return _survey_results_redirect(request, survey, thanks=True)
     else:  # Survey is closed with private results.
         forms = ()
     return _survey_show_form(request, survey, forms)
@@ -546,7 +545,12 @@ def embeded_survey_questions(request, slug):
 
 
 def _survey_results_redirect(request, survey, thanks=False):
-    return _thanks(request, survey)
+    if thanks:
+        return _thanks(request, survey)
+    else:
+        # survey not open
+        return render_to_response('admin/survey/not_opened.html', {"survey": survey},
+                              context_instance=RequestContext(request))
 
 
 def _survey_report_url(survey):
