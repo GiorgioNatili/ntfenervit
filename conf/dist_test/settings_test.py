@@ -209,3 +209,6 @@ HAYSTACK_CONNECTIONS = {
 # last access to the survey to be considered
 # as Active (in corso)
 SURVEY_ACTIVE_DAYS = 15
+MESSAGE_TAGS = {
+    messages.ERROR: 'danger'
+}

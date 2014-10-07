@@ -6,9 +6,6 @@ import os.path
 from django.contrib import messages
 
 PROJECT_ROOT = os.path.normpath(os.path.dirname(__file__)+'/..')
-MESSAGE_TAGS = {
-    messages.ERROR: 'danger'
-}
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -213,3 +210,6 @@ HAYSTACK_CONNECTIONS = {
 SURVEY_ACTIVE_DAYS = 15
 
 GOOGLE_MAP_API_KEY = 'AIzaSyDvwBg4JHzHXh4DISNEtFJwhYaMX0jv2ic'
+MESSAGE_TAGS = {
+    messages.ERROR: 'danger'
+}
