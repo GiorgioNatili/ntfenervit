@@ -14,7 +14,7 @@ ADMINS = (
     # ('Your Name', 'your_email@example.com'),
 )
 
-ROOT_URL = "http://enc.enervit.com" #"http://localhost:8080"
+ROOT_URL = "http://ntf.enervit.it"
 
 MANAGERS = ADMINS
 

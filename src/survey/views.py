@@ -50,7 +50,7 @@ from campaigns.models import Newsletter, Event, NewsletterTarget
 from contacts.models import Contact
 
 
-class SurveyFrom(ModelForm):
+class SurveyForm(ModelForm):
     class Meta:
         model = Survey
 
@@ -75,13 +75,13 @@ def survey_add(request):
     newsletters = Newsletter.objects.all()
     events = Event.objects.all()
     c.update(csrf(request))
-    form = SurveyFrom()
+    form = SurveyForm()
     if request.method == 'POST':
-        form = SurveyFrom(request.POST)
+        form = SurveyForm(request.POST)
         if form.is_valid():
             new_survey = form.save()
             if request.POST.has_key('_addanother'):
-                form = SurveyFrom()
+                form = SurveyForm()
             else:
                 messages.success(request, 'Aggiunto questionario \"' + new_survey.title + '\"')
                 return HttpResponseRedirect('/admin/survey/survey')
@@ -96,9 +96,9 @@ def survey_details(request, id):
     newsletters = Newsletter.objects.all()
     events = Event.objects.all()
     complete_url = settings.ROOT_URL + "/survey/" + survey.slug
-    form = SurveyFrom()
+    form = SurveyForm()
     if request.method == 'POST':
-        form = SurveyFrom(request.POST, instance=survey)
+        form = SurveyForm(request.POST, instance=survey)
         if form.is_valid():
             new_survey = form.save(commit=False)
             new_survey.save()
@@ -177,7 +177,6 @@ def report_list(request):
 
     for sv in surveys:
         subs = Submission.objects.all().filter(survey=sv, status=Submission.COMPLETED)
-
         add_counters_to_survey(abandoned_threshold, subs, sv)
         surveys2.append(sv)
     return render_to_response('admin/survey/view_report.html',
@@ -186,15 +185,15 @@ def report_list(request):
 
 
 def _find_contacts_not_open_survey(survey, all_submissions):
-    #all_submissions is a list of three Submission querysets
+    #all_submissions is a list of three Submission querysets: completed, abandoned, opened
     all_contacts = [n.contact for n in NewsletterTarget.objects.all().filter(newsletter=survey.newsletter)]
-
+    all_ = list(all_contacts)
     for qs in all_submissions:
-        for sub in qs:
-            if sub.contact in all_contacts:
-                all_contacts.remove(sub.contact)
-    #all_contacts list contains only 'negligent' contacts now
-    return all_contacts
+        for submission_ in qs:
+            if submission_.contact in all_:
+                all_.remove(submission_.contact)
+    #all_ list contains only 'negligent' contacts now
+    return all_
 
 
 
@@ -204,18 +203,23 @@ def report_detail(request, id_survey):
     thresh = settings.SURVEY_ACTIVE_DAYS
     abandoned_threshold = datetime.now() - timedelta(days=settings.SURVEY_ACTIVE_DAYS)
     survey = get_object_or_404(Survey, id=id_survey)
-    submissions_ = Submission.objects.all().filter(survey=survey, status=Submission.COMPLETED)
+
+    #completed
+    completed = Submission.objects.all().filter(survey=survey, status=Submission.COMPLETED)
+    #abandoned
     abandoned = Submission.objects.all().filter(survey=survey, status=Submission.OPENED,
                                                 submitted_at__lt=abandoned_threshold)
+    #opened from less than threshold days
     opened = Submission.objects.all().filter(survey=survey, status=Submission.OPENED,
                                              submitted_at__gte=abandoned_threshold)
-    contacts_not_opened = _find_contacts_not_open_survey(survey, [submissions_, abandoned, opened])
-    add_counters_to_survey(abandoned_threshold, submissions_, survey)
+
+    contacts_not_opened = _find_contacts_not_open_survey(survey, [completed, abandoned, opened])
+    add_counters_to_survey(abandoned_threshold, completed, survey)
     counters = {'targets': survey.targets, 'submissions': survey.submissions, 'not_opened': len(contacts_not_opened),
                 'active': survey.active, 'abandoned': survey.abandoned, 'contacts': Contact.objects.all().count()}
     submissions2 = []
 
-    for sub in submissions_:
+    for sub in completed:
         answers = Answer.objects.all().filter(submission=sub)
         sub.answers = answers
         sub.score, sub.total_score = get_scores(answers)
@@ -388,6 +392,9 @@ def _submit_valid_forms(forms, request, survey):
                 submission_ = submissions_[0]  # there is only one!
                 submission_.ip_address = _get_remote_ip(request)
                 submission_.contact = contact
+                # delete old answers if any. This will avoid double counting for
+                # users who redo surveys
+                Answer.objects.filter(submission=submission_).delete()
 
                 for form in forms[1:]:
                     answer = form.save(commit=False)
