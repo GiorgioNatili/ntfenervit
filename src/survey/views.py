@@ -417,10 +417,13 @@ def _submit_valid_forms(forms, request, survey):
                 text = """
                 Il contatto {} {} <{}> ha completato il questionario {}
                 in data {}.
-                Newsletter: {}
+                Newsletter: {}.
+                Punteggio: {}/{}.
                 Campagna: {}""".format(contact.surname, contact.name, email,
                                        survey.title, submission_.submitted_at,
-                                       survey.newsletter.name, survey.newsletter.campaign.name)
+                                       survey.newsletter.name,
+                                       total_score, survey_score,
+                                       survey.newsletter.campaign.name)
 
                 send_single_email(email_to_notify, subject, text)
     return _thanks(request, survey, total_score, survey_score)
