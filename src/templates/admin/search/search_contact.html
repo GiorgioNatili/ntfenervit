@@ -19,7 +19,7 @@
                             <ul class="padded separate-sections">
                                 <li class="input">
                                     <label>Testo Libero</label>
-                                    <input type="text" style="text-transform:capitalize;margin-left: auto;" name="q"  data-prompt-position="topLeft" placeholder="Ricerca Libera" value="{{ form.instance.title |default_if_none:"" }}"/>
+                                    <input type="text" style="text-transform:capitalize;margin-left: auto;" name="q"  data-prompt-position="topLeft" placeholder="Ricerca Libera" value="{{ search_query |default_if_none:"" }}"/>
                                 </li>
                             </ul>
                             <div class="row-fluid">
@@ -40,16 +40,40 @@
                                                 {% endfor %}
                                             </select>
                                         </li>
+
                                         <li>
-                                            <label>Status:</label>
-                                            <select class="uniform" name="st" >
-                                                <option value="">---</option>
-                                                <option value="Inerte">Inerte</option>
-                                                <option value="Attivo" >Attivo</option>
-                                                <option value="Non Attivo" >Non Attivo</option>
-                                                <option value="Cancellato" >Cancellato</option>
-                                                <option value="Non Interessato" >Non Interessato</option>
-                                            </select>
+                                            <label>Rank di importanza aziendale:</label>
+                                            <div class="row-fluid">
+                                                <div class="span1" style="text-align: right;">
+                                                    da:
+                                                </div>
+                                                <div class="span3">
+                                                    <input type="text" name="comp_rank_from" value="{{ ranking_args.comp_rank_from|default_if_none:"" }}">
+                                                </div>
+                                                <div class="span1" style="text-align: right;">
+                                                    a:
+                                                </div>
+                                                <div class="span3">
+                                                    <input type="text" name="comp_rank_to" value="{{ ranking_args.comp_rank_to|default_if_none:"" }}">
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <label>Rank di partecipazione</label>
+                                            <div class="row-fluid">
+                                                <div class="span1" style="text-align: right;">
+                                                    da:
+                                                </div>
+                                                <div class="span3">
+                                                    <input type="text" name="part_rank_from" value="{{ ranking_args.part_rank_from|default_if_none:"" }}">
+                                                </div>
+                                                <div class="span1" style="text-align: right;">
+                                                    a:
+                                                </div>
+                                                <div class="span3">
+                                                    <input type="text" name="part_rank_to" value="{{ ranking_args.part_rank_to|default_if_none:"" }}">
+                                                </div>
+                                            </div>
                                         </li>
                                     </ul>
                                 </div>
@@ -75,6 +99,7 @@
                                             </select>
 
                                         </li>
+
                                         <li>
                                             <label>Numero di risultati:</label>
                                             <select class="uniform" name="max_results" >
@@ -84,6 +109,18 @@
                                                 <option value="100">100</option>
                                                 <option value="500">500</option>
                                                 <option value="10000" >Tutti</option>
+                                            </select>
+                                        </li>
+
+                                        <li>
+                                            <label>Status:</label>
+                                            <select class="uniform" name="st" >
+                                                <option value="">---</option>
+                                                <option value="Inerte">Inerte</option>
+                                                <option value="Attivo" >Attivo</option>
+                                                <option value="Non Attivo" >Non Attivo</option>
+                                                <option value="Cancellato" >Cancellato</option>
+                                                <option value="Non Interessato" >Non Interessato</option>
                                             </select>
                                         </li>
                                     </ul>

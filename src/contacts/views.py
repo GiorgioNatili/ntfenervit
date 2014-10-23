@@ -499,6 +499,7 @@ def view_ranking_details(request,id):
                               context_instance=RequestContext(request))
 
 from forms import ContactSearchForm
+from haystack.query import SearchQuerySet
 import xlwt
 @staff_member_required
 def search_contact(request):
@@ -507,28 +508,67 @@ def search_contact(request):
     works = Work.objects.all()
 
     form = ContactSearchForm(request.GET)
-    results = []
+    search_query = request.GET.get("q", None)
+    contacts = None
+    ranking_args = {}
+
     if 'q' in request.GET:
         results = form.search()
-    contacts = None
-    if len(results) > 0:
-        # contacts = Contact.objects.filter(pk__in=[r.pk for r in results])
-        contacts = []
-        max_results = int(request.GET.get('max_results', 10000))
-        for r in results:
-            if r is not None and r.model_name == 'contact':
-                contacts.append(r.object)
-                if len(contacts) >= max_results:
-                    break
+
+        comp_rank_from = request.GET.get("comp_rank_from", None)
+        comp_rank_to = request.GET.get("comp_rank_to", None)
+        part_rank_from = request.GET.get("part_rank_from", None)
+        part_rank_to = request.GET.get("part_rank_to", None)
+
+        ranking_args = {
+            "comp_rank_from": comp_rank_from,
+            "comp_rank_to": comp_rank_to,
+            "part_rank_from": part_rank_from,
+            "part_rank_to": part_rank_to
+        }
+
+        if comp_rank_from and comp_rank_to:
+            # print "### comp range: %s, %s" % (comp_rank_from, comp_rank_to)
+            results = results.filter(company_ranking__range=[comp_rank_from, comp_rank_to])
+        elif comp_rank_from:
+            # print "### comp from: %s" % comp_rank_from
+            results = results.filter(company_ranking__gte=comp_rank_from)
+        elif comp_rank_to:
+            # print "### comp to: %s" % comp_rank_to
+            results = results.filter(company_ranking__lte=comp_rank_to)
+
+
+        if part_rank_from and part_rank_to:
+            # print "### part range: %s, %s" % (part_rank_from, part_rank_to)
+            results = results.filter(participation_ranking__range=[part_rank_from, part_rank_to])
+        elif part_rank_from:
+            # print "### part from: %s" % part_rank_from
+            results = results.filter(participation_ranking__gte=part_rank_from)
+        elif part_rank_to:
+            # print "### part to: %s" % part_rank_to
+            results = results.filter(participation_ranking__lte=part_rank_to)
+
+
+        if len(results) > 0:
+            # contacts = Contact.objects.filter(pk__in=[r.pk for r in results])
+            contacts = []
+            max_results = int(request.GET.get('max_results', 10000))
+            for r in results:
+                # print "### r: %s" % r
+                if r is not None and r.model_name == 'contact':
+                    contacts.append(r.object)
+                    if len(contacts) >= max_results:
+                        break
 
     return render_to_response('admin/search/search_contact.html', {
-        'search_query' : "",
+        'search_query' : search_query,
+        'ranking_args': ranking_args,
         'contacts': contacts,
         'form' : form,
         'provinces' : provinces,
         'companies' : companies,
         'works' : works,
-        }, context_instance=RequestContext(request))
+    }, context_instance=RequestContext(request))
 
 @staff_member_required
 def search_contact_export(request):
