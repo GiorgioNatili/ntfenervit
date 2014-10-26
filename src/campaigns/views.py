@@ -1216,7 +1216,7 @@ def view_newslettertarget_list_rest(request):
     for i in range(0, len(targets)):
         target = {}
         target['id'] = targets[i].id
-        target['contact'] = targets[i].contact.name + " " + targets[i].contact.surname
+        target['contact'] = targets[i].contact.display_name
         target['email'] = targets[i].contact.email
         if targets[i].contact.work is not None:
             target['work'] = targets[i].contact.work.name

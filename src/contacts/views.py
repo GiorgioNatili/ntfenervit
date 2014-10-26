@@ -612,35 +612,41 @@ def search_contact_export(request):
                     break
         row = 1
         for c in contacts:
-           ws.write(row,0,c.code)
-           if c.owner != None:
-            ws.write(row,1,c.owner.username)
-           ws.write(row,2,c.surname)
-           ws.write(row,3,c.name)
-           ws.write(row,4,c.sex)
-           if c.birthdate:
-               ws.write(row,5,c.birthdate.strftime("%d/%m/%Y"))
-           ws.write(row,6,c.street+" "+c.civic)
-           ws.write(row,7,c.zip)
-           ws.write(row,8,c.city)
-           ws.write(row,9,c.province.code)
-           ws.write(row,10,c.province.region.name)
-           ws.write(row,11,c.email)
-           if c.work:
-               ws.write(row,12,c.work.name.capitalize())
-               ws.write(row,13,c.work.sector.name.capitalize())
-           ws.write(row,14,c.company_ranking)
-           ws.write(row,15,c.participation_ranking)
-           if c.status == 'A':
-               ws.write(row,16,"Attivo")
-           if c.status == 'N':
-               ws.write(row,16,"Non Attivo")
-           if c.status == 'I':
-               ws.write(row,16,"Inerte")
-           if c.status == 'C':
-               ws.write(row,16,"Cancellato")
-           if c.status == 'D':
-               ws.write(row,16,"Non Interessato")
-           row +=1
+            ws.write(row,0,c.code)
+            if c.owner != None:
+                ws.write(row,1,c.owner.username)
+
+            ws.write(row,2,c.surname)
+            ws.write(row,3,c.name)
+            ws.write(row,4,c.sex)
+            if c.birthdate:
+                ws.write(row,5,c.birthdate.strftime("%d/%m/%Y"))
+
+            ws.write(row,6,c.street+" "+c.civic)
+            ws.write(row,7,c.zip)
+            ws.write(row,8,c.city)
+
+            if c.province:
+                ws.write(row,9,c.province.code)
+                ws.write(row,10,c.province.region.name)
+
+            ws.write(row,11,c.email)
+            if c.work:
+                ws.write(row,12,c.work.name.capitalize())
+                ws.write(row,13,c.work.sector.name.capitalize())
+
+            ws.write(row,14,c.company_ranking)
+            ws.write(row,15,c.participation_ranking)
+            if c.status == 'A':
+                ws.write(row,16,"Attivo")
+            if c.status == 'N':
+                ws.write(row,16,"Non Attivo")
+            if c.status == 'I':
+                ws.write(row,16,"Inerte")
+            if c.status == 'C':
+                ws.write(row,16,"Cancellato")
+            if c.status == 'D':
+                ws.write(row,16,"Non Interessato")
+            row +=1
     wb.save(response)
     return response

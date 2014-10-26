@@ -160,7 +160,7 @@
                             <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
                                 <thead>
                                 <tr>
-                                    <th><div>Nome Cognome</div></th>
+                                    <th><div>Nome</div></th>
                                     <th><div>Email</div></th>
                                     <th><div>Telefono</div></th>
                                     <th><div>Indirizzo</div></th>
@@ -170,7 +170,7 @@
                                 <tbody>
                                 {% for contact in contacts %}
                                     <tr>
-                                        <td>{% if contact.owner %}<i class="icon-user"></i> {% endif %}{{ contact.name |title}} {{ contact.surname |title}}</td>
+                                        <td>{% if contact.owner %}<i class="icon-user"></i> {% endif %}{{ contact.display_name }}</td>
                                         <td>{{ contact.email }}</td>
                                         <td>{{ contact.phone_number }}</td>
                                         <td>{{ contact.street}} {{contact.civic}}, {{contact.city|title}} ({{contact.province.code}})</td>

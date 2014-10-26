@@ -211,6 +211,13 @@ class Contact(models.Model):
     def full_name(self):
         return '%s %s' % (self.name, self.surname)
 
+    @property
+    def display_name(self):
+        '''
+        Name displayed in the webpage
+        '''
+        return '%s, %s' % (self.surname, self.name)
+
     def __unicode__(self):
         return '%s %s' % (self.name, self.surname)
 

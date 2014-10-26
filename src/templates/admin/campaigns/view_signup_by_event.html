@@ -29,7 +29,7 @@
                                 <thead>
                                 <tr>
                                     <th><div>Id</div></th>
-                                    <th><div>Nome Cognome</div></th>
+                                    <th><div>Nome</div></th>
                                     <th><div>Email</div></th>
                                     <th><div>Telefono</div></th>
                                     <th><div>Indirizzo</div></th>
@@ -42,7 +42,7 @@
                                 {% for signup in signups %}
                                     <tr>
                                         <td>{{ signup.id }}</td>
-                                        <td>{{ signup.contact.name |title}} {{ signup.contact.surname |title}}</td>
+                                        <td>{{ signup.contact.display_name }}</td>
                                         <td>{{ signup.contact.email }}</td>
                                         <td>{{ signup.contact.phone_number }}</td>
                                         <td>{{ signup.contact.street}} {{signup.contact.civic}}{% if signup.contact.city %}, {{signup.contact.city|title}} ({{signup.contact.province.code}}){% endif %}</td>
