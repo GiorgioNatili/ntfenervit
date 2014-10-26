@@ -1387,7 +1387,8 @@ def view_export_presence(request, id_event):
             ws.write(row, 19, payment.street)
             ws.write(row, 20, payment.city)
             ws.write(row, 21, payment.city)
-            ws.write(row, 22, payment.province.code)
+            if payment.province:
+                ws.write(row, 22, payment.province.code)
             ws.write(row, 23, payment.vat)
             ws.write(row, 24, payment.code)
         else:
