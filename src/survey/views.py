@@ -507,7 +507,7 @@ def survey_detail(request, slug):
                     if survey.allow_multiple_submissions:
                         #get the latest
                         submission_ = already_submitted.latest('submitted_at')
-                        submission_.status = Submission.OPENED
+                        # submission_.status = Submission.OPENED
                     else:
                         #redirect to already submitted
                         return render_to_response('admin/survey/thanks_already_submitted.html',
