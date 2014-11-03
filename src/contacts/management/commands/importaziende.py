@@ -1,9 +1,10 @@
 import os
 import re
+import sys
 
 import xlrd
 import xlwt
-from geopy.geocoders import GoogleV3
+# from geopy.geocoders import GoogleV3
 import Levenshtein
 
 from django.core.management.base import BaseCommand, CommandError
@@ -11,56 +12,46 @@ from django.core.management.base import BaseCommand, CommandError
 from campaigns.models import PointOfSaleType
 from contacts.models import Company, Province
 
-
-B_PARTNER_FIELD = 'B_partner'
-NOME_1_FIELD = 'Nome_1'
-NOME_2_FIELD = 'Nome_2'
-PIVA_FIELD = 'Partita_iva'
-VIA_FIELD = 'Via'
-CAP_FIELD = 'CAP'
-CITY_FIELD = 'Citta'
-FIELDS = {B_PARTNER_FIELD: 0, NOME_1_FIELD: 1,
-          NOME_2_FIELD: 2, PIVA_FIELD: 3,
-          VIA_FIELD: 5, CAP_FIELD: 6, CITY_FIELD: 7}
+COMPANY_TYPES = {'0100': PointOfSaleType.objects.get(description='FARMACIA'),
+                 '0150': PointOfSaleType.objects.get(description='FARMACIA'),
+                 '0025': PointOfSaleType.objects.get(description='FARMACIA'),
+                 '0050': PointOfSaleType.objects.get(description='FARMACIA'),
+                 '0800': PointOfSaleType.objects.get(description='FARMACIA'),
+                 '0700': PointOfSaleType.objects.get(description='PARAFARMACIA'),
+                 '0750': PointOfSaleType.objects.get(description='PARAFARMACIA'),
+                 '8200': PointOfSaleType.objects.get(description='MEDICO'),
+                 '0600': PointOfSaleType.objects.get(description='ERBORISTERIA'),
+                 '0650': PointOfSaleType.objects.get(description='ERBORISTERIA'),
+                 '1100': PointOfSaleType.objects.get(description='OSPEDALE'),
+                 '1300': PointOfSaleType.objects.get(description='OSPEDALE'),
+                 '2100': PointOfSaleType.objects.get(description='FARMACIA'),
+                 '2300': PointOfSaleType.objects.get(description='FARMACIA'),
+                 'N200': PointOfSaleType.objects.get(description='NEGOZIO DI INTEGRATORI'),
+                 'O200': PointOfSaleType.objects.get(description='NEGOZIO DI INTEGRATORI'),
+                 'O100': PointOfSaleType.objects.get(description='NEGOZIO DI INTEGRATORI'),
+                 'O500': PointOfSaleType.objects.get(description='NEGOZIO DI INTEGRATORI'),
+                 'P025': PointOfSaleType.objects.get(description='NEGOZIO DI INTEGRATORI'),
+                 'P100': PointOfSaleType.objects.get(description='NEGOZIO DI INTEGRATORI'),
+                 'P000': PointOfSaleType.objects.get(description='SOC. SPORTIVA'),
+                 }
+B_PARTNER_FIELD = 'CdBP'
+NOME_1_FIELD = 'name_1'
+NOME_2_FIELD = 'name_2'
+PIVA_FIELD = 'vad_it_no'
+VIA_FIELD = 'street'
+CITY_FIELD = 'city_1'
+PROV_FIELD = 'district'
+EMAIL_FIELD = 'email'
+POS_TYPE_FIELD = 'CdCatVe'
+USER_PIVA_FIELD = 'user_ind_1'
+FIELDS = {B_PARTNER_FIELD: 2, NOME_1_FIELD: 3,
+          NOME_2_FIELD: 4, PIVA_FIELD: 8,
+          USER_PIVA_FIELD: 9, POS_TYPE_FIELD: 11,
+          VIA_FIELD: 5, CITY_FIELD: 6,
+          PROV_FIELD: 7, EMAIL_FIELD: 10}
 
 CAP_REGEX = re.compile(r'^[0-9]{5}$')
 PROVINCE_REGEX = re.compile(r'[A-Z]{2},')
-geolocator = GoogleV3(domain='maps.google.it')
-
-def _find_province_obj(city, postal_code):
-
-    province = None
-    province_id = -1
-    province_code = ''
-    if postal_code and CAP_REGEX.match(postal_code):
-        location = geolocator.geocode('%s, %s, Italia' % (city, postal_code))
-        '''
-        location.address can have the form:
-        u'Ischia Porto, 80077 Ischia NA, Italia'
-        u'Galliera Veneta PD, Italia'
-        u'25074 Idro BS, Italia'
-        u'00183 Roma, Italia'
-        '''
-        match = PROVINCE_REGEX.search(location.address)
-        if match:
-            province_code = match.group(0).replace(',', '')
-            if province_code in ('ROMA', 'Roma', 'roma'):
-                province_code = 'RM'
-            province_qs = Province.objects.filter(code=province_code)
-            if province_qs:
-                province = province_qs[0]
-                province_id = province.id
-                province_code = province.code
-        else:
-            province_qs = Province.objects.filter(name=city)
-            if province_qs:
-                province = province_qs[0]
-                province_id = province.id
-                province_code = province.code
-            else:
-                print 'Provincia non trovata...%s %s' % (city, postal_code)
-
-    return province, province_id
 
 
 def _extract_civic(street):
@@ -103,14 +94,6 @@ def _is_duplicate(company_dict):
     return False
 
 
-def _guess_company_type(company_name):
-    t = None
-    # TODO check more types
-    if company_name.find('F.CIA') > -1 or company_name.find('FARMACIA') > -1:
-        t = PointOfSaleType.objects.get(description='FARMACIA')
-    return t
-
-
 def _save_company(company_dict):
     company = Company()
     company.vat = company_dict['vat'].strip()
@@ -120,7 +103,7 @@ def _save_company(company_dict):
     company.street = company_dict['street'].strip().title()
     company.civic = company_dict['civic'].strip()
     company.province = company_dict['province']
-    company.type = _guess_company_type(company_dict['company_name'].strip())
+    company.type = COMPANY_TYPES.get(company_dict['company_typecode'].strip(), PointOfSaleType.objects.get(description='ALTRO'))
     company.save()
 
 
@@ -145,6 +128,10 @@ class Command(BaseCommand):
 
         if not args:
             raise CommandError('Parametro filename.xls mancante')
+        if args[0] == 'clean':
+            Company.objects.exclude(name__icontains='ENERVIT').delete()
+            _log('>>>>>>> Clean terminato')
+            sys.exit(0)
         filename = os.path.abspath(args[0])
         discarded_filename = os.path.abspath('%s_%s' % (args[0], 'discarded.xls'))
         xls = xlrd.open_workbook(filename)
@@ -160,26 +147,35 @@ class Command(BaseCommand):
         for row in xrange(1, sheet.nrows):
             company_code = sheet.cell(row, FIELDS[B_PARTNER_FIELD]).value
             if not company_code:
+
                 copy_row_between_sheet(sheet, row, discarded_sheet, discarded + 2, extra='Codice azienda mancante')
                 discarded += 1
                 continue
             vat = sheet.cell(row, FIELDS[PIVA_FIELD]).value
             if not vat:
-                copy_row_between_sheet(sheet, row, discarded_sheet, discarded + 2, extra='PIVA mancante')
-                discarded += 1
-                continue
-            name_1 = sheet.cell(row, FIELDS[NOME_1_FIELD]).value
-            name_2 = sheet.cell(row, FIELDS[NOME_2_FIELD]).value
-            street = sheet.cell(row, FIELDS[VIA_FIELD]).value
-            city = sheet.cell(row, FIELDS[CITY_FIELD]).value
-            postal_code = sheet.cell(row, FIELDS[CAP_FIELD]).value
+                #fallback to personal PIVA if exists
+                user_piva = sheet.cell(row, FIELDS[USER_PIVA_FIELD]).value
+                if not user_piva:
+                    copy_row_between_sheet(sheet, row, discarded_sheet, discarded + 2, extra='PIVA mancante')
+                    discarded += 1
+                    continue
+                vat = user_piva
+            name_1 = sheet.cell(row, FIELDS[NOME_1_FIELD]).value.strip().strip('*')
+            name_2 = sheet.cell(row, FIELDS[NOME_2_FIELD]).value.strip()
+            street = sheet.cell(row, FIELDS[VIA_FIELD]).value.strip()
+            city = sheet.cell(row, FIELDS[CITY_FIELD]).value.strip()
+            province = sheet.cell(row, FIELDS[PROV_FIELD]).value.strip()
+            province_obj = Province.objects.get(code=province.strip()) if province else None
+            point_of_sale_type = sheet.cell(row, FIELDS[POS_TYPE_FIELD]).value.strip()
 
+            email = sheet.cell(row, FIELDS[EMAIL_FIELD]).value
             company_name = '%s - %s' % (name_1, name_2) if name_2 else name_1
             street, civic = _extract_civic(street)
 
-            province, province_id = _find_province_obj(city, postal_code)
-            company_dict = {'company_name': company_name, 'name': name_1, 'code': company_code, 'street': street, 'civic': civic,
-                            'city': city, 'vat': vat, 'province': province, 'province_id': province_id}
+            company_dict = {'company_name': company_name, 'name': name_1,
+                            'code': company_code, 'street': street, 'civic': civic,
+                            'city': city, 'vat': vat, 'company_typecode': point_of_sale_type,
+                            'province': province_obj, 'email': email}
 
             if _is_duplicate(company_dict):
                 copy_row_between_sheet(sheet, row, discarded_sheet, discarded + 2, extra='Duplicato')
