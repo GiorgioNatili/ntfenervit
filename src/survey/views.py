@@ -169,32 +169,33 @@ def add_counters_to_survey(abandoned_threshold, subs, sv):
 def report_list(request):
 
     surveys = Survey.objects.all()
-    abandoned_threshold = datetime.now() - timedelta(days=7)
-    # submissions = Submission.objects.all().filter(status=Submission.COMPLETED)
-    # subs_abandoned = Submission.objects.all().filter(status=Submission.OPENED, submitted_at__lt=abandoned_threshold)
-    # subs_opened = Submission.objects.all().filter(status=Submission.OPENED)
+    abandoned_threshold = datetime.now() - timedelta(days=settings.SURVEY_ACTIVE_DAYS)
     surveys2 = []
-
     for sv in surveys:
-        subs = Submission.objects.all().filter(survey=sv, status=Submission.COMPLETED)
-        add_counters_to_survey(abandoned_threshold, subs, sv)
+        targets = NewsletterTarget.objects.filter(newsletter=sv.newsletter)
+        # add_counters_to_survey(abandoned_threshold, subs, sv)
+        _add_counters(abandoned_threshold, sv, targets)
         surveys2.append(sv)
     return render_to_response('admin/survey/view_report.html',
                               {'surveys': surveys2},
                               context_instance=RequestContext(request))
 
 
-def _find_contacts_not_open_survey(survey, all_submissions):
-    #all_submissions is a list of three Submission querysets: completed, abandoned, opened
-    all_contacts = [n.contact for n in NewsletterTarget.objects.all().filter(newsletter=survey.newsletter)]
-    all_ = list(all_contacts)
-    for qs in all_submissions:
-        for submission_ in qs:
-            if submission_.contact in all_:
-                all_.remove(submission_.contact)
-    #all_ list contains only 'negligent' contacts now
-    return all_
-
+def _add_counters(abandoned_threshold, survey, targets):
+    completed = Submission.objects.all().filter(survey=survey, status=Submission.COMPLETED, contact__in=targets)
+    abandoned = Submission.objects.all().filter(survey=survey, status=Submission.OPENED,
+                                                submitted_at__lt=abandoned_threshold, contact__in=targets)
+    # opened from less than threshold days
+    opened = Submission.objects.all().filter(survey=survey, status=Submission.OPENED,
+                                             submitted_at__gte=abandoned_threshold, contact__in=targets)
+    staff_subs = Submission.objects.all().filter(
+        Q(survey=survey) & ~Q(contact__in=targets) & Q(status=Submission.COMPLETED))
+    survey.targets = targets.count()
+    survey.submissions = completed.count()
+    survey.active = opened.count()
+    survey.abandoned = abandoned.count()
+    survey.staff_completed = staff_subs.count()
+    return abandoned, completed, opened, staff_subs
 
 
 @staff_member_required
@@ -204,29 +205,35 @@ def report_detail(request, id_survey):
     abandoned_threshold = datetime.now() - timedelta(days=settings.SURVEY_ACTIVE_DAYS)
     survey = get_object_or_404(Survey, id=id_survey)
 
-    #completed
-    completed = Submission.objects.all().filter(survey=survey, status=Submission.COMPLETED)
-    #abandoned
-    abandoned = Submission.objects.all().filter(survey=survey, status=Submission.OPENED,
-                                                submitted_at__lt=abandoned_threshold)
-    #opened from less than threshold days
-    opened = Submission.objects.all().filter(survey=survey, status=Submission.OPENED,
-                                             submitted_at__gte=abandoned_threshold)
+    targets = NewsletterTarget.objects.filter(newsletter=survey.newsletter)
 
-    contacts_not_opened = _find_contacts_not_open_survey(survey, [completed, abandoned, opened])
-    add_counters_to_survey(abandoned_threshold, completed, survey)
-    counters = {'targets': survey.targets, 'submissions': survey.submissions, 'not_opened': len(contacts_not_opened),
+    abandoned, completed, opened, staff_subs = _add_counters(abandoned_threshold, survey, targets)
+
+    contacts_not_opened = Contact.objects.\
+        filter(Q(code__in=[t.contact.code for t in targets]) & ~Q(code__in=[t.contact.code for t in completed]) &
+               ~Q(code__in=[t.contact.code for t in opened]) &
+               ~Q(code__in=[t.contact.code for t in abandoned])
+               )
+
+    # add_counters_to_survey(abandoned_threshold, completed, survey)
+    counters = {'targets': survey.targets, 'submissions': survey.submissions, 'not_opened': contacts_not_opened.count(),
                 'active': survey.active, 'abandoned': survey.abandoned, 'contacts': Contact.objects.all().count()}
     submissions2 = []
-
+    staff_subs2 = []
     for sub in completed:
         answers = Answer.objects.all().filter(submission=sub)
         sub.answers = answers
         sub.score, sub.total_score = get_scores(answers)
         submissions2.append(sub)
+    for sub in staff_subs:
+        answers = Answer.objects.all().filter(submission=sub)
+        sub.answers = answers
+        sub.score, sub.total_score = get_scores(answers)
+        staff_subs2.append(sub)
 
     return render_to_response('admin/survey/view_report_details.html',
-                              {'survey': survey, 'submissions': submissions2,
+                              {'survey': survey, 'staff_submissions': staff_subs2,
+                               'submissions': submissions2,
                                'abandoned': abandoned, 'opened': opened,
                                'negligent_contacts': contacts_not_opened,
                                'counters': counters, 'thresh': thresh},

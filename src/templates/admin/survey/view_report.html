@@ -19,9 +19,6 @@
                             <thead>
                             <tr>
                                 <th>
-                                    <div>Id</div>
-                                </th>
-                                <th>
                                     <div>Titolo</div>
                                 </th>
                                 <th>
@@ -42,13 +39,15 @@
                                 <th>
                                     <div>Abbandonati</div>
                                 </th>
+                                <th>
+                                    <div>Compilati dallo staff</div>
+                                </th>
                                 <th>&nbsp;</th>
                             </tr>
                             </thead>
                             <tbody>
                             {% for survey in surveys %}
                             <tr>
-                                <td>{{ survey.id }}</td>
                                 <td>{{ survey.title }}</td>
                                 <td>{{ survey.newsletter }}</td>
                                 <td>{{ survey.newsletter.campaign }}</td>
@@ -56,6 +55,7 @@
                                 <td>{{ survey.submissions }}</td>
                                 <td>{{ survey.active }}</td>
                                 <td>{{ survey.abandoned }}</td>
+                                <td>{{ survey.staff_completed }}</td>
                                 <td><a href="/admin/survey/report/{{survey.id }}"><i class="icon-tasks"></i></a></td>
                             </tr>
 
