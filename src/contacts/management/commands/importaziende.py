@@ -4,7 +4,6 @@ import sys
 
 import xlrd
 import xlwt
-# from geopy.geocoders import GoogleV3
 import Levenshtein
 
 from django.core.management.base import BaseCommand, CommandError
@@ -51,10 +50,10 @@ FIELDS = {B_PARTNER_FIELD: 2, NOME_1_FIELD: 3,
           PROV_FIELD: 7, EMAIL_FIELD: 10}
 
 CAP_REGEX = re.compile(r'^[0-9]{5}$')
-PROVINCE_REGEX = re.compile(r'[A-Z]{2},')
+PROVINCE_REGEX = re.compile(r'^[A-Z]{2}$,')
 
 
-def _extract_civic(street):
+def _sort_street_civic(street):
     civic = ''
     chunks = street.split()
     if chunks:
@@ -85,8 +84,6 @@ def _is_duplicate(company_dict):
         return True
     if company_dict['province']:
         # find similar name, same city and check if addresses are very similar
-        # extra_where = ["`contacts_company`.`province_id`=%s", "LOWER(%s) LIKE LOWER(CONCAT('%%', `contacts_company`.`name`, '%%')) OR LOWER(`contacts_company`.`name`) LIKE LOWER('%%%s%%'))"]
-        # extra_params = [company_dict['province_id'], company_dict['name'], company_dict['name']]
         candidates = Company.objects.filter(province=company_dict['province'], city=company_dict['city'], civic=company_dict['civic'])
         for c in candidates:
             if _are_similar(c.street, company_dict['street']):
@@ -111,7 +108,7 @@ def _log(param):
     print param
 
 
-def copy_row_between_sheet(sheet, row, discarded_sheet, row_disc, extra=''):
+def copy_row_between_sheets(sheet, row, discarded_sheet, row_disc, extra=''):
     for col in xrange(0, sheet.ncols):
         discarded_sheet.write(row_disc, col, sheet.cell(row, col).value)
     if extra:
@@ -127,7 +124,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
 
         if not args:
-            raise CommandError('Parametro filename.xls mancante')
+            raise CommandError('Parametro filename excel mancante')
         if args[0] == 'clean':
             Company.objects.exclude(name__icontains='ENERVIT').delete()
             _log('>>>>>>> Clean terminato')
@@ -139,7 +136,7 @@ class Command(BaseCommand):
         discarded_sheet = discarded_wb.add_sheet('Aziende non inserite')
         sheet = xls.sheet_by_index(0)
         # copy header
-        copy_row_between_sheet(sheet, 0, discarded_sheet, 0)
+        copy_row_between_sheets(sheet, 0, discarded_sheet, 0)
         counter = 0
         discarded = 0
 
@@ -148,7 +145,7 @@ class Command(BaseCommand):
             company_code = sheet.cell(row, FIELDS[B_PARTNER_FIELD]).value
             if not company_code:
 
-                copy_row_between_sheet(sheet, row, discarded_sheet, discarded + 2, extra='Codice azienda mancante')
+                copy_row_between_sheets(sheet, row, discarded_sheet, discarded + 2, extra='Codice azienda mancante')
                 discarded += 1
                 continue
             vat = sheet.cell(row, FIELDS[PIVA_FIELD]).value
@@ -156,21 +153,25 @@ class Command(BaseCommand):
                 #fallback to personal PIVA if exists
                 user_piva = sheet.cell(row, FIELDS[USER_PIVA_FIELD]).value
                 if not user_piva:
-                    copy_row_between_sheet(sheet, row, discarded_sheet, discarded + 2, extra='PIVA mancante')
+                    copy_row_between_sheets(sheet, row, discarded_sheet, discarded + 2, extra='PIVA mancante')
                     discarded += 1
                     continue
                 vat = user_piva
-            name_1 = sheet.cell(row, FIELDS[NOME_1_FIELD]).value.strip().strip('*')
-            name_2 = sheet.cell(row, FIELDS[NOME_2_FIELD]).value.strip()
-            street = sheet.cell(row, FIELDS[VIA_FIELD]).value.strip()
-            city = sheet.cell(row, FIELDS[CITY_FIELD]).value.strip()
-            province = sheet.cell(row, FIELDS[PROV_FIELD]).value.strip()
-            province_obj = Province.objects.get(code=province.strip()) if province else None
-            point_of_sale_type = sheet.cell(row, FIELDS[POS_TYPE_FIELD]).value.strip()
-
-            email = sheet.cell(row, FIELDS[EMAIL_FIELD]).value
+            try:
+                name_1 = sheet.cell(row, FIELDS[NOME_1_FIELD]).value.strip().strip('*')
+                name_2 = sheet.cell(row, FIELDS[NOME_2_FIELD]).value.strip()
+                street = sheet.cell(row, FIELDS[VIA_FIELD]).value.strip()
+                city = sheet.cell(row, FIELDS[CITY_FIELD]).value.strip()
+                province = sheet.cell(row, FIELDS[PROV_FIELD]).value.strip()
+                province_obj = Province.objects.get(code=province.strip()) if province else None
+                point_of_sale_type = sheet.cell(row, FIELDS[POS_TYPE_FIELD]).value.strip()
+                email = sheet.cell(row, FIELDS[EMAIL_FIELD]).value
+            except Exception, e:
+                copy_row_between_sheets(sheet, row, discarded_sheet, discarded + 2, extra=e.message)
+                discarded += 1
+                continue
             company_name = '%s - %s' % (name_1, name_2) if name_2 else name_1
-            street, civic = _extract_civic(street)
+            street, civic = _sort_street_civic(street)
 
             company_dict = {'company_name': company_name, 'name': name_1,
                             'code': company_code, 'street': street, 'civic': civic,
@@ -178,7 +179,7 @@ class Command(BaseCommand):
                             'province': province_obj, 'email': email}
 
             if _is_duplicate(company_dict):
-                copy_row_between_sheet(sheet, row, discarded_sheet, discarded + 2, extra='Duplicato')
+                copy_row_between_sheets(sheet, row, discarded_sheet, discarded + 2, extra='Duplicato')
                 discarded += 1
                 continue
 
