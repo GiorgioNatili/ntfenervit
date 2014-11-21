@@ -63,7 +63,7 @@ class RankingConfigurationForm(ModelForm):
 
 @staff_member_required
 def view_company(request):
-    companies = Company.objects.all()
+    companies = Company.objects.all().order_by('name', 'company_code', 'city', 'type')
     return render_to_response('admin/contacts/view_company.html', {'companies': companies},
                               context_instance=RequestContext(request))
 

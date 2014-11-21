@@ -819,7 +819,7 @@ def _prepare_event_form():
     theme = Theme.objects.all()
     pointofsaletype = PointOfSaleType.objects.all()
     province = Province.objects.all()
-    companies = Company.objects.all()
+    companies = Company.objects.all().order_by('name', 'company_code', 'city', 'type')
     its_id = district_id = consultant_id = -1
     return areamanager, campaigns, channel, companies, consultant_id, consultant_rels, consultants, district_id, districts, eventtype, form, its_id, its_rels, its_users, pointofsaletype, province, theme
 
