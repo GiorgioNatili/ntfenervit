@@ -493,7 +493,7 @@ def view_ranking_details(request,id):
             new_ranking = form.save(commit=False)
             new_ranking.save()
             messages.success(request, 'Ranking aggiornato correttamente!')
-            return HttpResponseRedirect('/admin/contacts/ranking/details/'+id)
+            return HttpResponseRedirect('/admin/contacts/ranking/'+id)
     return render_to_response('admin/contacts/view_ranking_details.html',
                               {'ranking': ranking,'form': form},
                               context_instance=RequestContext(request))
