@@ -1,5 +1,6 @@
 {% extends "admin/base_site.html" %}
 {% load i18n admin_static bootstrapped_goodies_tags %}
+{% load for_range %}
 {% block icon-detail %}<i class="icon-book"></i>{% endblock %}
 {% block content_title %}Contatti{% endblock %}
 {% block content_subtitle %}<h5>lista di tutti i contatti gestiti dal sistema</h5>{% endblock %}
@@ -29,7 +30,29 @@
                     </div>
                     <div class="box-content">
                         <div id="dataTables">
-                            <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
+							<form id="contacts_form" method="post">
+								{% csrf_token %}
+								<div class="table-header">
+									<div class="dataTables_filter">
+										<label for="{{ form.search.id_for_label }}">Cerca: {{ form.search }} <input type="submit" value="Cerca" class="btn btn-default"/></label>
+									</div>
+									<div class="dataTables_length">
+										<label>Righe per pagina:
+											<a href="#" class="btn btn-{% if limit == 10 %}blue{% else %}default{% endif %}" onclick="rowsForPage(10)">10</a>
+											<a href="#" class="btn btn-{% if limit == 25 %}blue{% else %}default{% endif %}" onclick="rowsForPage(25)">25</a>
+											<a href="#" class="btn btn-{% if limit == 50 %}blue{% else %}default{% endif %}" onclick="rowsForPage(50)">50</a>
+											<a href="#" class="btn btn-{% if limit == 100 %}blue{% else %}default{% endif %}" onclick="rowsForPage(100)">100</a>
+										</label>
+									</div>
+								</div>
+								<input type="hidden" name="limit" value="{{ limit }}" />
+								<input type="hidden" name="pages" value="{{ pages }}" />
+								<input type="hidden" name="offset" value="{{ offset }}" />
+								<input type="hidden" name="clicked" value="{{ actual }}" />
+								<input type="hidden" name="newsearch" value=false />
+							</form>
+                            <!--<table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">-->
+                            <table class="table table-normal">
                                 <thead>
                                 <tr>
                                     <th><div>Nome Cognome</div></th>
@@ -54,12 +77,55 @@
                             </table>
                         </div>
                     </div>
+					<div class="box-footer padded">
+						<div class="row-fluid">
+							<div class="span6 text-left">
+								{% if offset == 0 %}
+									<div>Risultati da {{ offset|add:"1" }} a {{ offset|add:limit }} di {{ count }}</div>
+								{% elif offset|add:limit|add:"-1" > count %}
+									<div>Risultati da {{ offset|add:"1" }} a {{ count }} di {{ count }}</div>
+								{% else %}
+									<div>Risultati da {{ offset }} a {{ offset|add:limit|add:"-1" }} di {{ count }}</div>
+								{% endif %}
+							</div>
+							<div class="span6 text-right">
+								{% if pages > 1 and actual > 1%}
+									<a href="#" class="btn btn-default" onclick="paginate(-4)">Primo</a>
+									<a href="#" class="btn btn-default" onclick="paginate(-3)">Precedente</a>
+								{% endif %}
+								{% for i in range %}
+									<a href="#" class="btn {% if actual == i %} btn-blue {% else %} btn-default {% endif %}" onclick="paginate({{ i }})">{{ i }}</a>
+								{% endfor %}
+								{% if actual < pages %}
+									<a href="#" class="btn btn-default" onclick="paginate(-2)">Prossimo</a>
+									<a href="#" class="btn btn-default" onclick="paginate(-1)">Ultimo</a>
+								{% endif %}
+							</div>
+						</div>
+					</div>
                 </div>
             </div>
         </div>
     </div>
-    <script>
+    
+	<script>
+	
+		function paginate(page) {
+			//Pagination
+			document.forms["contacts_form"].elements["clicked"].value = page;
+			document.forms["contacts_form"].elements["newsearch"].value = true;
+			document.getElementById("contacts_form").submit();
+		}
+		
+		function rowsForPage(page) {
+			//Rows For page
+			document.forms["contacts_form"].elements["limit"].value = page;
+			document.forms["contacts_form"].elements["newsearch"].value = true;
+			document.getElementById("contacts_form").submit();
+		}
+	
         $(document).ready(function() {
+		
             $(".dTable2").dataTable({
                 bJQueryUI:!1
                 ,bAutoWidth:!1,

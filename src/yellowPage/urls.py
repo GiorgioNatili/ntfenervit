@@ -50,6 +50,7 @@ urlpatterns = patterns('',
     url(r'^admin/contacts/contact/$', 'contacts.views.view_contact'),
     url(r'^admin/contacts/contact/add/$', 'contacts.views.view_add_contact'),
     url(r'^admin/contacts/contact/import/$', 'contacts.views.view_contact_import'),
+    url(r'^admin/contacts/contact/search_companies/$', 'contacts.views.search_companies'),
     url(r'^admin/contacts/contact/(\w+)/$', 'contacts.views.view_contact_details'),
 
     url(r'^admin/contacts/ranking/(\d+)/$', 'contacts.views.view_ranking_details'),

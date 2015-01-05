@@ -1,15 +1,26 @@
 # Create your views here.
 from django.contrib import messages
 from django.contrib.messages import get_messages
+from django.views.decorators.csrf import csrf_protect
+from django.views.decorators.csrf import requires_csrf_token
 from backend.utils import get_its_users
 from contacts.models import Region, Province, Company, Payment, Visit, ChampionsDelivery, Contact, Division, SubDivision, Sector, Work, RankingConfiguration
+from cabinet.models import Cabinet, UploadedFile, ContactFile
+from django.contrib.auth.models import User
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import *
 from django.http import HttpResponseRedirect, HttpResponse
 from django.core.context_processors import csrf
 from django.contrib.admin.views.decorators import staff_member_required
 from django.forms import ModelForm, forms
-from xlrd import open_workbook,cellname
+from django import forms
+from django.db.models import CharField
+from django.db.models import  Q
+from datetime import datetime
+from django.core import serializers
+import xlrd
+import math
+import json
 
 from campaigns.models import NewsletterTarget, EventSignup, ITSRelConsultant, PointOfSaleType
 from survey.models import Submission, Answer
@@ -46,9 +57,15 @@ class WorkForm(ModelForm):
 
 class ContactForm(ModelForm):
     its = forms.TextInput()
+
     class Meta:
         model = Contact
 
+class AllContactsForm(forms.Form):
+    search = forms.CharField(label="Cerca", required=False)
+
+class AllCompanyForm(forms.Form):
+    search = forms.CharField(label="Cerca", required=False)
 
 class ImportContactsForm(forms.Form):
     file = forms.FileField(label="Seleziona file EXCEL da importare")
@@ -57,15 +74,71 @@ class RankingConfigurationForm(ModelForm):
     class Meta:
         model = RankingConfiguration
 
-##########################
+#########################
 ####  COMPANY CRUD ######
 #########################
 
+@requires_csrf_token
 @staff_member_required
 def view_company(request):
-    companies = Company.objects.all().order_by('name', 'company_code', 'city', 'type')
-    return render_to_response('admin/contacts/view_company.html', {'companies': companies},
-                              context_instance=RequestContext(request))
+    #companies = Company.objects.all().order_by('name', 'company_code', 'city', 'type')
+    #return render_to_response('admin/contacts/view_company.html', {'companies': companies}, context_instance=RequestContext(request))
+    limit = 10
+    offset = 0
+    #newsearch = False
+    count = Company.objects.count()
+    if request.method == 'POST':
+        form = AllCompanyForm(request.POST)
+        if form.is_valid():
+            search = request.POST['search']
+            limit = int(request.POST['limit'])
+            pageoffset = int(request.POST['offset'])
+            newsearch = request.POST.get('newsearch', False)
+            if search != "":
+                count = Company.objects.filter(Q(name__icontains=search) | Q(city__icontains=search) | Q(vat__icontains=search)).count()
+            clicked_page = int(request.POST['clicked'])
+            if not newsearch:
+                offset = 0
+            else:
+                if clicked_page == -4:
+                    #Primo
+                    offset = 0
+                elif clicked_page == -3:
+                    #Precedente
+                    offset = pageoffset - limit
+                elif clicked_page == -2:
+                    #Prossimo
+                    offset = pageoffset + limit
+                elif clicked_page == -1:
+                    #Ultimo
+                    offset = (int(math.ceil(count/float(limit))) - 1) * limit
+                else:
+                    offset = limit * (clicked_page-1)
+            if search == "":
+                companies = Company.objects.all().order_by('name', 'company_code', 'city', 'type')[offset:limit+offset]
+            else:
+                companies = Company.objects.filter(Q(name__icontains=search) | Q(city__icontains=search) | Q(vat__icontains=search)).order_by('name', 'company_code', 'city', 'type')[offset:limit+offset]
+    else:
+        form = AllCompanyForm()
+        companies = Company.objects.all().order_by('name', 'company_code', 'city', 'type')[offset:limit]
+    
+    temp = count/ float(limit)
+    pages = int(math.ceil(temp))
+    t = (offset+1)/ float(limit)
+    actual = int(math.ceil(t))
+    if actual > pages:
+        actual = pages
+    if actual < 1:
+        actual = 1
+    
+    init_page = 1
+    end_page = pages + 1
+    if actual > 3:
+        init_page = actual - 2
+    if actual < pages - 2:
+        end_page = actual + 2 + 1
+    
+    return render_to_response('admin/contacts/view_company.html', {'companies': companies, 'form': form, 'count': count, 'limit': limit, 'offset': offset, 'pages': pages, 'actual': actual, 'range': range(init_page, end_page)}, context_instance=RequestContext(request))
 
 
 @staff_member_required
@@ -313,8 +386,63 @@ def view_work_rest(request):
 
 @staff_member_required
 def view_contact(request):
-    contacts = Contact.objects.all()
-    return render_to_response('admin/contacts/view_contact.html', {'contacts': contacts},
+    limit = 10
+    offset = 0
+    #newsearch = False
+    count = Contact.objects.count()
+    #contacts = Contact.objects.all()[offset:limit]
+    if request.method == 'POST':
+        form = AllContactsForm(request.POST)
+        if form.is_valid():
+            search = request.POST['search']
+            limit = int(request.POST['limit'])
+            pageoffset = int(request.POST['offset'])
+            newsearch = request.POST.get('newsearch', False)
+            if search != "":
+                count = Contact.objects.filter(Q(name__icontains=search) | Q(surname__icontains=search) | Q(code__icontains=search) | Q(email__icontains=search) | Q(street__icontains=search) | Q(civic__icontains=search) | Q(city__icontains=search)).count()
+            clicked_page = int(request.POST['clicked'])
+            if not newsearch:
+                offset = 0
+            else:
+                if clicked_page == -4:
+                    #Primo
+                    offset = 0
+                elif clicked_page == -3:
+                    #Precedente
+                    offset = pageoffset - limit
+                elif clicked_page == -2:
+                    #Prossimo
+                    offset = pageoffset + limit
+                elif clicked_page == -1:
+                    #Ultimo
+                    offset = (int(math.ceil(count/float(limit))) - 1) * limit
+                else:
+                    offset = limit * (clicked_page-1)
+            if search == "":
+                contacts = Contact.objects.all()[offset:limit+offset]
+            else:
+                contacts = Contact.objects.filter(Q(name__icontains=search) | Q(surname__icontains=search) | Q(code__icontains=search) | Q(email__icontains=search) | Q(street__icontains=search) | Q(civic__icontains=search) | Q(city__icontains=search))[offset:limit+offset]
+    else:
+        form = AllContactsForm()
+        contacts = Contact.objects.all()[offset:limit]
+    
+    temp = count/ float(limit)
+    pages = int(math.ceil(temp))
+    t = (offset+1)/ float(limit)
+    actual = int(math.ceil(t))
+    if actual > pages:
+        actual = pages
+    if actual < 1:
+        actual = 1
+    
+    init_page = 1
+    end_page = pages + 1
+    if actual > 3:
+        init_page = actual - 2
+    if actual < pages - 2:
+        end_page = actual + 2 + 1
+    
+    return render_to_response('admin/contacts/view_contact.html', {'contacts': contacts, 'form': form, 'count': count, 'limit': limit, 'offset': offset, 'pages': pages, 'actual': actual, 'range': range(init_page, end_page)},
                               context_instance=RequestContext(request))
 
 
@@ -363,7 +491,7 @@ def view_contact_details(request, id):
 
     provinces = Province.objects.all()
 
-    companies = Company.objects.all()
+    #companies = Company.objects.all()[:100]
     sectors = Sector.objects.all()
     divisions = Division.objects.all()
 
@@ -442,7 +570,7 @@ def view_contact_details(request, id):
             'contact': contact,
             'itsrel': itsrel,
             'provinces': provinces,
-            'companies': companies,
+            #'companies': companies,
             'sectors': sectors,
             'sector':sector,
             'works':works,
@@ -456,10 +584,79 @@ def view_contact_details(request, id):
         },
         context_instance=RequestContext(request))
 
+def search_companies(request):
+    if request.method == 'POST':
+        search = request.POST.get('text')
+        limit = int(request.POST.get('limit'))
+        pageoffset = int(request.POST.get('offset', 0))
+        clicked_page = int(request.POST.get('clicked'))
+        newsearch = request.POST.get('newsearch', False)
+        
+        count = Company.objects.count()
+        if search != "":
+            count = Company.objects.filter(Q(name__icontains=search) | Q(email__icontains=search) | Q(street__icontains=search) | Q(city__icontains=search) | Q(vat__icontains=search)).count()
+        if not newsearch:
+            offset = 0
+        else:
+            if clicked_page == -4:
+                #Primo
+                offset = 0
+            elif clicked_page == -3:
+                #Precedente
+                offset = pageoffset - limit
+            elif clicked_page == -2:
+                #Prossimo
+                offset = pageoffset + limit
+            elif clicked_page == -1:
+                #Ultimo
+                offset = (int(math.ceil(count/float(limit))) - 1) * limit
+            else:
+                offset = limit * (clicked_page-1)
+        if search == "":
+            companies = Company.objects.all().order_by('name', 'company_code', 'city', 'type')[offset:limit+offset]
+        else:
+            companies = Company.objects.filter(Q(name__icontains=search) | Q(email__icontains=search) | Q(street__icontains=search) | Q(city__icontains=search) | Q(vat__icontains=search)).order_by('name', 'company_code', 'city', 'type')[offset:limit+offset]
+        
+        temp = count/ float(limit)
+        pages = int(math.ceil(temp))
+        t = (offset+1)/ float(limit)
+        actual = int(math.ceil(t))
+        if actual > pages:
+            actual = pages
+        if actual < 1:
+            actual = 1
+    
+        init_page = 1
+        end_page = pages + 1
+        if actual > 3:
+            init_page = actual - 2
+        if actual < pages - 2:
+            end_page = actual + 2 + 1
+        
+        response_data = {}
+        response_data['companies'] = serializers.serialize("json", companies)
+        response_data['count'] = count
+        response_data['limit'] = limit
+        response_data['offset'] = offset
+        response_data['pages'] = pages
+        response_data['actual'] = actual
+        response_data['range'] = range(init_page, end_page)
+        
+        return HttpResponse(
+            json.dumps(response_data),
+            content_type="application/json"
+        )
+    else:
+        return HttpResponse(
+            json.dumps({"error": "Errore generico."}),
+            content_type="application/json"
+        )
 
 @staff_member_required
 def view_contact_import(request):
     form = ImportContactsForm()
+    message = ''
+    errorList = []
     if request.method == 'POST':
         form = ImportContactsForm(request.POST,request.FILES)
         my_file = request.FILES['file']
@@ -467,20 +664,50 @@ def view_contact_import(request):
             with open('/var/www/yellowpage/media/xls/'+my_file.name, 'wb+') as destination:
                 for chunk in my_file.chunks():
                     destination.write(chunk)
-            xls = open_workbook('/var/www/yellowpage/media/xls/'+my_file.name)
+            xls = xlrd.open_workbook('/var/www/yellowpage/media/xls/'+my_file.name)
             sheet = xls.sheet_by_index(0)
-            for row_index in range(sheet.nrows):
-                if row_index > 0:
-                    #for col_index in range(sheet.ncols):
-                     #print cellname(row_index,col_index),'-',
-                     #print sheet.cell(row_index,col_index).value
-                    if sheet.cell(row_index,0).value != "" and  sheet.cell(row_index,1).value != "" and sheet.cell(row_index,20).value:
-                        print "COGNOME: "+sheet.cell(row_index,0).value.capitalize()
-                        print "NOME: "+sheet.cell(row_index,1).value.capitalize()
-                        print "EMAIL: "+sheet.cell(row_index,7).value.lower()
-                        print "CF: "+sheet.cell(row_index,20).value
+            completed = 0
+            for row_index in range(1, sheet.nrows):
+                try:
+                    contact = Contact(code=sheet.cell_value(row_index,0).capitalize())
+                    contact.surname = sheet.cell_value(row_index,1).capitalize()
+                    contact.name = sheet.cell_value(row_index,2).capitalize()
+                    contact.street = sheet.cell_value(row_index,3).capitalize()
+                    contact.zip = str(sheet.cell_value(row_index,4))
+                    contact.city = sheet.cell_value(row_index,5).capitalize()
+                    contact.province = Province.objects.get(code=sheet.cell_value(row_index,6))
+                    contact.email = sheet.cell_value(row_index,7)
+                    contact.phone_number = sheet.cell_value(row_index, 11)
+                    contact.birthdate = str(sheet.cell_value(row_index,10))
+                    #Settore
+                    sectorString = str(sheet.cell_value(row_index, 9))
+                    professionString = str(sheet.cell_value(row_index, 8))
+                    profession = Work.objects.filter(name=professionString)
+                    if not profession:
+                        sector = Sector.objects.filter(name=sectorString)
+                        if not sector:
+                            sector = Sector(name=sectorString)
+                            sector.save()
+                        #Professione
+                        profession = Work(name=professionString, sector=Sector.objects.get(pk=sector.pk))
+                        profession.save()
+                    else:
+                        profession = profession[0]
+                    contact.work = Work.objects.get(name=profession.name)
+                    contact.save()
+                    completed += 1
+                    #Certificato
+                    cabinet = Cabinet.objects.get(pk=2)
+                    current_user = request.user
+                    file = ContactFile(contact=Contact.objects.get(pk=contact.pk))
+                    uploadedFile = UploadedFile(title="Certificato Vuoto", cabinet=cabinet, file_ref="/cabinet/cert_empty.pdf", owner=current_user)
+                    file.file = uploadedFile
+                except Exception as e:
+                    print '%s (%s)' % (e.message, type(e))
+                    errorList.append(sheet.cell_value(row_index,0).capitalize())
+            message = 'Report Import: %d contatti importati correttamente. ' % completed
 
-    return render_to_response('admin/contacts/view_contact_import.html',{'form':form}, context_instance=RequestContext(request))
+    return render_to_response('admin/contacts/view_contact_import.html',{'form':form, 'message':message, 'errorList': errorList}, context_instance=RequestContext(request))
 
 
 @user_passes_test(lambda u:u.is_superuser)
@@ -493,7 +720,7 @@ def view_ranking_details(request,id):
             new_ranking = form.save(commit=False)
             new_ranking.save()
             messages.success(request, 'Ranking aggiornato correttamente!')
-            return HttpResponseRedirect('/admin/contacts/ranking/'+id)
+            return HttpResponseRedirect('/admin/contacts/ranking/details/'+id)
     return render_to_response('admin/contacts/view_ranking_details.html',
                               {'ranking': ranking,'form': form},
                               context_instance=RequestContext(request))
