@@ -5,6 +5,81 @@
 {% block content_subtitle %}<h5>aggiungi un nuovo contatto compilando il seguente form</h5>{% endblock %}
 {% block content %}
 
+	<div id="modal-tables" class="modal fade" aria-hidden="true" style="display: none; width: 80%; left: 30%;">
+		<div class="modal-dialog">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+					<h6 id="modal-tablesLabel">Seleziona Azienda di Appartenenza</h6>
+				</div>
+				<div class="modal-body nopadding">
+					<!-- find me in partials/data_tables_custom -->
+
+					
+					<div id="dataTables">
+						<form id="contacts_form" method="post">
+							{% csrf_token %}
+							<div class="table-header">
+								<div class="dataTables_filter">
+									<label>Cerca: <input type="text" id="txtSearchCompany" name="txtSearchCompany" value=""/> <button id="btnSearchCompanies" class="btn btn-default">Cerca</button></label>
+								</div>
+								<!--<div class="dataTables_length">
+									<label>Righe per pagina:
+										<a href="#" class="btn btn-{% if limit == 10 %}blue{% else %}default{% endif %}" onclick="rowsForPage(10)">10</a>
+										<a href="#" class="btn btn-{% if limit == 25 %}blue{% else %}default{% endif %}" onclick="rowsForPage(25)">25</a>
+										<a href="#" class="btn btn-{% if limit == 50 %}blue{% else %}default{% endif %}" onclick="rowsForPage(50)">50</a>
+										<a href="#" class="btn btn-{% if limit == 100 %}blue{% else %}default{% endif %}" onclick="rowsForPage(100)">100</a>
+									</label>
+								</div>-->
+							</div>
+							<input type="hidden" name="limit" value="{% if limit %}{{ limit }}{% else %}10{% endif %}" />
+							<input type="hidden" name="pages" value="{{ pages }}" />
+							<input type="hidden" name="offset" value="{% if offset %}{{ offset }}{% else %}0{% endif %}" />
+							<input type="hidden" name="clicked" value="{% if actual %}{{ actual }}{% else %}1{% endif %}" />
+							<input type="hidden" name="newsearch" value=false />
+							<input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+						</form>
+						<!--<table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">-->
+						<table id="modalCompaniesTable" class="table table-normal">
+							<thead>
+							<tr>
+								<th></th>
+								<th><div>Codice</div></th>
+								<th><div>Denominazione</div></th>
+								<th><div>P.Iva</div></th>
+								<th><div>Email</div></th>
+								<th><div>Indirizzo</div></th>
+								<th>&nbsp;</th>
+							</tr>
+							</thead>
+							<tbody id="tblBodyCompanies">
+							<!--
+							{% for company in companies %}
+							   <tr>
+								   <td><button class="btn btn-blue btnCompanySelected" onclick="btnCompanySelectedClicked('{{company.pk}}', '{{company.name|escapejs }}')" value="{{ company.pk }}"><i class="icon-signin"></i>Select</button></td>
+								   <td>{{ company.company_code }}</td>
+								   <td>{{ company.name }}</td>
+								   <td>{{ company.vat }}</td>
+								   <td>{{ company.email|default_if_none:"" }}</td>
+								   <td>{{ company.street}} {{company.civic}}, {{company.city}} ({{company.province.code}})</td>
+								   <td><a href="/admin/contacts/company/{{company.vat}}"><i class="icon-tasks"></i></a></td>
+							   </tr>
+
+							{% endfor %}
+							-->
+							</tbody>
+						</table>
+					</div>
+					
+					
+				</div>
+				<div class="modal-footer">
+					<button class="btn btn-default" id="modalButtonClose" data-dismiss="modal">Close</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
     <div class="container-fluid padded">
         <div class="row-fluid">
             <div class="span12">
@@ -107,12 +182,22 @@
                                         </li>
                                         <li>
                                             <label>Azienda di appartenenza:</label>
-                                            <select class="chzn-select" name="company" >
+                                            <!--<select class="chzn-select" name="company" >
                                                 <option value="" selected="selected">Nessuna</option>
                                                 {% for company in companies %}
                                                     <option value="{{ company.name }}" {% if company.name == form.instance.company.name %} selected="selected"{% endif %}>{{ company }}</option>
                                                 {% endfor  %}
-                                            </select>
+                                            </select> -->
+											
+											<div class="row-fluid">
+												<div class="span9">
+													<input type="text" readonly name="company_selected_name" placeholder="Azienda di Appartenenza" value="{{ contact.company.name|default_if_none:'Nessuna' }}"/>
+													<input type="hidden" name="company" value="{{ company.pk }}" />
+												</div>
+												<div class="span3">
+													<a data-toggle="modal" href="#modal-tables" class="btn btn-blue"><i class="icon-table"></i> Ricerca</a>
+												</div>
+											</div>
                                         </li>
                                         <label>Settore:</label>
                                         <select id="sector" class="chzn-select" name="sector" >
@@ -206,7 +291,113 @@
         </div><!-- row fluid -->
     </div>
    <script>
-       $(function() {
+		function csrfSafeMethod(method) {
+			// these HTTP methods do not require CSRF protection
+			return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+		}
+		
+		function btnCompanySelectedClicked(pk, name){
+			console.log("btnCompanySelected is working!"); // sanity check
+			console.log("Pk: " + pk + ", Name: " + name);
+			
+			//Set hidden company value
+			document.forms["contact_form"].elements["company"].value = pk;
+			document.forms["contact_form"].elements["company_selected_name"].value = name;
+			
+			//Close Modal
+			document.getElementById('modalButtonClose').click();
+			
+		}
+		
+		
+		$(function() {
+		
+			$("#btnSearchCompanies").on("click",function(e){
+				e.preventDefault();
+				console.log("search_companies post is working!"); // sanity check
+				$.ajaxSetup({
+					beforeSend: function(xhr, settings) {
+						if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+							xhr.setRequestHeader("X-CSRFToken", document.forms["contacts_form"].elements["csrfmiddlewaretoken"].value);
+						}
+					}
+				});
+				$.ajax({
+					url : "../search_companies/", // the endpoint
+					type : "POST", // http method
+					data : { 
+						text : document.forms["contacts_form"].elements["txtSearchCompany"].value,
+						limit : document.forms["contacts_form"].elements["limit"].value,
+						offset : document.forms["contacts_form"].elements["offset"].value,
+						clicked : document.forms["contacts_form"].elements["clicked"].value,
+						csrfmiddlewaretoken: document.getElementsByName('csrfmiddlewaretoken')[0].value,
+						newsearch : true
+					}, // data sent with the post request
+
+					// handle a successful response
+					success : function(json) {
+						console.log(json); // log the returned json to the console
+						console.log("success"); // another sanity check
+						
+						/*
+						<tr>
+							<td><button class="btn btn-blue btnCompanySelected" onclick="btnCompanySelectedClicked('{{company.pk}}', '{{company.name|escapejs }}')" value="{{ company.pk }}"><i class="icon-signin"></i>Select</button></td>
+							<td>{{ company.company_code }}</td>
+							<td>{{ company.name }}</td>
+							<td>{{ company.vat }}</td>
+							<td>{{ company.email|default_if_none:"" }}</td>
+							<td>{{ company.street}} {{company.civic}}, {{company.city}} ({{company.province.code}})</td>
+							<td><a href="/admin/contacts/company/{{company.vat}}"><i class="icon-tasks"></i></a></td>
+						</tr>
+						*/
+					   
+						//Remove all rows from Table
+						document.getElementById("tblBodyCompanies").innerHTML = "";
+						
+						//Get Table
+						var table = document.getElementById("modalCompaniesTable").getElementsByTagName('tbody')[0];;
+
+						var companies = JSON.parse(json.companies); 
+						console.log(companies[0]);
+						
+						if(companies.length == 0){
+							alert("Nessun risultato trovato.");
+						}else{
+						
+							var company;
+							for(company in companies){
+								console.log("Company: " + companies[company]);
+								
+								//Create Row and Add To Table
+								var row = table.insertRow();
+								//Create cell
+								var cell_0 = row.insertCell(0);
+								var cell_1 = row.insertCell(1);
+								var cell_2 = row.insertCell(2);
+								var cell_3 = row.insertCell(3);
+								var cell_4 = row.insertCell(4);
+								var cell_5 = row.insertCell(5);
+								var cell_6 = row.insertCell(6);
+								//Valorize cell
+								cell_0.innerHTML = '<button class="btn btn-blue btnCompanySelected" onclick="btnCompanySelectedClicked(\''+companies[company].pk+'\', \''+companies[company].fields.name+'\')" value="'+companies[company].pk+'"><i class="icon-signin"></i>Select</button>';
+								cell_1.innerHTML = companies[company].fields.company_code;
+								cell_2.innerHTML = companies[company].fields.name;
+								cell_3.innerHTML = companies[company].pk;
+								cell_4.innerHTML = (companies[company].fields.email) ? companies[company].fields.email : "";
+								cell_5.innerHTML = companies[company].fields.street + " " + companies[company].fields.civic + ", " + companies[company].fields.city + " " + companies[company].fields.province.code;
+								cell_6.innerHTML = '<a href="/admin/contacts/company/' + companies[company].pk + '"><i class="icon-tasks"></i></a>';
+							}
+							
+						}
+					   
+					},
+
+					// handle a non-successful response
+					error : function(xhr,errmsg,err) {
+						console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+					}
+				});
+			});
 
            function makeid(lenght)
            {

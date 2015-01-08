@@ -65,7 +65,7 @@
 								<th>&nbsp;</th>
 							</tr>
 							</thead>
-							<tbody>
+							<tbody id="tblBodyCompanies">
 							<!--
 							{% for company in companies %}
 							   <tr>
@@ -708,36 +708,40 @@
 						*/
 					   
 						//Remove all rows from Table
-						$("#modalCompaniesTable tbody").remove();
+						document.getElementById("tblBodyCompanies").innerHTML = "";
 						
 						//Get Table
-						var table = document.getElementById("modalCompaniesTable");
+						var table = document.getElementById("modalCompaniesTable").getElementsByTagName('tbody')[0];;
 
 						var companies = JSON.parse(json.companies); 
 						console.log(companies[0]);
 						
-						var company;
-						for(company in companies){
-							console.log("Company: " + companies[company]);
-							
-							//Create Row and Add To Table
-							var row = table.insertRow();
-							//Create cell
-							var cell_0 = row.insertCell(0);
-							var cell_1 = row.insertCell(1);
-							var cell_2 = row.insertCell(2);
-							var cell_3 = row.insertCell(3);
-							var cell_4 = row.insertCell(4);
-							var cell_5 = row.insertCell(5);
-							var cell_6 = row.insertCell(6);
-							//Valorize cell
-							cell_0.innerHTML = '<button class="btn btn-blue btnCompanySelected" onclick="btnCompanySelectedClicked(\''+companies[company].pk+'\', \''+companies[company].fields.name+'\')" value="'+companies[company].pk+'"><i class="icon-signin"></i>Select</button>';
-							cell_1.innerHTML = companies[company].fields.company_code;
-							cell_2.innerHTML = companies[company].fields.name;
-							cell_3.innerHTML = companies[company].pk;
-							cell_4.innerHTML = (companies[company].fields.email) ? companies[company].fields.email : "";
-							cell_5.innerHTML = companies[company].fields.street + " " + companies[company].fields.civic + ", " + companies[company].fields.city + " " + companies[company].fields.province.code;
-							cell_6.innerHTML = '<a href="/admin/contacts/company/' + companies[company].pk + '"><i class="icon-tasks"></i></a>';
+						if(companies.length == 0){
+							alert("Nessun risultato trovato.");
+						}else{
+							var company;
+							for(company in companies){
+								console.log("Company: " + companies[company]);
+								
+								//Create Row and Add To Table
+								var row = table.insertRow();
+								//Create cell
+								var cell_0 = row.insertCell(0);
+								var cell_1 = row.insertCell(1);
+								var cell_2 = row.insertCell(2);
+								var cell_3 = row.insertCell(3);
+								var cell_4 = row.insertCell(4);
+								var cell_5 = row.insertCell(5);
+								var cell_6 = row.insertCell(6);
+								//Valorize cell
+								cell_0.innerHTML = '<button class="btn btn-blue btnCompanySelected" onclick="btnCompanySelectedClicked(\''+companies[company].pk+'\', \''+companies[company].fields.name+'\')" value="'+companies[company].pk+'"><i class="icon-signin"></i>Select</button>';
+								cell_1.innerHTML = companies[company].fields.company_code;
+								cell_2.innerHTML = companies[company].fields.name;
+								cell_3.innerHTML = companies[company].pk;
+								cell_4.innerHTML = (companies[company].fields.email) ? companies[company].fields.email : "";
+								cell_5.innerHTML = companies[company].fields.street + " " + companies[company].fields.civic + ", " + companies[company].fields.city + " " + companies[company].fields.province.code;
+								cell_6.innerHTML = '<a href="/admin/contacts/company/' + companies[company].pk + '"><i class="icon-tasks"></i></a>';
+							}
 						}
 					   
 					},

@@ -6,7 +6,7 @@ from django.contrib.auth.models import User, AnonymousUser
 
 # Create your models here.
 from backend.utils import is_backend_admin
-from contacts.models import Contact
+from contacts.models import Contact, Company
 
 CAMPAIGN_STATUS = (
     ('A', 'Attiva'),
@@ -232,6 +232,7 @@ class Event(models.Model):
     salevalue = models.CharField(max_length=250,blank=True,null=True,verbose_name="Quota di Iscrizione Scontata")
     areamanager = models.ForeignKey('campaigns.AreaManager',blank=True,null=True,
                                     verbose_name="Area Manager",on_delete=models.SET_NULL)
+    company = models.ForeignKey('contacts.Company', blank=True, null=True, verbose_name="Anagrafica Aziende", on_delete=models.SET_NULL)
 
     #ToDo: [REF-AREAITS] Drop AreaITS model; Drop Event.districtmanager FK as it is replaced by Event.its_districtmanager
     districtmanager = models.ForeignKey('campaigns.AreaIts', blank=True, null=True,

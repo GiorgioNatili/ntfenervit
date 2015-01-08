@@ -451,7 +451,6 @@ def view_add_contact(request):
     c = {}
     c.update(csrf(request))
     provinces = Province.objects.all()
-    companies = Company.objects.all()
     sectors = Sector.objects.all()
     divisions = Division.objects.all()
     form = ContactForm()
@@ -466,7 +465,7 @@ def view_add_contact(request):
                 return HttpResponseRedirect('/admin/contacts/contact')
         else:
             messages.error(request, 'Errore in inserimento contatto')
-    c = {'form': form, 'provinces': provinces, 'companies': companies, 'sectors': sectors, 'divisions': divisions}
+    c = {'form': form, 'provinces': provinces, 'sectors': sectors, 'divisions': divisions}
     return render_to_response('admin/contacts/view_add_contact.html', c, context_instance=RequestContext(request))
 
 

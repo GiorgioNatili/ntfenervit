@@ -819,9 +819,9 @@ def _prepare_event_form():
     theme = Theme.objects.all()
     pointofsaletype = PointOfSaleType.objects.all()
     province = Province.objects.all()
-    companies = Company.objects.all().order_by('name', 'company_code', 'city', 'type')
+    #companies = Company.objects.all().order_by('name', 'company_code', 'city', 'type')
     its_id = district_id = consultant_id = -1
-    return areamanager, campaigns, channel, companies, consultant_id, consultant_rels, consultants, district_id, districts, eventtype, form, its_id, its_rels, its_users, pointofsaletype, province, theme
+    return areamanager, campaigns, channel, consultant_id, consultant_rels, consultants, district_id, districts, eventtype, form, its_id, its_rels, its_users, pointofsaletype, province, theme
 
 
 def view_add_event(request):
@@ -837,7 +837,7 @@ def view_add_event(request):
             return redirect('/admin')
     c.update(csrf(request))
 
-    areamanager, campaigns, channel, companies, \
+    areamanager, campaigns, channel, \
         consultant_id, consultant_rels, consultants, \
         district_id, districts, eventtype, form, its_id, \
         its_rels, its_users, pointofsaletype, province, theme = _prepare_event_form()
@@ -866,7 +866,7 @@ def view_add_event(request):
     c = {'form': form, 'province': province, 'campaigns': campaigns,
          'its_users': its_users, 'consultants': consultants, 'from_its': from_its,
          'districts': districts, 'consultant_rels': consultant_rels, 'its_rels': its_rels,
-         'areamanager': areamanager, 'eventtype': eventtype, 'companies': companies,
+         'areamanager': areamanager, 'eventtype': eventtype,
          'channel': channel, 'theme': theme, 'pointofsaletype': pointofsaletype,
          'its_id': its_id, 'district_id': district_id, 'consultant_id': consultant_id}
     return render_to_response('admin/campaigns/view_add_event.html', c, context_instance=RequestContext(request))
@@ -887,7 +887,7 @@ def view_event_details(request, id):
         else:
             return redirect('/admin')
 
-    areamanager, campaigns, channel, companies, consultant_id, \
+    areamanager, campaigns, channel, consultant_id, \
         consultant_rels, consultants, district_id, districts, \
         eventtype, form, its_id, its_rels, its_users, \
         pointofsaletype, province, theme = _prepare_event_form()
@@ -928,7 +928,7 @@ def view_event_details(request, id):
     c = {'event': event, 'eventfiles': eventfiles, 'form': form, 'province': province,
          'campaigns': campaigns, 'consultants': consultants, 'from_its': from_its,
          'districts': districts, 'consultant_rels': consultant_rels, 'its_rels': its_rels,
-         'areamanager': areamanager, 'eventtype': eventtype, 'companies': companies,
+         'areamanager': areamanager, 'eventtype': eventtype,
          'channel': channel, 'theme': theme, 'pointofsaletype': pointofsaletype,
          'its_id': its_id, 'district_id': district_id, 'consultant_id': consultant_id}
     return render_to_response('admin/campaigns/view_event_details.html',
@@ -2045,7 +2045,7 @@ def search_newsletter_export(request):
 @staff_member_required
 def search_event(request):
 
-    areamanagers, campaigns, channels, companies, \
+    areamanagers, campaigns, channels, \
         consultant_id, consultant_rels, consultants, \
         district_id, districts, eventtypes, form, its_id, \
         its_rels, its, pointofsaletypes, province, themes = _prepare_event_form()
