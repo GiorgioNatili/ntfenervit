@@ -44,7 +44,7 @@
 									</label>
 								</div>-->
 							</div>
-							<input type="hidden" name="limit" value="{% if limit %}{{ limit }}{% else %}10{% endif %}" />
+							<input type="hidden" name="limit" value="{% if limit %}{{ limit }}{% else %}40{% endif %}" />
 							<input type="hidden" name="pages" value="{{ pages }}" />
 							<input type="hidden" name="offset" value="{% if offset %}{{ offset }}{% else %}0{% endif %}" />
 							<input type="hidden" name="clicked" value="{% if actual %}{{ actual }}{% else %}1{% endif %}" />
@@ -126,7 +126,7 @@
                                         <li>
                                             <label>Data evento</label>
                                             {{ form.date.errors }}
-                                            <input id="date" type="text" name="date" data-prompt-position="topLeft" placeholder="Data" value="{{ form.instance.date|default_if_none:"" }}"/>
+                                            <input id="date" class="validate[required]" type="text" name="date" data-prompt-position="topLeft" placeholder="Data" value="{{ form.instance.date|default_if_none:"" }}"/>
                                         </li>
                                         <li>
                                             <input type="checkbox" class="icheck" id="enddateCheck" >
@@ -227,65 +227,73 @@
 
                             <h3 style="text-align: center;">Punto Vendita</h3>
                             <div class="row-fluid">
-                                <div class="span6">
-                                    <ul class="padded separate-sections">
-                                        <li>
-                                            <label>Anagrafica Aziende</label>
-                                            <!--<select class="chzn-select" name="company" id="lst-companies">
-                                            </select> -->
-											
+								<div class="span6">
+									<ul class="padded separate-sections">
+										<li>
+											<label>Anagrafica Aziende</label>
+											<!--<select class="chzn-select" name="company" id="lst-companies">
+											</select> -->
+																	
 											<div class="row-fluid">
 												<div class="span9">
-													<input type="text" readonly name="company_selected_name" value="{{ contact.company.name|default_if_none:'Nessuna' }}"/>
+													<input type="text" readonly name="company_selected_name" value="{{ event.company.name|default_if_none:'Nessuna' }}"/>
 													<input type="hidden" name="company" value="{{ company.pk }}" />
 												</div>
 												<div class="span3">
 													<a data-toggle="modal" href="#modal-tables" class="btn btn-blue"><i class="icon-table"></i> Ricerca</a>
 												</div>
 											</div>
-                                        </li>
-                                        <li>
-                                            <label>Codice Punto Vendita</label>
-                                            {{ form.pointofsale.errors }}
-                                            <input type="text" name="pointofsale" id="pointofsale" placeholder="Codice Punto Vendita" value="{{ form.instance.pointofsale|default_if_none:"" }}"/>
-                                        </li>
-                                        <li>
-                                            {{ form.typepointofsale.errors }}
-                                            <label>Tipologia Punto Vendita</label>
-                                            <select class="chzn-select" name="typepointofsale" id="lst-typepointofsale">
-                                                <option value="">---</option>
-                                                {% for pos in pointofsaletype %}
-                                                    <option value="{{ pos.id }}" {% if pos.id == form.instance.typepointofsale.id %} selected="selected"{% endif %}>{{ pos }}</option>
-                                                {% endfor %}
-                                            </select>
-                                        </li>
-                                        <li>
-                                            <label>Provincia</label>
-                                            <select class="chzn-select" name="province" id="lst-provinces" >
-                                                <option value="">---</option>
-                                                {% for pos in province %}
-                                                    <option value="{{ pos.id }}" {% if pos.id == form.instance.province.id %} selected="selected"{% endif %}>{{ pos }}</option>
-                                                {% endfor %}
-                                            </select>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <div class="span6">
-                                    <ul class="padded separate-sections">
-                                        <li>
-                                            <label>Nominativo Punto Vendita</label>
-                                            {{ form.pointofsaledescription.errors }}
-                                            <input type="text" name="pointofsaledescription" id="pointofsaledescription" placeholder="Nominativo Punto Vendita" value="{{ form.instance.pointofsaledescription|default_if_none:"" }}"/>
+										</li>
+										<li>
+											<label>Codice Punto Vendita</label>
+											{{ form.pointofsale.errors }}
+											<input readonly type="text" name="pointofsale" id="pointofsale" placeholder="Codice Punto Vendita"
+												   value="{{ event.company.company_code|default_if_none:"" }}"/>
+										</li>
+										<li>
+											{{ form.typepointofsale.errors }}
+											<label>Tipologia Punto Vendita</label>
+											<!--<select class="chzn-select" id="lst-typepointofsale" name="typepointofsale">-->
+											<select readonly id="lst-typepointofsale" name="typepointofsale">
+												<option value="">---</option>
+												{% for pos in pointofsaletype %}
+													<option value="{{ pos.id }}" {% if pos.id == event.company.type.id %}
+															selected="selected"{% endif %}>{{ pos }}</option>
+												{% endfor %}
+											</select>
+										</li>
+										<li>
+											<label>Provincia</label>
+											<!--<select class="chzn-select" id="lst-provinces" name="province">-->
+											<select readonly id="lst-provinces" name="province">
+												<option value="">---</option>
+												{% for pos in province %}
+													<option value="{{ pos.id }}" {% if pos.id == event.company.province.id %}
+															selected="selected"{% endif %}>{{ pos }}</option>
+												{% endfor %}
+											</select>
+										</li>
 
-                                        </li>
-                                        <li>
-                                            <label>Indirizzo e Località</label>
-                                            {{ form.place.errors }}
-                                            <textarea form="event_form" rows="4" cols="50" id="place" name="place" class="validate[required]" data-prompt-position="topLeft" placeholder="Sede" >{{ form.instance.place|default_if_none:"" }}</textarea>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
+									</ul>
+								</div>
+								<div class="span6">
+									<ul class="padded separate-sections">
+										<li>
+											<label>Nominativo Punto Vendita</label>
+											{{ form.pointofsaledescription.errors }}
+											<input readonly type="text" name="pointofsaledescription" id="pointofsaledescription"
+												   placeholder="Nominativo Punto Vendita"
+												   value="{{ event.pointofsaledescription|default_if_none:"" }}"/>
+										</li>
+										<li>
+											<label>Indirizzo e Località</label>
+											<textarea readonly form="event_form" rows="4" cols="50" name="place" id="place" class="validate[required]"
+													  data-prompt-position="topLeft" placeholder="Sede">{{ event.place }}</textarea>
+										</li>
+
+									</ul>
+								</div>
+							</div>
 
 
                             {% if not from_its %}
@@ -418,13 +426,18 @@
 			return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
 		}
 		
-		function btnCompanySelectedClicked(pk, name){
+		function btnCompanySelectedClicked(pk, name, company_code, type, province, street, civic, city){
 			console.log("btnCompanySelected is working!"); // sanity check
-			console.log("Pk: " + pk + ", Name: " + name);
+			console.log("Pk: " + pk + ", Name: " + name + ",Code: " + company_code + ", Type: " + type + ", Provincia: " + province);
 			
 			//Set hidden company value
 			document.forms["event_form"].elements["company"].value = pk;
 			document.forms["event_form"].elements["company_selected_name"].value = name;
+			document.forms["event_form"].elements["typepointofsale"].value = parseInt(type);
+			document.forms["event_form"].elements["pointofsale"].value = company_code;
+			document.forms["event_form"].elements["province"].value = parseInt(province);
+			document.forms["event_form"].elements["place"].value = unescape(street) + " " + civic + " " + unescape(city);
+			document.forms["event_form"].elements["pointofsaledescription"].value = name;
 			
 			//Close Modal
 			document.getElementById('modalButtonClose').click();
@@ -500,7 +513,7 @@
 								var cell_5 = row.insertCell(5);
 								var cell_6 = row.insertCell(6);
 								//Valorize cell
-								cell_0.innerHTML = '<button class="btn btn-blue btnCompanySelected" onclick="btnCompanySelectedClicked(\''+companies[company].pk+'\', \''+companies[company].fields.name+'\')" value="'+companies[company].pk+'"><i class="icon-signin"></i>Select</button>';
+								cell_0.innerHTML = '<button class="btn btn-blue btnCompanySelected" onclick="btnCompanySelectedClicked(\''+companies[company].pk+'\', \''+companies[company].fields.name+'\', '+companies[company].fields.company_code+', '+companies[company].fields.type+', \''+companies[company].fields.province+'\', \''+escape(companies[company].fields.street)+'\', \''+companies[company].fields.civic+'\', \''+escape(companies[company].fields.city)+'\')" value="'+companies[company].pk+'"><i class="icon-signin"></i>Select</button>';
 								cell_1.innerHTML = companies[company].fields.company_code;
 								cell_2.innerHTML = companies[company].fields.name;
 								cell_3.innerHTML = companies[company].pk;
@@ -696,7 +709,8 @@
                 consultant_id = "{{ consultant_id }}";
             var company_id = -1;
 
-
+			console.log("ITS caricato: " + its_id);
+			
             if (district_id !== -1) {
                 $("#lst-district").val(district_id);
             }
@@ -709,6 +723,7 @@
 
             if (consultant_id !== -1) {
                 $("#lst-consultant").val(consultant_id);
+				$("#lst-consultant").change();
             }
 
             refreshList($("#lst-companies"), company_data, -1);

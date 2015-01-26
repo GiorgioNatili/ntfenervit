@@ -863,6 +863,8 @@ def view_add_event(request):
                 form = EventForm()
             else:
                 return HttpResponseRedirect('/admin/campaigns/event')
+        else:
+            its_id = request.POST['its_districtmanager']
     c = {'form': form, 'province': province, 'campaigns': campaigns,
          'its_users': its_users, 'consultants': consultants, 'from_its': from_its,
          'districts': districts, 'consultant_rels': consultant_rels, 'its_rels': its_rels,

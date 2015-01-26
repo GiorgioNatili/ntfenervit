@@ -5,7 +5,7 @@ from django.views.decorators.csrf import csrf_protect
 from django.views.decorators.csrf import requires_csrf_token
 from backend.utils import get_its_users
 from contacts.models import Region, Province, Company, Payment, Visit, ChampionsDelivery, Contact, Division, SubDivision, Sector, Work, RankingConfiguration
-from cabinet.models import Cabinet, UploadedFile, ContactFile
+from cabinet.models import Cabinet, UploadedFile, ContactFile, ContactCertFile
 from django.contrib.auth.models import User
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import *
@@ -593,7 +593,7 @@ def search_companies(request):
         
         count = Company.objects.count()
         if search != "":
-            count = Company.objects.filter(Q(name__icontains=search) | Q(email__icontains=search) | Q(street__icontains=search) | Q(city__icontains=search) | Q(vat__icontains=search)).count()
+            count = Company.objects.filter(Q(name__icontains=search) | Q(email__icontains=search) | Q(street__icontains=search) | Q(city__icontains=search) | Q(vat__icontains=search) | Q(company_code__icontains=search)).count()
         if not newsearch:
             offset = 0
         else:
@@ -614,7 +614,7 @@ def search_companies(request):
         if search == "":
             companies = Company.objects.all().order_by('name', 'company_code', 'city', 'type')[offset:limit+offset]
         else:
-            companies = Company.objects.filter(Q(name__icontains=search) | Q(email__icontains=search) | Q(street__icontains=search) | Q(city__icontains=search) | Q(vat__icontains=search)).order_by('name', 'company_code', 'city', 'type')[offset:limit+offset]
+            companies = Company.objects.filter(Q(name__icontains=search) | Q(email__icontains=search) | Q(street__icontains=search) | Q(city__icontains=search) | Q(vat__icontains=search) | Q(company_code__icontains=search)).order_by('name', 'company_code', 'city', 'type')[offset:limit+offset]
         
         temp = count/ float(limit)
         pages = int(math.ceil(temp))
@@ -668,19 +668,22 @@ def view_contact_import(request):
             completed = 0
             for row_index in range(1, sheet.nrows):
                 try:
-                    contact = Contact(code=sheet.cell_value(row_index,0).capitalize())
+                    code = sheet.cell_value(row_index,0).capitalize()
+                    #if str(code) == "":
+                    #    
+                    contact = Contact(code=code)
                     contact.surname = sheet.cell_value(row_index,1).capitalize()
                     contact.name = sheet.cell_value(row_index,2).capitalize()
                     contact.street = sheet.cell_value(row_index,3).capitalize()
                     contact.zip = str(sheet.cell_value(row_index,4))
                     contact.city = sheet.cell_value(row_index,5).capitalize()
                     contact.province = Province.objects.get(code=sheet.cell_value(row_index,6))
-                    contact.email = sheet.cell_value(row_index,7)
-                    contact.phone_number = sheet.cell_value(row_index, 11)
-                    contact.birthdate = str(sheet.cell_value(row_index,10))
+                    contact.email = sheet.cell_value(row_index,8)
+                    contact.phone_number = sheet.cell_value(row_index, 7)
+                    contact.birthdate = str(sheet.cell_value(row_index,12))
                     #Settore
-                    sectorString = str(sheet.cell_value(row_index, 9))
-                    professionString = str(sheet.cell_value(row_index, 8))
+                    sectorString = str(sheet.cell_value(row_index, 10))
+                    professionString = str(sheet.cell_value(row_index, 9))
                     profession = Work.objects.filter(name=professionString)
                     if not profession:
                         sector = Sector.objects.filter(name=sectorString)
@@ -696,14 +699,17 @@ def view_contact_import(request):
                     contact.save()
                     completed += 1
                     #Certificato
-                    cabinet = Cabinet.objects.get(pk=2)
+                    cabinet = Cabinet.objects.get(pk=ContactCertFile.CABINET_ID)
                     current_user = request.user
-                    file = ContactFile(contact=Contact.objects.get(pk=contact.pk))
+                    file = ContactCertFile(contact=Contact.objects.get(pk=contact.pk))
                     uploadedFile = UploadedFile(title="Certificato Vuoto", cabinet=cabinet, file_ref="/cabinet/cert_empty.pdf", owner=current_user)
+                    uploadedFile.save()
                     file.file = uploadedFile
+                    file.expiry = str(sheet.cell_value(row_index,11))
+                    file.save()
                 except Exception as e:
                     print '%s (%s)' % (e.message, type(e))
-                    errorList.append(sheet.cell_value(row_index,0).capitalize())
+                    errorList.append(sheet.cell_value(row_index,0).capitalize() + " " + e.message)
             message = 'Report Import: %d contatti importati correttamente. ' % completed
 
     return render_to_response('admin/contacts/view_contact_import.html',{'form':form, 'message':message, 'errorList': errorList}, context_instance=RequestContext(request))
