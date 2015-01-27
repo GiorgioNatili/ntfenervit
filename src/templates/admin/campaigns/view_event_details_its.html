@@ -1,0 +1,774 @@
+{% extends "admin/base_site.html" %}
+{% block extrastyle %}
+    <link rel="stylesheet" href="/static/redactor/redactor.css"/>
+    <script type="text/javascript" src="/static/redactor/jquery-migrate.min.js"></script>
+
+    <script type="text/javascript" src="/static/redactor/redactor.js"></script>
+    <script type="text/javascript" src="/static/redactor/lang/it.js"></script>
+    <style type="text/css">
+        body .redactor_toolbar li a.redactor_btn_button1 {
+            background: url(/static/admin/images/placeholder2.png) no-repeat;
+        }
+    </style>
+{% endblock %}
+{% load i18n admin_static bootstrapped_goodies_tags access_control %}
+{% block icon-detail %}<i class="icon-calendar"></i>{% endblock %}
+{% block content_title %}Evento {% if from_its %}ITS{% endif %}{% endblock %}
+{% block content_subtitle %}<h5>visualizza e modifica gli attributi dell'evento selezionato</h5>{% endblock %}
+{% block content %}
+
+    <div class="container-fluid padded">
+    <div class="row-fluid">
+    <div class="span12">
+    <div class="box">
+    <div class="box-header">
+        <span class="title">Evento: {{ event.date|date:"d-m-Y" }}</span>
+    </div>
+    <div class="box-content">
+    <form class="fill-up validatable" enctype="multipart/form-data" method="post" id="event_form">
+		<fieldset>
+			{% csrf_token %}
+			{% if form.errors %}
+				<div class="alert alert-error">
+					Correggi i seguenti errori:
+					<ul>
+						{% for field, errors in form.errors.items %}
+							{% for error in errors %}
+								<li>{{ field }} - {{ error }}</li>
+							{% endfor %}
+
+						{% endfor %}
+					</ul>
+				</div>
+			{% endif %}
+			<h3 style="text-align: center;">Attributi Principali</h3>
+			<input type="hidden" name="owner" value="{{ event.owner.id }}"/>
+
+			<div class="row-fluid"> <!-- contenitore form -->
+				<!-- primo tab -->
+				<div class="span6">
+					<ul class="padded separate-sections">
+						<li>
+							<label>Data evento</label>
+							<input readonly id="startdate" type="text" name="date" class="validate[required]"
+								   data-prompt-position="topLeft" placeholder="Data" value="{{ event.date|date:'d/m/Y' }}"/>
+						</li>
+						{% if event.enddate %}
+							<li>
+								<input readonly style="display: none;" id="enddate" type="text" name="enddate" class="validate"
+									   data-prompt-position="topLeft" placeholder="Data di fine"
+									   value="{{ event.enddate|date:'d/m/Y' }}"/>
+							</li>
+						{% endif %}
+						<li>
+							<label>Descrizione Evento</label>
+							<textarea readonly form="event_form" rows="4" cols="50" name="description" class="validate[required]"
+									  data-prompt-position="topLeft"
+									  placeholder="Descrizione">{{ event.description }}</textarea>
+						</li>
+						{% if not from_its %}
+						<li>
+							<label>Campagna:</label>
+							<select readonly class="chzn-select" name="campaign">
+								{% for campaign in campaigns %}
+									<option value="{{ campaign.id }}" {% if campaign.id == event.campaign.id %}
+											selected="selected"{% endif %}>{{ campaign }}</option>
+								{% endfor %}
+							</select>
+						</li>
+						{% endif %}
+						<li>
+							<label>Canale</label>
+							<select readonly class="chzn-select" name="channel">
+								{% for pos in channel %}
+									<option value="{{ pos.id }}" {% if pos.id == event.channel.id %}
+											selected="selected"{% endif %}>{{ pos }}</option>
+								{% endfor %}
+							</select>
+						</li>
+						<li>
+							<label>Area Manager</label>
+							<select readonly class="chzn-select" name="areamanager">
+								<option value="">---</option>
+								{% for pos in areamanager %}
+									<option value="{{ pos.id }}" {% if pos.id == event.areamanager.id %}
+											selected="selected"{% endif %}>{{ pos }}</option>
+								{% endfor %}
+							</select>
+						</li>
+
+					</ul>
+				</div>
+				<div class="span6">
+					<ul class="padded separate-sections">
+						<li>
+							<label>Titolo evento</label>
+							<input readonly type="text" id="title" name="title" id="title" placeholder="Titolo"
+								   class="validate[required]" value="{{ event.title }}"/>
+						</li>
+						<li>
+							<label>Distretto ITS</label>
+							<select readonly class="chzn-select" id="lst-district" name="district" >
+								{% for d in districts %}
+									<option value="{{ d.id }}" {% if d.id == form.instance.district.id %} selected="selected"{% endif %}>{{ d }}</option>
+								{% endfor %}
+							</select>
+						</li>
+						<li>
+							<label>ITS</label>
+							<select readonly class="chzn-select" name="its_districtmanager" id="lst-its">
+								
+							</select>
+						</li>
+						<li>
+							<label>Consulente</label>
+							<select readonly class="chzn-select" name="consultant" id="lst-consultant">
+							</select>
+						</li>
+						<li>
+							<label>Tipologia Evento</label>
+							<select readonly class="chzn-select" name="eventtype">
+								{% for pos in eventtype %}
+									<option value="{{ pos.id }}" {% if pos.id == event.eventtype.id %}
+											selected="selected"{% endif %}>{{ pos }}</option>
+								{% endfor %}
+							</select>
+						</li>
+
+						<li>
+							<label>Tema Evento</label>
+							<select readonly class="chzn-select" name="theme">
+								{% for pos in theme %}
+									<option value="{{ pos.id }}" {% if pos.id == event.theme.id %}
+											selected="selected"{% endif %}>{{ pos }}</option>
+								{% endfor %}
+							</select>
+						</li>
+
+					</ul>
+				</div>
+			</div>
+			<!-- contenitore form -->
+
+			<h3 style="text-align: center;">Punto Vendita</h3>
+
+			<div class="row-fluid">
+				<div class="span6">
+					<ul class="padded separate-sections">
+						<li>
+							<label>Anagrafica Aziende</label>
+							<!--<select class="chzn-select" name="company" id="lst-companies">
+							</select> -->
+													
+							<div class="row-fluid">
+									<input readonly type="text" readonly name="company_selected_name" value="{{ event.company.name|default_if_none:'Nessuna' }}"/>
+									<input readonly type="hidden" name="company" value="{{ company.pk }}" />
+							</div>
+						</li>
+						<li>
+							<label>Codice Punto Vendita</label>
+							{{ form.pointofsale.errors }}
+							<input readonly type="text" name="pointofsale" id="pointofsale" placeholder="Codice Punto Vendita"
+								   value="{{ event.company.company_code|default_if_none:"" }}"/>
+						</li>
+						<li>
+							{{ form.typepointofsale.errors }}
+							<label>Tipologia Punto Vendita</label>
+							<!--<select class="chzn-select" id="lst-typepointofsale" name="typepointofsale">-->
+							<select readonly id="lst-typepointofsale" name="typepointofsale">
+								<option value="">---</option>
+								{% for pos in pointofsaletype %}
+									<option value="{{ pos.id }}" {% if pos.id == event.company.type.id %}
+											selected="selected"{% endif %}>{{ pos }}</option>
+								{% endfor %}
+							</select>
+						</li>
+						<li>
+							<label>Provincia</label>
+							<!--<select class="chzn-select" id="lst-provinces" name="province">-->
+							<select readonly id="lst-provinces" name="province">
+								<option value="">---</option>
+								{% for pos in province %}
+									<option value="{{ pos.id }}" {% if pos.id == event.company.province.id %}
+											selected="selected"{% endif %}>{{ pos }}</option>
+								{% endfor %}
+							</select>
+						</li>
+
+					</ul>
+				</div>
+				<div class="span6">
+					<ul class="padded separate-sections">
+						<li>
+							<label>Nominativo Punto Vendita</label>
+							{{ form.pointofsaledescription.errors }}
+							<input readonly type="text" name="pointofsaledescription" id="pointofsaledescription"
+								   placeholder="Nominativo Punto Vendita"
+								   value="{{ event.pointofsaledescription|default_if_none:"" }}"/>
+						</li>
+						<li>
+							<label>Indirizzo e Località</label>
+							<textarea readonly form="event_form" rows="4" cols="50" name="place" id="place" class="validate[required]"
+									  data-prompt-position="topLeft" placeholder="Sede">{{ event.place }}</textarea>
+						</li>
+
+					</ul>
+				</div>
+			</div>
+			{% if not from_its %}
+				<h3 style="text-align: center;">Iscrizione</h3>
+
+				<div class="row-fluid">
+					<div class="span6">
+						<ul class="padded separate-sections">
+							<li>
+								<label>Quota di partecipazione</label>
+								{{ form.money.errors }}
+								<input readonly type="text" id="money" name="money" id="money" placeholder="Quota di partecipazione"
+									   class="validate[required]" value="{{ event.money }}"/>
+							</li>
+							<li>
+								<label>Modalità di pagamento</label>
+								{{ form.payment.errors }}
+								<textarea readonly form="event_form" rows="4" cols="50" name="payment" class="validate[required]"
+										  data-prompt-position="topLeft"
+										  placeholder="Modalità di Pagamento">{{ event.payment }}</textarea>
+							</li>
+							<li>
+								<label>Data inizio sconto</label>
+								{{ form.salestartdate.errors }}
+								<input readonly id="salestartdate" type="text" name="salestartdate" data-prompt-position="topLeft"
+									   placeholder="Data di inizio sconto" value="{{ event.salestartdate|date:'d/m/Y' }}"/>
+							</li>
+						</ul>
+					</div>
+					<div class="span6">
+						<ul class="padded separate-sections">
+							<li>
+								<label>Termini di Iscrizione</label>
+								{{ form.money_description.errors }}
+								<textarea readonly form="event_form" rows="4" cols="50" name="money_description"
+										  class="validate[required]"
+										  data-prompt-position="topLeft"
+										  placeholder="Termini di iscrizione">{{ event.money_description }}</textarea>
+							</li>
+							<li>
+								<label>Quota scontata di partecipazione</label>
+								{{ form.salevalue.errors }}
+								<input readonly type="text" id="salevalue" name="salevalue"
+									   placeholder="Quota di partecipazione scontata"
+									   value="{{ event.salevalue|default_if_none:"" }}"/>
+							</li>
+							<li>
+								<label>Data fine sconto</label>
+								{{ form.saleenddate.errors }}
+								<input readonly id="saleenddate" type="text" name="saleenddate" data-prompt-position="topLeft"
+									   placeholder="Data di fine sconto" value="{{ event.saleenddate|date:'d/m/Y' }}"/>
+							</li>
+						</ul>
+					</div>
+				</div>
+
+				<!--
+				<h3 style="text-align: center;">Informazioni Pubbliche</h3>
+
+				<div class="row-fluid">
+					<div class="span6">
+						<ul class="padded separate-sections">
+							<li>
+								<input readonly type="checkbox" class="" id="abilita_email" name="abilita_email"
+									   {% if event.emailcontent != '' %}checked{% endif %}/>
+								<label for="abilita_email" class="" style="margin-right:10px;">Abilita Email di
+									Iscrizione</label>
+							</li>
+							<li id="emailText">
+								<label>Email di Conferma</label>
+								<textarea readonly class="vLargeTextField" cols="40" id="id_body" name="emailcontent" rows="10">
+									{% if event.emailcontent %} {{ event.emailcontent }} {% endif %}
+								</textarea>
+							</li>
+						</ul>
+					</div>
+					<div class="span6">
+						<ul class="padded separate-sections">
+							<li>
+								<input readonly type="checkbox" class="icheck" id="is_public" name="is_public"
+									   {% if event.is_public == True %}checked{% endif %}/>
+								<label for="is_public" class="" style="margin-right:10px;">Evento Pubblico (iscrizioni
+									aperte)</label>
+							</li>
+							<li>
+								<input readonly type="checkbox" class="icheck" id="signups_enabled" name="signups_enabled"
+									   {% if event.signups_enabled == True %}checked{% endif %}/>
+								<label for="signups_enabled" class="" style="margin-right:10px;">Iscrizioni lato frontend
+									abilitate</label>
+							</li>
+							<li>
+								<input readonly type="checkbox" class="icheck" id="visible_for_its" name="visible_for_its"
+									   {% if event.visible_for_its == True %}checked{% endif %}/>
+								<label for="visible_for_its" class="" style="margin-right:10px;">Pubblica evento sulle agende
+									ITS</label>
+							</li>
+							<li id="emailAttachments">
+								{% if event.emailattachment %}
+									<div style="margin-bottom: 20px;">
+										File presente: <a href="/media/emailattachments/{{ event.emailattachment }}"
+														  target="_blank"
+														  style="font-weight: bold;text-decoration: underline;display: block;">{{ event.emailattachment }}</a>
+										<span style="display: block;font-style: italic">Per sostituire effettuare l'upload di un nuovo file</span>
+										<span style="display: block;font-style: italic">Per cancellare il file selezionare "Cancella file"</span>
+										<span>Cancella File: </span><input
+											style="width: 80%!important;vertical-align: 0px!important;" type="checkbox"
+											name="deleteFile"/>
+									</div>
+								{% endif %}
+								<input type="file" name="emailattachment" enctype="multipart/form-data"/>
+
+							</li>
+						</ul>
+					</div>
+				</div>
+				-->
+			{% endif %}
+			
+			<!--
+			<h3 style="text-align: center;">Informazioni di chiusura</h3>
+
+			<div class="row-fluid">
+				<div class="span6">
+					<ul class="padded separate-sections">
+						<li>
+							<label>Valutazione chiusura evento</label>
+							<input readonly id="feedback" type="number" min="0" max="3" name="feedback" data-prompt-position="topLeft"
+								   placeholder="Feedback" value="{{ event.feedback|default_if_none:"" }}"/>
+						</li>
+						<li>
+							<label>Numero di partecipanti</label>
+							<input readonly id="population" type="number" min="0" max="10000" name="population"
+								   data-prompt-position="topLeft" placeholder="Numero di Partecipanti"
+								   value="{{ event.population|default_if_none:"" }}"/>
+
+						</li>
+					</ul>
+				</div>
+				<div class="span6">
+					<ul class="padded separate-sections">
+						<li>
+							<label>Note di Feedback</label>
+							<textarea readonly form="event_form" rows="4" cols="50" name="feedback_note"
+									  data-prompt-position="topLeft">{{ event.feedback_note|default_if_none:"" }}</textarea>
+						</li>
+					</ul>
+				</div>
+			</div>
+			-->
+
+			<div class="form-actions">
+			</div>
+		</fieldset>
+    </form>
+    </div>
+    </div>
+    <!-- end box -->
+    </div>
+    <!-- span 12 -->
+    </div>
+    <!-- row fluid -->
+    </div>
+
+    <div class="container-fluid padded">
+        <div class="row-fluid">
+            <div class="span12">
+                <div class="box">
+                    <div class="box-header">
+                        <span class="title">Files:</span>
+                    </div>
+                    <div class="box-content">
+                        <div id="eventFileTable">
+                            <table cellpadding="0" cellspacing="0" border="0" class="dTable2 responsive">
+                                <thead>
+                                <tr>
+                                    <th>
+                                        <div>Id</div>
+                                    </th>
+                                    <th>
+                                        <div>Titolo</div>
+                                    </th>
+                                    <th>
+                                        <div>File</div>
+                                    </th>
+                                    <th>
+                                        <div>Data</div>
+                                    </th>
+                                    <th>&nbsp;</th>
+                                </tr>
+                                </thead>
+                                <tbody>
+                                {% for eventfile in eventfiles %}
+                                    <tr>
+                                        <td>{{ eventfile.id }}</td>
+                                        <td>{{ eventfile.file.title }}</td>
+                                        <td><a href="{{ MEDIA_URL }}{{ eventfile.file.file_ref }}"
+                                               target="_blank">{{ eventfile.file.file_basename }}</a></td>
+                                        <td>{{ eventfile.date_created|date:"d-m-Y" }}</td>
+
+                                        <td><a href="/admin/cabinet/{{ event.id }}/event/{{ eventfile.id }}"><i
+                                                class="icon-tasks"></i></a></td>
+                                    </tr>
+
+                                {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+		function csrfSafeMethod(method) {
+			// these HTTP methods do not require CSRF protection
+			return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+		}
+		
+		function btnCompanySelectedClicked(pk, name, company_code, type, province, street, civic, city){
+			console.log("btnCompanySelected is working!"); // sanity check
+			console.log("Pk: " + pk + ", Name: " + name + ",Code: " + company_code + ", Type: " + type + ", Provincia: " + province);
+			
+			//Set hidden company value
+			document.forms["event_form"].elements["company"].value = pk;
+			document.forms["event_form"].elements["company_selected_name"].value = name;
+			document.forms["event_form"].elements["typepointofsale"].value = parseInt(type);
+			document.forms["event_form"].elements["pointofsale"].value = company_code;
+			document.forms["event_form"].elements["province"].value = parseInt(province);
+			document.forms["event_form"].elements["place"].value = unescape(street) + " " + civic + " " + unescape(city);
+			document.forms["event_form"].elements["pointofsaledescription"].value = name;
+			
+			//Close Modal
+			document.getElementById('modalButtonClose').click();
+			
+		}
+
+        $(document).ready(function () {
+		
+			$("#btnSearchCompanies").on("click",function(e){
+				e.preventDefault();
+				console.log("search_companies post is working!"); // sanity check
+				$.ajaxSetup({
+					beforeSend: function(xhr, settings) {
+						if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+							xhr.setRequestHeader("X-CSRFToken", document.forms["contacts_form"].elements["csrfmiddlewaretoken"].value);
+						}
+					}
+				});
+				$.ajax({
+					url : "../search_companies/", // the endpoint
+					type : "POST", // http method
+					data : { 
+						text : document.forms["contacts_form"].elements["txtSearchCompany"].value,
+						limit : document.forms["contacts_form"].elements["limit"].value,
+						offset : document.forms["contacts_form"].elements["offset"].value,
+						clicked : document.forms["contacts_form"].elements["clicked"].value,
+						csrfmiddlewaretoken: document.getElementsByName('csrfmiddlewaretoken')[0].value,
+						newsearch : true
+					}, // data sent with the post request
+
+					// handle a successful response
+					success : function(json) {
+						console.log(json); // log the returned json to the console
+						console.log("success"); // another sanity check
+						
+						/*
+						<tr>
+							<td><button class="btn btn-blue btnCompanySelected" onclick="btnCompanySelectedClicked('{{company.pk}}', '{{company.name|escapejs }}')" value="{{ company.pk }}"><i class="icon-signin"></i>Select</button></td>
+							<td>{{ company.company_code }}</td>
+							<td>{{ company.name }}</td>
+							<td>{{ company.vat }}</td>
+							<td>{{ company.email|default_if_none:"" }}</td>
+							<td>{{ company.street}} {{company.civic}}, {{company.city}} ({{company.province.code}})</td>
+							<td><a href="/admin/contacts/company/{{company.vat}}"><i class="icon-tasks"></i></a></td>
+						</tr>
+						*/
+					   
+						//Remove all rows from Table
+						document.getElementById("tblBodyCompanies").innerHTML = "";
+						
+						//Get Table
+						var table = document.getElementById("modalCompaniesTable").getElementsByTagName('tbody')[0];;
+
+						var companies = JSON.parse(json.companies); 
+						console.log(companies[0]);
+						
+						if(companies.length == 0){
+							alert("Nessun risultato trovato.");
+						}else{
+						
+							var company;
+							for(company in companies){
+								console.log("Company: " + companies[company]);
+								
+								//Create Row and Add To Table
+								var row = table.insertRow();
+								//Create cell
+								var cell_0 = row.insertCell(0);
+								var cell_1 = row.insertCell(1);
+								var cell_2 = row.insertCell(2);
+								var cell_3 = row.insertCell(3);
+								var cell_4 = row.insertCell(4);
+								var cell_5 = row.insertCell(5);
+								var cell_6 = row.insertCell(6);
+								//Valorize cell
+								cell_0.innerHTML = '<button class="btn btn-blue btnCompanySelected" onclick="btnCompanySelectedClicked(\''+companies[company].pk+'\', \''+companies[company].fields.name+'\', '+companies[company].fields.company_code+', '+companies[company].fields.type+', \''+companies[company].fields.province+'\', \''+escape(companies[company].fields.street)+'\', \''+companies[company].fields.civic+'\', \''+escape(companies[company].fields.city)+'\')" value="'+companies[company].pk+'"><i class="icon-signin"></i>Select</button>';
+								cell_1.innerHTML = companies[company].fields.company_code;
+								cell_2.innerHTML = companies[company].fields.name;
+								cell_3.innerHTML = companies[company].pk;
+								cell_4.innerHTML = (companies[company].fields.email) ? companies[company].fields.email : "";
+								cell_5.innerHTML = companies[company].fields.street + " " + companies[company].fields.civic + ", " + companies[company].fields.city + " " + companies[company].fields.province.code;
+								cell_6.innerHTML = '<a href="/admin/contacts/company/' + companies[company].pk + '"><i class="icon-tasks"></i></a>';
+							}
+							
+						}
+					   
+					},
+
+					// handle a non-successful response
+					error : function(xhr,errmsg,err) {
+						console.log(xhr.status + ": " + xhr.responseText); // provide a bit more info about the error to the console
+					}
+				});
+			});
+
+            $("#abilita_email").on("click", function () {
+                if ($(this).is(":checked") == true) {
+                    $("#emailText").show();
+                    $("#emailAttachments").show();
+                } else {
+                    $("#emailText").hide();
+                    $("#emailAttachments").hide();
+                }
+            });
+            $("#startdate").datepicker({"language": "it", "format": "dd/mm/yyyy"});
+
+            $("#enddate").datepicker({"language": "it", "format": "dd/mm/yyyy"});
+            $(".active").removeClass("active");
+             {% if from_its %}
+                $("#itsAreaMenu").addClass("active");
+             {% else %}
+                 $("#eventsMenu").addClass("active");
+
+             {% endif %}
+
+            var salestart = $("#salestartdate").datepicker({"language": "it", "format": "dd/mm/yyyy"
+            }).on("changeDate", function (dt) {
+                $("#saleenddate").datepicker('setStartDate', dt.date);
+            });
+            var saleend = $("#saleenddate").datepicker({"language": "it", "format": "dd/mm/yyyy"
+            });
+
+            var enddate = "{{event.enddate|date:'d/m/Y'}}";
+            if (enddate) {
+                $("#enddate").val(enddate);
+                $("#enddate").show();
+
+            }
+            $('#id_body').redactor({
+                lang: 'it',
+                buttonsAdd: ['|', 'button1'],
+                buttonsCustom: {
+                    button1: {
+                        title: 'Placeholders',
+                        dropdown: {
+                            nome: {title: "Nome", callback: function (buttonName, buttonDOM, buttonObject) {
+                                this.execCommand('inserthtml', '[[NOME]] ');
+                            }},
+                            cognome: {title: "Cognome", callback: function (buttonName, buttonDOM, buttonObject) {
+                                this.execCommand('inserthtml', '[[COGNOME]] ');
+                            }},
+                            email: {title: "Email", callback: function (buttonName, buttonDOM, buttonObject) {
+                                this.execCommand('inserthtml', '[[EMAIL]] ');
+                            }}
+
+                        }
+                    }
+                },
+                removeEmptyTags: false,
+                convertDivs: false,
+                iframe: true,
+                //css: "/static/admin/css/iframe.css",
+                //fullpage: true,
+                imageUpload: '/ajax/photos/upload/',
+                imageGetJson: '/ajax/photos/recent/'
+
+            });
+
+            $(".dTable2").dataTable({
+                bJQueryUI: !1, bAutoWidth: !1,
+                sPaginationType: "full_numbers",
+                sDom: '<"table-header"fl>t<"table-footer"ip>',
+                "oLanguage": {
+                    "sSearch": "Cerca",
+                    "sLengthMenu": "Mostra _MENU_ righe per pagina",
+                    "sZeroRecords": "Nessun risultato trovato",
+                    "sInfo": "Risultati da _START_ a _END_ di _TOTAL_ ",
+                    "sInfoEmpty": "Mostrati da 0 a 0 di 0 records",
+                    "sInfoFiltered": "(filtrati da _MAX_ records totali)",
+                    "oPaginate": {
+                        "sFirst": "Primo",
+                        "sLast": "Ultimo",
+                        "sNext": "Prossimo",
+                        "sPrevious": "Precedente"
+
+                    }
+                }
+            });
+        });
+    </script>
+
+    <script>
+		function updatePointOfSale(data, company_id) {
+
+            if (company_id !== -1) {
+                $('#pointofsale').val('');
+                $('#pointofsaledescription').val('');
+                $('#place').val('');
+                $('#lst-provinces').val('').trigger('change');
+                $('#lst-typepointofsale').val('').trigger('change');
+
+                $.each(data, function (index, obj) {
+
+                    if (obj.id === company_id) {
+                        $('#pointofsale').val(obj.code);
+                        $('#pointofsaledescription').val(obj.desc);
+                        $('#place').val(obj.address);
+                        $('#lst-provinces').val(obj.province).trigger('change');
+                        $('#lst-typepointofsale').val(obj.type).trigger('change');
+                    }
+                });
+            }
+        }
+        !function () {
+        // Create dataset used to populate the ITS and Consultant dropdown
+        var its_data = [
+                { "id": -1, "desc": "---", "parent": undefined }
+                {% for rel in its_rels %}
+                    ,{ "id": {{ rel.its.id }}, "desc": "{{ rel.its.first_name }} {{ rel.its.last_name }} {% if rel.its.email %}({{ rel.its.email}}){% endif %}", "parent": {{ rel.district.id }} }
+                {% endfor %}
+            ],
+            consultant_data = [
+                { "id": -1, "desc": "---", "parent": undefined }
+                {% for rel in consultant_rels %}
+                    ,{ "id": "{{ rel.consultant.code }}", "desc": "{{ rel.consultant.name }} {{ rel.consultant.surname }}", "parent": {{ rel.its.id }} }
+                {% endfor %}
+            ],
+            company_data = [
+                { "id": -1, "desc": "---", "type": -1, "province": -1, "address": "" }
+                {% for c in companies %}
+                    ,{ "id": '{{ c.vat }}', "code": "{{ c.company_code }}", "desc": "{{ c.name }}", "type": {% if c.type %}{{ c.type.id }}{% else %}-1{% endif %}, "province": {% if c.province %}{{ c.province.id }}{% else %}-1{% endif %}, "address": "{{ c.street }}, {{ c.civic }} {{ c.city }} ({{ c.province.code }})" }
+                {% endfor %}
+            ],
+            district_id, its_id, consultant_id;
+
+        // Populate selected fields
+        function readLists(listName) {
+            if (typeof listName === "undefined" || listName === "district") {
+                district_id = parseInt($("#lst-district option:selected").val());
+            }
+            if (typeof listName === "undefined" || listName === "its") {
+                its_id = parseInt($("#lst-its option:selected").val());
+            }
+            if (typeof listName === "undefined" || listName === "consultant") {
+                consultant_id = $("#lst-consultant option:selected").val();
+            }
+            if (typeof listName === "undefined" || listName === "company") {
+                company_id = $("#lst-companies option:selected").val();
+            }
+        }
+
+        // Function used to refresh the drop down based on a parent_id
+        function refreshList(list, data, parent_id) {
+            // Clear all drop down items
+            list.find('option').remove();
+			
+			console.log("Update List: " + list);
+
+            // Loop though the data and create new dropdown items.  id of -1 is always shown
+            $.each(data, function (index, obj) {
+                if (parent_id === -1 || obj.id === -1 || obj.parent === parent_id) {
+                    list.append('<option value="' + obj.id + '" >' + obj.desc + '</option>');
+                }
+            });
+
+            list.trigger('change');
+			
+			console.log("---");
+        }
+
+        $("#lst-district").change(function () {
+            readLists("district");
+            refreshList($("#lst-its"), its_data, district_id);
+            // Invoke the change in consultant dropdown
+            $("#lst-its").change();
+        });
+
+        $("#lst-its").change(function () {
+			//console.log("its change enter");
+
+            readLists("its");
+            refreshList($("#lst-consultant"), consultant_data, its_id);
+			
+			//console.log("its change finish");
+        });
+		
+		$("#lst-consultant").change(function () {
+			//console.log("consultant change enter");
+
+            readLists("consultant");
+            //refreshList($("#lst-consultant"), consultant_data, its_id);
+			
+			//console.log("consultant change finish");
+        });
+
+        $("#lst-companies").change(function () {
+            readLists("company");
+            if (company_id !== -1)
+                updatePointOfSale(company_data, company_id);
+        });
+
+
+        // Populate Dropdown based on value from querystring.  Querystring value are read in server.
+        $("document").ready(function () {
+            var district_id = {{ district_id }},
+                its_id = {{ its_id }},
+                consultant_id = "{{ consultant_id }}";
+            var company_id = -1;
+
+
+            if (district_id !== -1) {
+                $("#lst-district").val(district_id);
+            }
+            $("#lst-district").change();
+
+			//console.log("its enter");
+
+            if (its_id !== -1) {
+                $("#lst-its").val(its_id);
+                $("#lst-its").change();
+            }
+			
+			//console.log("document ready enter: " + consultant_id);
+			
+			if (consultant_id !== -1) {
+                $("#lst-consultant").val(consultant_id);
+				$("#lst-consultant").change();
+            }
+			
+			//console.log("document ready finish");
+
+            refreshList($("#lst-companies"), company_data, -1);
+
+        });
+    }();
+</script>
+{% endblock %}

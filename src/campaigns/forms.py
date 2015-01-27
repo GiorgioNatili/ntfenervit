@@ -92,11 +92,16 @@ class EventSearchForm(HighlightedModelSearchForm):
         # print(str(sqs))
         if not self.is_valid():
             return self.no_query_found()
-        for _ in ('title', 'place', 'date', 'campaign', 'province', 'enddate',
+        for _ in ('title', 'place', 'campaign', 'province',
                   'status', 'pointofsaletype', 'pointofsaledescription', 'areamanager',
                   'typepointofsale', 'its_districtmanager', 'district', 'consultant',
                   'channel', 'eventtype', 'theme', 'trainer'):
             if self.cleaned_data[_]:
                 sqs = sqs.filter(content=self.cleaned_data[_])
+		
+        if self.cleaned_data["date"]:
+            sqs = sqs.filter(date__gte=self.cleaned_data["date"])
+        if self.cleaned_data["enddate"]:
+            sqs = sqs.filter(date__lte=self.cleaned_data["enddate"])
 
         return sqs

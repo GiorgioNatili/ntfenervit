@@ -69,7 +69,7 @@
                                 </div>
                             </div>
                             <div class="form-actions">
-                                <button type="submit" class="btn btn-blue">Cerca</button>
+                                <button onclick="form_submit();" type="button" class="btn btn-blue">Cerca</button>
                             </div>
                         </form>
                     </div>
@@ -131,6 +131,27 @@
     </div>
 
     <script>
+		
+		
+		function form_submit(){
+			//Get Values
+			var search_q = document.forms["contact_form"].elements["q"].value;
+			var search_name = document.forms["contact_form"].elements["name"].value;
+			var search_description = document.forms["contact_form"].elements["description"].value;
+			var search_status = document.forms["contact_form"].elements["status"].value;
+			var search_startdate = document.forms["contact_form"].elements["startdate"].value;
+			var search_enddate = document.forms["contact_form"].elements["enddate"].value;
+			
+			if(search_q || search_name || search_description || search_status || search_startdate || search_enddate){
+				//se almeno uno è inserito allora submit
+				document.getElementById('contact_form').submit();
+			}else{
+				//else visualizza un'alert
+				alert("Si prega di inserire almeno un campo.")
+			}
+		}
+	
+	
         $(document).ready(function() {
 
             var start=$("#startdate" ).datepicker({"language":"it","format":"dd/mm/yyyy"

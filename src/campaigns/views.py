@@ -880,14 +880,17 @@ def view_event_details(request, id):
     from_its = False
     if request.GET.get('from_its'):
         from_its = True
+    
+    can_handle_events_variable = True
 
     event = get_object_or_404(Event, id=id)
     if not can_handle_events(request.user, e=event, from_its=from_its):
-        messages.error(request, "Non si hanno privilegi sufficienti per modificare l'evento {}".format(event.title))
-        if is_its(request.user):
-            return redirect('/admin/its/agenda/')
-        else:
-            return redirect('/admin')
+        #messages.error(request, "Non si hanno privilegi sufficienti per modificare l'evento {}".format(event.title))
+        #if is_its(request.user):
+            #return redirect('/admin/its/agenda/')
+        #else:
+            #return redirect('/admin')
+        can_handle_events_variable = False
 
     areamanager, campaigns, channel, consultant_id, \
         consultant_rels, consultants, district_id, districts, \
@@ -933,7 +936,12 @@ def view_event_details(request, id):
          'areamanager': areamanager, 'eventtype': eventtype,
          'channel': channel, 'theme': theme, 'pointofsaletype': pointofsaletype,
          'its_id': its_id, 'district_id': district_id, 'consultant_id': consultant_id}
-    return render_to_response('admin/campaigns/view_event_details.html',
+    
+    if can_handle_events_variable == True:
+        return render_to_response('admin/campaigns/view_event_details.html',
+                              c, context_instance=RequestContext(request))
+    else:
+        return render_to_response('admin/campaigns/view_event_details_its.html',
                               c, context_instance=RequestContext(request))
 
 
@@ -1889,10 +1897,19 @@ def search_campaign(request):
     results = []
     if request.GET.has_key('q'):
         results = form.search()
-    campaigns = None
+    #campaigns = None
+    #if len(results) > 0:
+        #campaigns = Campaign.objects.filter(pk__in=[r.pk for r in results])
+        #campaigns = campaigns[:int(request.GET.get('max_results', 10000))]
+
+    campaigns = []
     if len(results) > 0:
-        campaigns = Campaign.objects.filter(pk__in=[r.pk for r in results])
-        campaigns = campaigns[:int(request.GET.get('max_results', 10000))]
+        max_results = int(request.GET.get('max_results', 10000))
+        for r in results:
+            if r is not None and r.model_name == 'campaign':
+                campaigns.append(r.object)
+                if len(campaigns) >= max_results:
+                    break
 
     return render_to_response('admin/search/search_campaign.html', {
         'search_query': "",

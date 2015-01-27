@@ -127,7 +127,7 @@
                                 </div>
                             </div>
                             <div class="form-actions">
-                                <button type="submit" class="btn btn-blue">Cerca</button>
+                                <button onclick="form_submit();" type="button" class="btn btn-blue">Cerca</button>
                             </div>
                         </form>
                     </div>
@@ -194,6 +194,33 @@
     </div>
 
     <script>
+	
+		function form_submit(){
+			//Get Values
+			var search_q = document.forms["contact_form"].elements["q"].value;
+			var search_name = document.forms["contact_form"].elements["name"].value;
+			var search_city = document.forms["contact_form"].elements["city"].value;
+			var search_province = document.forms["contact_form"].elements["province"].value;
+			var search_comp_rank_from = document.forms["contact_form"].elements["comp_rank_from"].value;
+			var search_comp_rank_to = document.forms["contact_form"].elements["comp_rank_to"].value; //Select
+			var search_part_rank_from = document.forms["contact_form"].elements["part_rank_from"].value; //Select
+			var search_part_rank_to = document.forms["contact_form"].elements["part_rank_to"].value; //Select
+			var search_surname = document.forms["contact_form"].elements["surname"].value; //Select
+			var search_street = document.forms["contact_form"].elements["street"].value; //Select
+			var search_zip = document.forms["contact_form"].elements["zip"].value;
+			var search_work = document.forms["contact_form"].elements["work"].value;
+			var search_st = document.forms["contact_form"].elements["st"].value;
+			
+			if(search_q || search_name || search_city || search_province || search_comp_rank_from || search_comp_rank_to || search_part_rank_from || search_part_rank_to || search_surname || search_street || search_zip || search_work || search_st){
+				//se almeno uno è inserito allora submit
+				document.getElementById('contact_form').submit();
+			}else{
+				//else visualizza un'alert
+				alert("Si prega di inserire almeno un campo.")
+			}
+		}
+		
+		
         $(document).ready(function() {
             $(".dTable2").dataTable({
                 bJQueryUI:!1

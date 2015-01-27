@@ -98,7 +98,10 @@
                                 <div class="span6">
                                     <ul class="padded separate-sections">
                                         <li class="input">
-                                            <input type="text" id="stardate" style="text-transform:capitalize;" name="date"  data-prompt-position="topLeft" placeholder="Data" value="{{ form.date.value|default_if_none:"" }}"/>
+                                            <input type="text" id="stardate" style="text-transform:capitalize;" name="date"  data-prompt-position="topLeft" placeholder="Data Iniziale" value="{{ form.date.value|default_if_none:"" }}"/>
+                                        </li>
+										<li class="input">
+                                            <input type="text" id="enddate" style="text-transform:capitalize;" name="enddate"  data-prompt-position="topLeft" placeholder="Data Finale" value="{{ form.enddate.value|default_if_none:"" }}"/>
                                         </li>
                                         <li>
                                             <input type="text" style="text-transform:capitalize;" name="pointofsaledescription"  data-prompt-position="topLeft" placeholder="Nominativo Punto Vendita" value="{{ form.pointofsaledescription.value|default_if_none:"" }}"/>
@@ -160,7 +163,7 @@
                                 </div>
                             </div>
                             <div class="form-actions">
-                                <button type="submit" class="btn btn-blue">Cerca</button>
+                                <button onclick="form_submit();" type="button" class="btn btn-blue">Cerca</button>
                             </div>
                         </form>
                     </div>
@@ -217,9 +220,42 @@
     </div>
 
     <script>
+	
+		function form_submit(){
+			//Get Values
+			var search_q = document.forms["contact_form"].elements["q"].value;
+			var search_title = document.forms["contact_form"].elements["title"].value;
+			var search_desc = document.forms["contact_form"].elements["description"].value;
+			var search_pointofsalettt = document.forms["contact_form"].elements["pointofsale"].value;
+			var search_trainer = document.forms["contact_form"].elements["trainer"].value;
+			var search_itsdistrict = document.forms["contact_form"].elements["its_districtmanager"].value; //Select
+			var search_consultant = document.forms["contact_form"].elements["consultant"].value; //Select
+			var search_areamanager = document.forms["contact_form"].elements["areamanager"].value; //Select
+			var search_pointofsale = document.forms["contact_form"].elements["pointofsaletype"].value; //Select
+			var search_eventtype = document.forms["contact_form"].elements["eventtype"].value; //Select
+			var search_initdate = document.forms["contact_form"].elements["date"].value;
+			var search_end_date = document.forms["contact_form"].elements["enddate"].value;
+			var search_pointofsaledescription = document.forms["contact_form"].elements["pointofsaledescription"].value;
+			var search_place = document.forms["contact_form"].elements["place"].value;
+			var search_province = document.forms["contact_form"].elements["province"].value; //Select
+			var search_theme = document.forms["contact_form"].elements["theme"].value; //Select
+			var search_channel = document.forms["contact_form"].elements["channel"].value; //Select
+			var search_campaign = document.forms["contact_form"].elements["campaign"].value; //Select
+			
+			if(search_q || search_title || search_desc || search_pointofsalettt || search_trainer || search_initdate || search_end_date || search_pointofsaledescription || search_place || 
+				search_itsdistrict || search_consultant || search_areamanager || search_pointofsale || search_eventtype || search_province || search_theme || search_channel || search_campaign){
+				//se almeno uno è inserito allora submit
+				document.getElementById('contact_form').submit();
+			}else{
+				//else visualizza un'alert
+				alert("Si prega di inserire almeno un campo.")
+			}
+		}
+	
         $(document).ready(function() {
 
             $("#stardate" ).datepicker({"language":"it","format":"dd/mm/yyyy"});
+			$("#enddate" ).datepicker({"language":"it","format":"dd/mm/yyyy"});
 
             $(".dTable2").dataTable({
                 bJQueryUI:!1
